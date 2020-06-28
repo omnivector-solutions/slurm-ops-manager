@@ -45,7 +45,7 @@ class SlurmInstallManager(Object):
         self._source_systemd_template = \
             self._TEMPLATE_DIR / f'{self.slurm_component}.service'
         self._target_systemd_template = \
-            Path('/etc/systemd/system/{self.slurm_component}.service')
+            Path(f'/etc/systemd/system/{self.slurm_component}.service')
 
     def prepare_system_for_slurm(self):
         """Prepare the system for slurm.
