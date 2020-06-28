@@ -150,7 +150,6 @@ class SlurmInstallManager(Object):
         # of the slurm.tar.gz resource has completed before moving on.
         while not Path(f"{self.SLURM_TMP_RESOURCE}/sbin/slurmd").exists():
             sleep(1)
-        sleep(5)
 
         for slurm_resource_dir in ['bin', 'sbin', 'lib', 'include']:
             try:
