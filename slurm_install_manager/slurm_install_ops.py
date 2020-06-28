@@ -68,7 +68,7 @@ class SlurmInstallManager(Object):
             subprocess.call([
                 "chown",
                 "-R",
-                f"{self.SLURM_USER}:{self.SLURM_GROUP}",
+                f"{self._SLURM_USER}:{self._SLURM_GROUP}",
                 slurm_dir,
             ])
         except subprocess.CalledProcessError as e:
@@ -80,23 +80,23 @@ class SlurmInstallManager(Object):
             subprocess.call([
                 "groupadd",
                 "-r",
-                f"--gid={self.SLURM_GID}",
-                self.SLURM_USER,
+                f"--gid={self._SLURM_GID}",
+                self._SLURM_USER,
             ])
         except subprocess.CalledProcessError as e:
-            logger.error(f"Error creating {self.SLURM_GROUP} - {e}")
+            logger.error(f"Error creating {self._SLURM_GROUP} - {e}")
 
         try:
             subprocess.call([
                 "useradd",
                 "-r",
                 "-g",
-                self.SLURM_GROUP,
-                f"--uid={self.SLURM_UID}",
-                self.SLURM_USER,
+                self._SLURM_GROUP,
+                f"--uid={self._SLURM_UID}",
+                self._SLURM_USER,
             ])
         except subprocess.CalledProcessError as e:
-            logger.error(f"Error creating {self.SLURM_USER} - {e}")
+            logger.error(f"Error creating {self._SLURM_USER} - {e}")
 
     def _prepare_for_slurmd(self):
         """Create slurmd specific files and dirs."""
@@ -152,20 +152,20 @@ class SlurmInstallManager(Object):
                 "tar",
                 "-xzvf",
                 resource_path,
-                f"--one-top-level={self.SLURM_TMP_RESOURCE}",
+                f"--one-top-level={self._SLURM_TMP_RESOURCE}",
             ])
         except subprocess.CalledProcessError as e:
             logger.error(f"Error untaring slurm bins - {e}")
 
         # Wait on the existence of slurmd bin to verify that the untaring
         # of the slurm.tar.gz resource has completed before moving on.
-        while not Path(f"{self.SLURM_TMP_RESOURCE}/sbin/slurmd").exists():
+        while not Path(f"{self._SLURM_TMP_RESOURCE}/sbin/slurmd").exists():
             sleep(1)
 
         for slurm_resource_dir in ['bin', 'sbin', 'lib', 'include']:
             try:
                 subprocess.call(
-                    (f"cp -R {self.SLURM_TMP_RESOURCE}/{slurm_resource_dir}/* "
+                    (f"cp -R {self._SLURM_TMP_RESOURCE}/{slurm_resource_dir}/* "
                      "/usr/local/{slurm_resource_dir}/"),
                     shell=True
                 )
