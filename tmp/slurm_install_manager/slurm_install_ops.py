@@ -17,8 +17,7 @@ logger = logging.getLogger()
 class SlurmInstallManager(Object):
     """Slurm installation of lifecycle ops."""
 
-    _TEMPLATE_DIR = \
-        Path(os.path.dirname(os.path.abspath(__file__))) / 'templates'
+    _TEMPLATE_DIR = Path(f"{os.getcwd()}/templates")
     _SLURM_USER = "slurm"
     _SLURM_UID = 995
     _SLURM_GROUP = "slurm"
@@ -29,23 +28,19 @@ class SlurmInstallManager(Object):
         """Determine slurm component and config template from key."""
         super().__init__(charm, key)
 
-        # Throw an exception if initialized with an unsupported slurm
-        # component.
+        # Throw an exception if initialized with an unsupported slurm component.
         if key == "slurmdbd":
             self.slurm_component = key
-            self.slurm_config_template = \
-                self._TEMPLATE_DIR / 'slurmdbd.conf.tmpl'
-        elif key in [
-           "slurmd", "slurmrestd", "slurmctld", "slurmdbd"]:
+            self.slurm_config_template = self._TEMPLATE_DIR / 'slurmdbd.conf.tmpl'
+        elif key in ["slurmd", "slurmrestd", "slurmctld", "slurmdbd"]:
             self.slurm_component = key
             self.slurm_config_template = self._TEMPLATE_DIR / 'slurm.conf.tmpl'
         else:
             raise Exception("Slurm component not supported: {key}")
 
-        self._source_systemd_template = \
-            self._TEMPLATE_DIR / f'{self.slurm_component}.service'
-        self._target_systemd_template = \
-            Path('/etc/systemd/system/{self.slurm_component}.service')
+        self._source_systemd_template = self._TEMPLATE_DIR / f'{self.slurm_component}.service'
+        self._target_systemd_template = Path('/etc/systemd/system/{self.slurm_component}.service')
+
 
     def prepare_system_for_slurm(self):
         """Prepare the system for slurm.
@@ -165,8 +160,7 @@ class SlurmInstallManager(Object):
         for slurm_resource_dir in ['bin', 'sbin', 'lib', 'include']:
             try:
                 subprocess.call(
-                    (f"cp -R {self.SLURM_TMP_RESOURCE}/{slurm_resource_dir}/* "
-                     "/usr/local/{slurm_resource_dir}/"),
+                    f"cp -R {self.SLURM_TMP_RESOURCE}/{slurm_resource_dir}/* /usr/local/{slurm_resource_dir}/",
                     shell=True
                 )
             except subprocess.CalledProcessError as e:
@@ -181,7 +175,7 @@ class SlurmInstallManager(Object):
             logger.error(f"Error setting LD_LIBRARY_PATH - {e}")
 
     def _setup_systemd(self):
-        """Setup systemd services for slurm components."""
+        """Setup systemd services for slurm components.""" 
         try:
             subprocess.call([
                 "cp",
@@ -190,3 +184,4 @@ class SlurmInstallManager(Object):
             ])
         except subprocess.CalledProcessError as e:
             logger.error(f"Error copying systemd - {e}")
+        

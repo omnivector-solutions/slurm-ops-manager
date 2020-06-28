@@ -1,0 +1,11 @@
+slurm_install_manager-0.0.1.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4
+slurm_install_manager-0.0.1.dist-info/LICENSE,sha256=D4bEtNWVbYSXLJINknvUrJwLtAwl4UN6Bd6ViO2yIAw,1077
+slurm_install_manager-0.0.1.dist-info/METADATA,sha256=E-sT1o-Amt0xV0mvEHaZMyzYX9PB4Ccp3uTC6iLKG1A,416
+slurm_install_manager-0.0.1.dist-info/RECORD,,
+slurm_install_manager-0.0.1.dist-info/WHEEL,sha256=g4nMs7d-Xl9-xC9XovUrsDHGXt-FT0E17Yqo92DEfvY,92
+slurm_install_manager-0.0.1.dist-info/top_level.txt,sha256=tUmbZ2Ra63Y_N4BijAdKBqL-5XnDsz23GAr5LbKwFVQ,22
+slurm_install_manager/__init__.py,sha256=Syo0AVhZJfepcooV_D7HzXrh-IjA_0Uf-DbbmEUUy08,40
+slurm_install_manager/__pycache__/__init__.cpython-38.pyc,,
+slurm_install_manager/__pycache__/slurm_install_ops.cpython-38.pyc,,
+slurm_install_manager/slurm_install_ops.py,sha256=szl_VVxdJltI9b7XNZEvFzuqadevLsaTRcteZes7Q-s,6365
+slurm_install_manager/templates/slurmd.service,sha256=f8Uh6Upm4EBBkcOPuhxknqFYsDHRbabtKpY2xGK4VMc,462

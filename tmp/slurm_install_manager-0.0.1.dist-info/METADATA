@@ -1,0 +1,22 @@
+Metadata-Version: 2.1
+Name: slurm-install-manager
+Version: 0.0.1
+Summary: UNKNOWN
+Home-page: https://github.com/omnivector-solutions/slurm-install-manager
+License: MIT
+Platform: UNKNOWN
+Requires-Python: >=3.6
+
+# slurm-install-manager
+
+This library is used to facilitate the installation and configuration of slurm.
+
+
+#### License
+* [MIT](LICENSE)
+
+
+#### Contact
+* OmniVector Solutions <admin@omnivector.solutions>
+
+
