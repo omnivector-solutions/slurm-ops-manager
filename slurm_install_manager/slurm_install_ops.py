@@ -60,7 +60,7 @@ class SlurmInstallManager(Object):
         self._provision_slurm_resource()
         self._set_ld_library_path()
 
-        self._setup_sytemd()
+        self._setup_systemd()
 
     def _chown_slurm_user_and_group_recursive(self, slurm_dir):
         """Recursively chown filesystem location to slurm user/slurm group."""
