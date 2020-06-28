@@ -10,4 +10,5 @@ setup(
     url='https://github.com/omnivector-solutions/slurm-install-manager',
     install_requires=[],
     python_requires='>=3.6',
+    package_data={'slurm_install_manager': ['templates/*']},
 )
