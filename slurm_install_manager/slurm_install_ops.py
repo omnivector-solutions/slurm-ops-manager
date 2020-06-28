@@ -17,12 +17,12 @@ logger = logging.getLogger()
 class SlurmInstallManager(Object):
     """Slurm installation of lifecycle ops."""
 
-    TEMPLATE_DIR = Path(f"{os.getcwd()}/templates")
-    SLURM_USER = "slurm"
-    SLURM_UID = 995
-    SLURM_GROUP = "slurm"
-    SLURM_GID = 995
-    SLURM_TMP_RESOURCE = "/tmp/slurm-resource"
+    _TEMPLATE_DIR = Path(f"{os.getcwd()}/templates")
+    _SLURM_USER = "slurm"
+    _SLURM_UID = 995
+    _SLURM_GROUP = "slurm"
+    _SLURM_GID = 995
+    _SLURM_TMP_RESOURCE = "/tmp/slurm-resource"
 
     def __init__(self, charm, key):
         """Determine slurm component and config template from key."""
@@ -31,12 +31,16 @@ class SlurmInstallManager(Object):
         # Throw an exception if initialized with an unsupported slurm component.
         if key == "slurmdbd":
             self.slurm_component = key
-            self.slurm_config_template = self.TEMPLATE_DIR / 'slurmdbd.conf.tmpl'
+            self.slurm_config_template = self._TEMPLATE_DIR / 'slurmdbd.conf.tmpl'
         elif key in ["slurmd", "slurmrestd", "slurmctld", "slurmdbd"]:
             self.slurm_component = key
-            self.slurm_config_template = self.TEMPLATE_DIR / 'slurm.conf.tmpl'
+            self.slurm_config_template = self._TEMPLATE_DIR / 'slurm.conf.tmpl'
         else:
             raise Exception("Slurm component not supported: {key}")
+
+        self._source_systemd_template = self._TEMPLATE_DIR / f'{self.slurm_component}.service'
+        self._target_systemd_template = Path('/etc/systemd/system/{self.slurm_component}.service')
+
 
     def prepare_system_for_slurm(self):
         """Prepare the system for slurm.
@@ -46,13 +50,12 @@ class SlurmInstallManager(Object):
         * provision slurm resource
         """
         self._create_slurm_user_and_group()
-        self._prepare_slurm_system_fs()
-
-        if self.slurm_component == "slurmd":
-            self._prepare_for_slurmd()
+        self._prepare_filesystem()
 
         self._provision_slurm_resource()
         self._set_ld_library_path()
+
+        self._setup_sytemd()
 
     def _chown_slurm_user_and_group_recursive(self, slurm_dir):
         """Recursively chown filesystem location to slurm user/slurm group."""
@@ -90,16 +93,6 @@ class SlurmInstallManager(Object):
         except subprocess.CalledProcessError as e:
             logger.error(f"Error creating {self.SLURM_USER} - {e}")
 
-    def _prepare_slurm_system_fs(self):
-        """Create the needed system directories needed by slurm."""
-        slurm_dirs = [
-            "/etc/sysconfig/slurm",
-            "/var/log/slurm",
-        ]
-        for slurm_dir in slurm_dirs:
-            Path(slurm_dir).mkdir(parents=True)
-            self._chown_slurm_user_and_group_recursive(slurm_dir)
-
     def _prepare_for_slurmd(self):
         """Create slurmd specific files and dirs."""
         slurmd_dirs = [
@@ -125,6 +118,19 @@ class SlurmInstallManager(Object):
         for slurmd_file in slurmd_files:
             Path(slurmd_file).touch()
         self._chown_slurm_user_and_group_recursive('/var/lib/slurmd')
+
+    def _prepare_filesystem(self):
+        """Create the needed system directories needed by slurm."""
+        slurm_dirs = [
+            "/etc/sysconfig/slurm",
+            "/var/log/slurm",
+        ]
+        for slurm_dir in slurm_dirs:
+            Path(slurm_dir).mkdir(parents=True)
+            self._chown_slurm_user_and_group_recursive(slurm_dir)
+
+        if self.slurm_component == "slurmd":
+            self._prepare_for_slurmd()
 
     def _provision_slurm_resource(self):
         """Provision the slurm resource."""
@@ -168,4 +174,14 @@ class SlurmInstallManager(Object):
         except subprocess.CalledProcessError as e:
             logger.error(f"Error setting LD_LIBRARY_PATH - {e}")
 
-
+    def _setup_systemd(self):
+        """Setup systemd services for slurm components.""" 
+        try:
+            subprocess.call([
+                "cp",
+                self._source_systemd_template,
+                self._target_systemd_template
+            ])
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error copying systemd - {e}")
+        
