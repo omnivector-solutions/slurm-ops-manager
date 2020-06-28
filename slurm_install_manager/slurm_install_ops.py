@@ -166,7 +166,7 @@ class SlurmInstallManager(Object):
             try:
                 subprocess.call(
                     (f"cp -R {self._SLURM_TMP_RESOURCE}/{slurm_resource_dir}/* "
-                     "/usr/local/{slurm_resource_dir}/"),
+                     f"/usr/local/{slurm_resource_dir}/"),
                     shell=True
                 )
             except subprocess.CalledProcessError as e:
