@@ -1,0 +1,18 @@
+version: 2.1
+workflows:
+  lint:
+    jobs:
+      - flake8
+
+jobs:
+  flake8:
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - checkout
+      - run:
+          command: pip install tox
+      - run:
+          name: Run Lint
+          command: |
+            make lint

@@ -1,0 +1,172 @@
+#!/usr/bin/env python3
+"""This module provides the SlurmInstallManager."""
+import logging
+import os
+from pathlib import Path
+import subprocess
+from time import sleep
+
+
+from ops.framework import Object
+from ops.model import ModelError
+
+
+logger = logging.getLogger()
+
+
+class SlurmInstallManager(Object):
+    """Slurm installation of lifecycle ops."""
+
+    TEMPLATE_DIR = Path(f"{os.getcwd()}/templates")
+    SLURM_USER = "slurm"
+    SLURM_UID = 995
+    SLURM_GROUP = "slurm"
+    SLURM_GID = 995
+    SLURM_TMP_RESOURCE = "/tmp/slurm-resource"
+
+    def __init__(self, charm, key):
+        """Determine slurm component and config template from key."""
+        super().__init__(charm, key)
+
+        # Throw an exception if initialized with an unsupported slurm component.
+        if key == "slurmdbd":
+            self.slurm_component = key
+            self.slurm_config_template = self.TEMPLATE_DIR / 'slurmdbd.conf.tmpl'
+        elif key in ["slurmd", "slurmrestd", "slurmctld", "slurmdbd"]:
+            self.slurm_component = key
+            self.slurm_config_template = self.TEMPLATE_DIR / 'slurm.conf.tmpl'
+        else:
+            raise Exception("Slurm component not supported: {key}")
+
+    def prepare_system_for_slurm(self):
+        """Prepare the system for slurm.
+
+        * create slurm user/group
+        * create filesystem for slurm
+        * provision slurm resource
+        """
+        self._create_slurm_user_and_group()
+        self._prepare_slurm_system_fs()
+
+        if self.slurm_component == "slurmd":
+            self._prepare_for_slurmd()
+
+        self._provision_slurm_resource()
+        self._set_ld_library_path()
+
+    def _chown_slurm_user_and_group_recursive(self, slurm_dir):
+        """Recursively chown filesystem location to slurm user/slurm group."""
+        try:
+            subprocess.call([
+                "chown",
+                "-R",
+                f"{self.SLURM_USER}:{self.SLURM_GROUP}",
+                slurm_dir,
+            ])
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error chowning {slurm_dir} - {e}")
+
+    def _create_slurm_user_and_group(self):
+        """Create the slurm user and group."""
+        try:
+            subprocess.call([
+                "groupadd",
+                "-r",
+                f"--gid={self.SLURM_GID}",
+                self.SLURM_USER,
+            ])
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error creating {self.SLURM_GROUP} - {e}")
+
+        try:
+            subprocess.call([
+                "useradd",
+                "-r",
+                "-g",
+                self.SLURM_GROUP,
+                f"--uid={self.SLURM_UID}",
+                self.SLURM_USER,
+            ])
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error creating {self.SLURM_USER} - {e}")
+
+    def _prepare_slurm_system_fs(self):
+        """Create the needed system directories needed by slurm."""
+        slurm_dirs = [
+            "/etc/sysconfig/slurm",
+            "/var/log/slurm",
+        ]
+        for slurm_dir in slurm_dirs:
+            Path(slurm_dir).mkdir(parents=True)
+            self._chown_slurm_user_and_group_recursive(slurm_dir)
+
+    def _prepare_for_slurmd(self):
+        """Create slurmd specific files and dirs."""
+        slurmd_dirs = [
+            "/var/spool/slurmd",
+            "/var/run/slurmd",
+            "/var/lib/slurmd",
+        ]
+        for slurmd_dir in slurmd_dirs:
+            Path(slurmd_dir).mkdir(parents=True)
+            self._chown_slurm_user_and_group_recursive(slurmd_dir)
+
+        slurmd_files = [
+            "/var/lib/slurmd/node_state",
+            "/var/lib/slurmd/front_end_state",
+            "/var/lib/slurmd/job_state",
+            "/var/lib/slurmd/resv_state",
+            "/var/lib/slurmd/trigger_state",
+            "/var/lib/slurmd/assoc_mgr_state",
+            "/var/lib/slurmd/assoc_usage",
+            "/var/lib/slurmd/qos_usage",
+            "/var/lib/slurmd/fed_mgr_state",
+        ]
+        for slurmd_file in slurmd_files:
+            Path(slurmd_file).touch()
+        self._chown_slurm_user_and_group_recursive('/var/lib/slurmd')
+
+    def _provision_slurm_resource(self):
+        """Provision the slurm resource."""
+        try:
+            resource_path = self.model.resources.fetch('slurm')
+        except ModelError as e:
+            logger.error(
+                f"Resource could not be found when executing: {e}",
+                exc_info=True,
+            )
+
+        try:
+            subprocess.call([
+                "tar",
+                "-xzvf",
+                resource_path,
+                f"--one-top-level={self.SLURM_TMP_RESOURCE}",
+            ])
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error untaring slurm bins - {e}")
+
+        # Wait on the existence of slurmd bin to verify that the untaring
+        # of the slurm.tar.gz resource has completed before moving on.
+        while not Path(f"{self.SLURM_TMP_RESOURCE}/sbin/slurmd").exists():
+            sleep(1)
+        sleep(5)
+
+        for slurm_resource_dir in ['bin', 'sbin', 'lib', 'include']:
+            try:
+                subprocess.call(
+                    f"cp -R {self.SLURM_TMP_RESOURCE}/{slurm_resource_dir}/* /usr/local/{slurm_resource_dir}/",
+                    shell=True
+                )
+            except subprocess.CalledProcessError as e:
+                logger.error(f"Error provisioning fs - {e}")
+
+    def _set_ld_library_path(self):
+        """Set the LD_LIBRARY_PATH."""
+        Path('/etc/ld.so.conf.d/slurm.conf').write_text("/usr/local/lib/slurm")
+        try:
+            subprocess.call(["ldconfig"])
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error setting LD_LIBRARY_PATH - {e}")
+
+
