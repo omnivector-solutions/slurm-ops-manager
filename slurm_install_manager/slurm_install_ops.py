@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """This module provides the SlurmInstallManager."""
+
 import logging
 import os
 from pathlib import Path
@@ -17,6 +18,8 @@ logger = logging.getLogger()
 class SlurmInstallManager(Object):
     """Slurm installation of lifecycle ops."""
 
+    _store = StoredState()
+
     _TEMPLATE_DIR = \
         Path(os.path.dirname(os.path.abspath(__file__))) / 'templates'
     _SLURM_USER = "slurm"
@@ -24,10 +27,13 @@ class SlurmInstallManager(Object):
     _SLURM_GROUP = "slurm"
     _SLURM_GID = 995
     _SLURM_TMP_RESOURCE = "/tmp/slurm-resource"
+    _SLURM_CONF = Path("/etc/slurm/slurm.conf")
 
     def __init__(self, charm, key):
         """Determine slurm component and config template from key."""
         super().__init__(charm, key)
+
+        self._store.set_default(slurm_installed=False)
 
         # Throw an exception if initialized with an unsupported slurm
         # component.
@@ -47,6 +53,40 @@ class SlurmInstallManager(Object):
         self._target_systemd_template = \
             Path(f'/etc/systemd/system/{self.slurm_component}.service')
 
+    @property
+    def slurm_installed(self):
+        return self._store.slurm_installed
+
+    def start_slurmd(self):
+        """Start systemd services for slurmd."""
+        try:
+            subprocess.call([
+                "service",
+                "start",
+                "slurmd",
+            ])
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error copying systemd - {e}")
+
+   def write_config(self, context):
+
+        ctxt = {}
+        source = self.slurm_config_template
+        target = self._SLURM_CONF
+
+        if not type(context) == dict:
+            raise TypeError as e:
+                logger.debug(f"Incorrect type for config - {e}")
+        else:
+            ctxt = {**{"hostname": self._hostname}, **context}
+        if not source.exists():
+            raise FileNotFoundError as e:
+                logger.debug(f"Incorrect type for config - {e}")
+        if target.exists():
+            target.unlink()
+
+        target.write_text(source.read_text().format(**ctxt))
+
     def prepare_system_for_slurm(self):
         """Prepare the system for slurm.
 
@@ -61,6 +101,7 @@ class SlurmInstallManager(Object):
         self._set_ld_library_path()
 
         self._setup_systemd()
+        self._store.slurm_installed = True
 
     def _chown_slurm_user_and_group_recursive(self, slurm_dir):
         """Recursively chown filesystem location to slurm user/slurm group."""
@@ -104,6 +145,7 @@ class SlurmInstallManager(Object):
             "/var/spool/slurmd",
             "/var/run/slurmd",
             "/var/lib/slurmd",
+            "/etc/slurm",
         ]
         for slurmd_dir in slurmd_dirs:
             Path(slurmd_dir).mkdir(parents=True)
@@ -188,5 +230,16 @@ class SlurmInstallManager(Object):
                 self._source_systemd_template,
                 self._target_systemd_template
             ])
+            subprocess.call([
+                "systemctl",
+                "daemon-reload",
+            ])
+            subprocess.call([
+                "systemctl",
+                "enable",
+                "slurmd",
+            ])
         except subprocess.CalledProcessError as e:
-            logger.error(f"Error copying systemd - {e}")
+            logger.error(f"Error setting up systemd - {e}")
+
+
