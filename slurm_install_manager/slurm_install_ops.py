@@ -18,7 +18,7 @@ logger = logging.getLogger()
 class SlurmInstallManager(Object):
     """Slurm installation of lifecycle ops."""
 
-    _store = StoredState()
+    store = StoredState()
 
     _TEMPLATE_DIR = \
         Path(os.path.dirname(os.path.abspath(__file__))) / 'templates'
@@ -33,7 +33,7 @@ class SlurmInstallManager(Object):
         """Determine slurm component and config template from key."""
         super().__init__(charm, key)
 
-        self._store.set_default(slurm_installed=False)
+        self.store.set_default(slurm_installed=False)
 
         # Throw an exception if initialized with an unsupported slurm
         # component.
@@ -55,7 +55,7 @@ class SlurmInstallManager(Object):
 
     @property
     def slurm_installed(self):
-        return self._store.slurm_installed
+        return self.store.slurm_installed
 
     def start_slurmd(self):
         """Start systemd services for slurmd."""
@@ -101,7 +101,7 @@ class SlurmInstallManager(Object):
         self._set_ld_library_path()
 
         self._setup_systemd()
-        self._store.slurm_installed = True
+        self.store.slurm_installed = True
 
     def _chown_slurm_user_and_group_recursive(self, slurm_dir):
         """Recursively chown filesystem location to slurm user/slurm group."""
