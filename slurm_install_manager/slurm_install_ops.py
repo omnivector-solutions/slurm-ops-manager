@@ -67,9 +67,8 @@ class SlurmInstallManager(Object):
             ])
         except subprocess.CalledProcessError as e:
             logger.error(f"Error copying systemd - {e}")
-
-   def write_config(self, context):
-
+    
+    def write_config(self, context):
         ctxt = {}
         source = self.slurm_config_template
         target = self._SLURM_CONF
