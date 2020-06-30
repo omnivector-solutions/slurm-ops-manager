@@ -8,7 +8,7 @@ setup(
     license='MIT',
     long_description=open('README.md', 'r').read(),
     url='https://github.com/omnivector-solutions/slurm-install-manager',
-    install_requires=[],
+    install_requires=['jinja2'],
     python_requires='>=3.6',
     package_data={'slurm_install_manager': ['templates/*']},
 )

@@ -8,6 +8,9 @@ import subprocess
 from time import sleep
 
 
+from jinja2 import Environment, FileSystemLoader
+
+
 from ops.framework import Object
 from ops.model import ModelError
 
@@ -18,7 +21,7 @@ logger = logging.getLogger()
 class SlurmInstallManager(Object):
     """Slurm installation of lifecycle ops."""
 
-    store = StoredState()
+    _store = StoredState()
 
     _TEMPLATE_DIR = \
         Path(os.path.dirname(os.path.abspath(__file__))) / 'templates'
@@ -33,40 +36,54 @@ class SlurmInstallManager(Object):
         """Determine slurm component and config template from key."""
         super().__init__(charm, key)
 
-        self.store.set_default(slurm_installed=False)
+        self._store.set_default(slurm_installed=False)
+        self._store.set_default(slurm_started=False)
 
         # Throw an exception if initialized with an unsupported slurm
         # component.
         if key == "slurmdbd":
-            self.slurm_component = key
-            self.slurm_config_template = \
-                self._TEMPLATE_DIR / 'slurmdbd.conf.tmpl'
+            self._slurm_component = key
+            self._slurm_config_template = 'slurmdbd.conf.tmpl'
         elif key in [
            "slurmd", "slurmrestd", "slurmctld", "slurmdbd"]:
-            self.slurm_component = key
-            self.slurm_config_template = self._TEMPLATE_DIR / 'slurm.conf.tmpl'
+            self._slurm_component = key
+            self._slurm_config_template = 'slurm.conf.tmpl'
         else:
             raise Exception("Slurm component not supported: {key}")
 
         self._source_systemd_template = \
-            self._TEMPLATE_DIR / f'{self.slurm_component}.service'
+            self._TEMPLATE_DIR / f'{self._slurm_component}.service'
         self._target_systemd_template = \
-            Path(f'/etc/systemd/system/{self.slurm_component}.service')
+            Path(f'/etc/systemd/system/{self._slurm_component}.service')
 
     @property
     def slurm_installed(self):
-        return self.store.slurm_installed
+        return self._store.slurm_installed
 
-    def start_slurmd(self):
+    @property
+    def slurm_component_started(self):
+        return self._store.slurm_started
+
+    def slurm_systemctl(self, operation):
         """Start systemd services for slurmd."""
+
+        if not operation in ["start", "stop", "restart"]:
+            msg = f"Unsupported systemctl command for {self._slurm_component}"
+            raise Exception(msg)
+
         try:
             subprocess.call([
-                "service",
-                "start",
-                "slurmd",
+                "systemctl",
+                operation,
+                self._slurm_component,
             ])
+            # Fix this later
+            if operation == "start":
+                self._store.slurm_started = True
         except subprocess.CalledProcessError as e:
             logger.error(f"Error copying systemd - {e}")
+
+
 
    def write_config(self, context):
 
@@ -82,10 +99,15 @@ class SlurmInstallManager(Object):
         if not source.exists():
             raise FileNotFoundError as e:
                 logger.debug(f"Incorrect type for config - {e}")
+
+        rendered_template = Environment(
+            loader=FileSystemLoader(self._TEMPLATE_DIR)
+        ).get_template(self._slurm_config_template)
+
         if target.exists():
             target.unlink()
 
-        target.write_text(source.read_text().format(**ctxt))
+        target.write_text(rendered_template.render(ctxt))
 
     def prepare_system_for_slurm(self):
         """Prepare the system for slurm.
@@ -101,7 +123,7 @@ class SlurmInstallManager(Object):
         self._set_ld_library_path()
 
         self._setup_systemd()
-        self.store.slurm_installed = True
+        self._store.slurm_installed = True
 
     def _chown_slurm_user_and_group_recursive(self, slurm_dir):
         """Recursively chown filesystem location to slurm user/slurm group."""
@@ -176,7 +198,7 @@ class SlurmInstallManager(Object):
             Path(slurm_dir).mkdir(parents=True)
             self._chown_slurm_user_and_group_recursive(slurm_dir)
 
-        if self.slurm_component == "slurmd":
+        if self._slurm_component == "slurmd":
             self._prepare_for_slurmd()
 
     def _provision_slurm_resource(self):
@@ -234,12 +256,6 @@ class SlurmInstallManager(Object):
                 "systemctl",
                 "daemon-reload",
             ])
-            subprocess.call([
-                "systemctl",
-                "enable",
-                "slurmd",
-            ])
+            self.slurm_systemctl("enable")
         except subprocess.CalledProcessError as e:
             logger.error(f"Error setting up systemd - {e}")
-
-
