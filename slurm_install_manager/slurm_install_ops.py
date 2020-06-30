@@ -11,6 +11,8 @@ from time import sleep
 from ops.framework import Object
 from ops.model import ModelError
 
+from ops.framework import StoredState
+
 
 logger = logging.getLogger()
 
@@ -18,7 +20,7 @@ logger = logging.getLogger()
 class SlurmInstallManager(Object):
     """Slurm installation of lifecycle ops."""
 
-    store = StoredState()
+    _state = StoredState()
 
     _TEMPLATE_DIR = \
         Path(os.path.dirname(os.path.abspath(__file__))) / 'templates'
@@ -33,7 +35,7 @@ class SlurmInstallManager(Object):
         """Determine slurm component and config template from key."""
         super().__init__(charm, key)
 
-        self.store.set_default(slurm_installed=False)
+        self._state.set_default(slurm_installed=False)
 
         # Throw an exception if initialized with an unsupported slurm
         # component.
@@ -55,7 +57,7 @@ class SlurmInstallManager(Object):
 
     @property
     def slurm_installed(self):
-        return self.store.slurm_installed
+        return self._state.slurm_installed
 
     def start_slurmd(self):
         """Start systemd services for slurmd."""
@@ -98,7 +100,7 @@ class SlurmInstallManager(Object):
         self._set_ld_library_path()
 
         self._setup_systemd()
-        self.store.slurm_installed = True
+        self._state.slurm_installed = True
 
     def _chown_slurm_user_and_group_recursive(self, slurm_dir):
         """Recursively chown filesystem location to slurm user/slurm group."""
