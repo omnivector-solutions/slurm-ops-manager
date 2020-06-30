@@ -46,7 +46,7 @@ class SlurmInstallManager(Object):
             self.slurm_component = key
             self.slurm_config_template = self._TEMPLATE_DIR / 'slurm.conf.tmpl'
         else:
-            raise Exception("Slurm component not supported: {key}")
+            logger.error(f"Slurm component not supported: {key}")
 
         self._source_systemd_template = \
             self._TEMPLATE_DIR / f'{self.slurm_component}.service'
@@ -74,13 +74,11 @@ class SlurmInstallManager(Object):
         target = self._SLURM_CONF
 
         if not type(context) == dict:
-            raise TypeError as e:
-                logger.debug(f"Incorrect type for config - {e}")
+            logger.debug(f"Incorrect type for config")
         else:
             ctxt = {**{"hostname": self._hostname}, **context}
         if not source.exists():
-            raise FileNotFoundError as e:
-                logger.debug(f"Incorrect type for config - {e}")
+            logger.debug(f"Source does not exist")
         if target.exists():
             target.unlink()
 
