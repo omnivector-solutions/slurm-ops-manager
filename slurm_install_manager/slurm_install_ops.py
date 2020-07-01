@@ -47,12 +47,16 @@ class SlurmInstallManager(Object):
         # component.
         if key == "slurmdbd":
             self._slurm_component = key
-            self._slurm_conf_template = 'slurmdbd.conf.tmpl'
+            self._slurm_conf_template_name = 'slurmdbd.conf.tmpl'
+            self._slurm_conf_template_location = \
+                self._TEMPLATE_DIR / self._slurm_conf_template_name
             self._slurm_conf = self._SLURM_CONF_DIR / 'slurmdbd.conf'
         elif key in [
            "slurmd", "slurmrestd", "slurmctld", "slurmdbd"]:
             self._slurm_component = key
-            self._slurm_conf_template = self._TEMPLATE_DIR / 'slurm.conf.tmpl'
+            self._slurm_conf_template_name = 'slurm.conf.tmpl'
+            self._slurm_conf_template_location = \
+                self._TEMPLATE_DIR / self._slurm_conf_template_name
             self._slurm_conf = self._SLURM_CONF_DIR / 'slurm.conf'
         else:
             raise Exception("Slurm component not supported: {key}")
@@ -93,7 +97,8 @@ class SlurmInstallManager(Object):
         """Render the context to a template."""
 
         #ctxt = {}
-        source = self._slurm_conf_template
+        template_name = self._slurm_conf_template_name
+        source = self._slurm_conf_template_location
         target = self._slurm_conf
 
         if not type(context) == dict:
@@ -106,8 +111,8 @@ class SlurmInstallManager(Object):
             )
 
         rendered_template = Environment(
-            loader=FileSystemLoader(self._TEMPLATE_DIR)
-        ).get_template(source)
+            loader=FileSystemLoader(str(self._TEMPLATE_DIR))
+        ).get_template(template_name)
 
         if target.exists():
             target.unlink()
