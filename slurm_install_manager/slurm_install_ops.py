@@ -73,7 +73,7 @@ class SlurmInstallManager(Object):
     def slurm_systemctl(self, operation):
         """Start systemd services for slurmd."""
 
-        if operation not in ["start", "stop", "restart"]:
+        if operation not in ["enable", "start", "stop", "restart"]:
             msg = f"Unsupported systemctl command for {self._slurm_component}"
             raise Exception(msg)
 
