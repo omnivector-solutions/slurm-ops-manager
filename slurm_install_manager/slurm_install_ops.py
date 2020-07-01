@@ -11,7 +11,10 @@ from time import sleep
 from jinja2 import Environment, FileSystemLoader
 
 
-from ops.framework import Object
+from ops.framework import (
+    Object,
+    StoredState,
+)
 from ops.model import ModelError
 
 
@@ -23,8 +26,10 @@ class SlurmInstallManager(Object):
 
     _store = StoredState()
 
-    _TEMPLATE_DIR = \
-        Path(os.path.dirname(os.path.abspath(__file__))) / 'templates'
+    _CHARM_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
+    _TEMPLATE_DIR = _CHARM_DIR / 'templates'
+
+    _SLURM_CONF_DIR = Path('/etc/slurm')
     _SLURM_USER = "slurm"
     _SLURM_UID = 995
     _SLURM_GROUP = "slurm"
@@ -42,13 +47,13 @@ class SlurmInstallManager(Object):
         # component.
         if key == "slurmdbd":
             self._slurm_component = key
-            self._slurm_config_template = 'slurmdbd.conf.tmpl'
-            self._slurm_conf = Path("/etc/slurm/slurmdbd.conf")
+            self._slurm_conf_template = 'slurmdbd.conf.tmpl'
+            self._slurm_conf = self._SLURM_CONF_DIR / 'slurmdbd.conf'
         elif key in [
            "slurmd", "slurmrestd", "slurmctld", "slurmdbd"]:
             self._slurm_component = key
-            self._slurm_config_template = 'slurm.conf.tmpl'
-            self._slurm_conf = Path("/etc/slurm/slurm.conf")
+            self._slurm_conf_template = self._TEMPLATE_DIR / 'slurm.conf.tmpl'
+            self._slurm_conf = self._SLURM_CONF_DIR / 'slurm.conf'
         else:
             raise Exception("Slurm component not supported: {key}")
 
@@ -68,7 +73,7 @@ class SlurmInstallManager(Object):
     def slurm_systemctl(self, operation):
         """Start systemd services for slurmd."""
 
-        if not operation in ["start", "stop", "restart"]:
+        if operation not in ["start", "stop", "restart"]:
             msg = f"Unsupported systemctl command for {self._slurm_component}"
             raise Exception(msg)
 
@@ -84,25 +89,25 @@ class SlurmInstallManager(Object):
         except subprocess.CalledProcessError as e:
             logger.error(f"Error copying systemd - {e}")
 
-
-
-   def write_config(self, context):
+    def write_config(self, context):
+        """Render the context to a template."""
 
         ctxt = {}
+        source = self.slurm_config_template
         target = self._slurm_conf
 
         if not type(context) == dict:
-            raise TypeError as e:
-                logger.debug(f"Incorrect type for config - {e}")
+            raise TypeError("Incorrect type for config.")
         else:
             ctxt = {**{"hostname": self._hostname}, **context}
         if not source.exists():
-            raise FileNotFoundError as e:
-                logger.debug(f"Incorrect type for config - {e}")
+            raise FileNotFoundError(
+                "The slurm config template cannot be found."
+            )
 
         rendered_template = Environment(
             loader=FileSystemLoader(self._TEMPLATE_DIR)
-        ).get_template(self._slurm_config_template)
+        ).get_template(self._slurm_conf_template)
 
         if target.exists():
             target.unlink()
@@ -227,12 +232,12 @@ class SlurmInstallManager(Object):
             sleep(1)
 
         for slurm_resource_dir in ['bin', 'sbin', 'lib', 'include']:
+            cmd = (
+                f"cp -R {self._SLURM_TMP_RESOURCE}/{slurm_resource_dir}/* "
+                f"/usr/local/{slurm_resource_dir}/"
+            )
             try:
-                subprocess.call(
-                    (f"cp -R {self._SLURM_TMP_RESOURCE}/{slurm_resource_dir}/* "
-                     f"/usr/local/{slurm_resource_dir}/"),
-                    shell=True
-                )
+                subprocess.call(cmd, shell=True)
             except subprocess.CalledProcessError as e:
                 logger.error(f"Error provisioning fs - {e}")
 
