@@ -92,14 +92,13 @@ class SlurmInstallManager(Object):
     def write_config(self, context):
         """Render the context to a template."""
 
-        ctxt = {}
+        #ctxt = {}
         source = self._slurm_conf_template
         target = self._slurm_conf
 
         if not type(context) == dict:
             raise TypeError("Incorrect type for config.")
-        else:
-            ctxt = {**{"hostname": self._hostname}, **context}
+            #ctxt = {**{"hostname": self._hostname}, **context}
 
         if not source.exists():
             raise FileNotFoundError(
@@ -113,7 +112,7 @@ class SlurmInstallManager(Object):
         if target.exists():
             target.unlink()
 
-        target.write_text(rendered_template.render(ctxt))
+        target.write_text(rendered_template.render(context))
 
     def prepare_system_for_slurm(self):
         """Prepare the system for slurm.
