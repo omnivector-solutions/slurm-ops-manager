@@ -93,7 +93,7 @@ class SlurmInstallManager(Object):
         """Render the context to a template."""
 
         ctxt = {}
-        source = self.slurm_conf_template
+        source = self._slurm_conf_template
         target = self._slurm_conf
 
         if not type(context) == dict:
