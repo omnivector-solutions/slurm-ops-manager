@@ -93,13 +93,14 @@ class SlurmInstallManager(Object):
         """Render the context to a template."""
 
         ctxt = {}
-        source = self.slurm_config_template
+        source = self.slurm_conf_template
         target = self._slurm_conf
 
         if not type(context) == dict:
             raise TypeError("Incorrect type for config.")
         else:
             ctxt = {**{"hostname": self._hostname}, **context}
+
         if not source.exists():
             raise FileNotFoundError(
                 "The slurm config template cannot be found."
@@ -107,7 +108,7 @@ class SlurmInstallManager(Object):
 
         rendered_template = Environment(
             loader=FileSystemLoader(self._TEMPLATE_DIR)
-        ).get_template(self._slurm_conf_template)
+        ).get_template(source)
 
         if target.exists():
             target.unlink()
