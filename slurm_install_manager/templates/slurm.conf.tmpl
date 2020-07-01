@@ -1,0 +1,3 @@
+{% for node in nodes %}
+NodeName={{ node.hostname }} NodeAddr={{ node.ingress_address }} State=UNKNOWN Boards={{ node.inventory.Boards }} SocketsPerBoard={{ node.inventory.SocketsPerBoard }} CoresPerSocket={{ node.inventory.CoresPerSocket }} ThreadsPerCore={{ node.inventory.ThreadsPerCore }} RealMemory={{ node.inventory.RealMemory }} {% if node.inventory.gpus > 0 -%} Gres=gpu:{{ node.inventory.gpus }} {%- endif %} 
+{%- endfor -%}

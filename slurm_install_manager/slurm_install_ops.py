@@ -30,7 +30,6 @@ class SlurmInstallManager(Object):
     _SLURM_GROUP = "slurm"
     _SLURM_GID = 995
     _SLURM_TMP_RESOURCE = "/tmp/slurm-resource"
-    _SLURM_CONF = Path("/etc/slurm/slurm.conf")
 
     def __init__(self, charm, key):
         """Determine slurm component and config template from key."""
@@ -44,10 +43,12 @@ class SlurmInstallManager(Object):
         if key == "slurmdbd":
             self._slurm_component = key
             self._slurm_config_template = 'slurmdbd.conf.tmpl'
+            self._slurm_conf = Path("/etc/slurm/slurmdbd.conf")
         elif key in [
            "slurmd", "slurmrestd", "slurmctld", "slurmdbd"]:
             self._slurm_component = key
             self._slurm_config_template = 'slurm.conf.tmpl'
+            self._slurm_conf = Path("/etc/slurm/slurm.conf")
         else:
             raise Exception("Slurm component not supported: {key}")
 
@@ -88,8 +89,7 @@ class SlurmInstallManager(Object):
    def write_config(self, context):
 
         ctxt = {}
-        source = self.slurm_config_template
-        target = self._SLURM_CONF
+        target = self._slurm_conf
 
         if not type(context) == dict:
             raise TypeError as e:
