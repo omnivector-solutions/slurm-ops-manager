@@ -55,7 +55,7 @@ class SlurmInstallManager(Object):
             self._slurm_conf_template_location = \
                 self._TEMPLATE_DIR / self._slurm_conf_template_name
             self._slurm_conf = self._SLURM_CONF_DIR / 'slurm.conf'
-        else if key == "slurmdbd":
+        elif key == "slurmdbd":
             self._slurm_component = key
             self._slurm_conf_template_name = 'slurmdbd.conf.tmpl'
             self._slurm_conf_template_location = \
