@@ -61,9 +61,8 @@ class SlurmInstallManager(Object):
             self._slurm_conf_template_location = \
                 self._TEMPLATE_DIR / self._slurm_conf_template_name
             self._slurm_conf = self._SLURM_CONF_DIR / 'slurmdbd.conf'
-
-        # throws error if key in main charm is incorrect
-        if key not in components:
+        
+        else:
             raise Exception(f'slurm component {key} not supported')
         
         self._source_systemd_template = \
