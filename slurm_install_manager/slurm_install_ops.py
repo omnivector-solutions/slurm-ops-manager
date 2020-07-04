@@ -42,26 +42,27 @@ class SlurmInstallManager(Object):
         self._store.set_default(slurm_installed=False)
         self._store.set_default(slurm_started=False)
         
-        self._slurm_component = key
-        self._slurm_conf_template_location = \
-            self._TEMPLATE_DIR / 'slurm.conf.tmpl'
-        self._slurm_conf = self._SLURM_CONF_DIR / 'slurm.conf'
-        self._slurm_conf_template_name = 'slurm.conf.tmpl'
-
-        if self._slurm_component == "slurmdbd":
-            self._slurm_conf_template_name = 'slurmd.conf.tmpl'
-            self._slurm_conf_template_location = \
-                self._TEMPLATE_DIR / 'slurmdbd.conf.tmpl'
-            self._slurm_conf = self._SLURM_CONF_DIR / 'slurmdbd.conf'
-
-        # throws error if key in main charm is incorrect
         components = [
                 'slurmd',
                 'slurmctld',
                 'slurmrestd',
                 'slurmd',
-                'slurmdbd',
         ]
+        
+        if key in components:
+            self._slurm_component = key
+            self._slurm_conf_template_name = 'slurm.conf.tmpl'
+            self._slurm_conf_template_location = \
+                self._TEMPLATE_DIR / self._slurm_conf_template_name
+            self._slurm_conf = self._SLURM_CONF_DIR / 'slurm.conf'
+        else if key == "slurmdbd":
+            self._slurm_component = key
+            self._slurm_conf_template_name = 'slurmdbd.conf.tmpl'
+            self._slurm_conf_template_location = \
+                self._TEMPLATE_DIR / self._slurm_conf_template_name
+            self._slurm_conf = self._SLURM_CONF_DIR / 'slurmdbd.conf'
+
+        # throws error if key in main charm is incorrect
         if key not in components:
             raise Exception(f'slurm component {key} not supported')
         
