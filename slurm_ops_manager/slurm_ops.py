@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 """This module provides the SlurmInstallManager."""
 
-import logging
 import os
+
+import sys
+import re
+import logging
+
 from pathlib import Path
+
 import subprocess
+
 from time import sleep
 
 
@@ -13,16 +19,78 @@ from jinja2 import Environment, FileSystemLoader
 
 from ops.framework import (
     Object,
+    ObjectEvents,
     StoredState,
 )
+
 from ops.model import ModelError
 
 
 logger = logging.getLogger()
 
 
+# Regex explanation:
+#  \b           # Start at a word boundary
+#  (\w+)        # Match and capture a single word (1+ alnum characters)
+#  \s*=\s*      # Match a equal, optionally surrounded by whitespace
+#  ([^=]*)      # Match any number of non-equal characters
+#  (?=          # Make sure that we stop when the following can be matched:
+#   \s+\w+\s*=  #  the next dictionary key
+#  |            # or
+#  $            #  the end of the string
+#  )            # End of lookahead
+
+def get_inventory():
+    try:
+        inventory = subprocess.check_output(
+            "slurmd -C", shell=True
+        ).strip().decode('ascii')
+    except subprocess.CalledProcessError as e:
+        logger.debug(f"Failed getting inventory - {e}")
+
+    regex = re.compile(r"\b(\w+)\s*=\s*([^=]*)(?=\s+\w+\s*=|$)")
+    return dict(regex.findall(inventory))
+
+
+# Get the number of GPUs and check that they exist at /dev/nvidiaX
+def _get_gpu():
+    gpu = int(
+        subprocess.check_output(
+            "lspci | grep -i nvidia | awk '{print $1}' "
+            "| cut -d : -f 1 | sort -u | wc -l",
+            shell=True
+        )
+    )
+
+    for i in range(gpu):
+        gpu_path = "/dev/nvidia" + str(i)
+        if not os.path.exists(gpu_path):
+            return 0
+    return gpu
+
+
+def get_inventory():
+    inv = _get_inv()
+    inv['gpus'] = _get_gpu()
+    return inv
+
+
+
+class RenderConfigAndRestartEvent(EventBase):
+    pass
+
+
+class SlurmOpsEvents(ObjectEvents):
+    """SlurmOps Events"""
+    render_config_and_restart = EventSource(
+        RenderConfigAndRestartEvent
+    )
+
+
 class SlurmInstallManager(Object):
     """Slurm installation of lifecycle ops."""
+
+    on = SlurmOpsEvents()
 
     _store = StoredState()
 
@@ -66,6 +134,20 @@ class SlurmInstallManager(Object):
         self._target_systemd_template = \
             Path(f'/etc/systemd/system/{self._slurm_component}.service')
 
+        self.framework.observe(
+            self.on.render_config_and_restart,
+            self._on_render_config_and_restart
+        )
+
+    def _on_render_config_and_restart(self, event):
+        slurm_conf = json.loads(event.slurm_conf)
+        self._write_config(slurm_conf)
+        self._slurm_systemctl("restart")
+
+    @property
+    def inventory(self):
+        return json.dumps(get_inventory())
+
     @property
     def slurm_installed(self):
         return self._store.slurm_installed
@@ -74,7 +156,7 @@ class SlurmInstallManager(Object):
     def slurm_component_started(self):
         return self._store.slurm_started
 
-    def slurm_systemctl(self, operation):
+    def _slurm_systemctl(self, operation):
         """Start systemd services for slurmd."""
 
         if operation not in ["enable", "start", "stop", "restart"]:
@@ -93,7 +175,7 @@ class SlurmInstallManager(Object):
         except subprocess.CalledProcessError as e:
             logger.error(f"Error copying systemd - {e}")
 
-    def write_config(self, context):
+    def _write_config(self, context):
         """Render the context to a template."""
 
         #ctxt = {}
