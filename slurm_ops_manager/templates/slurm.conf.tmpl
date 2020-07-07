@@ -1,3 +1,40 @@
+ClusterName=SLURM-JUJU-TEST
+
+SlurmctldHost={{controller_config.host}}
+
+HealthCheckInterval=30
+
+HealthCheckNodeState=ANY
+
+SlurmdPort=6818
+
+SlurmctldPort=6817
+
+SlurmUser=slurm
+
+AuthType=auth/none
+
+SchedulerType=sched/backfill
+
+SwitchType=switch/none
+
+TmpFS=/tmp
+
+WaitTime=30
+
+KillWait=30
+
+MaxJobCount=10000
+
+MinJobAge=3600
+
+ReturnToService=0
+
+ProcTrackType=proctrack/linuxproc
+PluginDir=/usr/local/lib/slurm
+
+
+SlurmdPidFile=/var/run/slurmd.pid
 {% for node in nodes %}
 NodeName={{ node.hostname }} NodeAddr={{ node.ingress_address }} State=UNKNOWN Boards={{ node.inventory.Boards }} SocketsPerBoard={{ node.inventory.SocketsPerBoard }} CoresPerSocket={{ node.inventory.CoresPerSocket }} ThreadsPerCore={{ node.inventory.ThreadsPerCore }} RealMemory={{ node.inventory.RealMemory }} {% if node.inventory.gpus > 0 -%} Gres=gpu:{{ node.inventory.gpus }} {%- endif %} 
 {%- endfor -%}

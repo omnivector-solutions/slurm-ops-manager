@@ -107,28 +107,32 @@ class SlurmInstallManager(Object):
     def __init__(self, charm, key):
         """Determine slurm component and config template from key."""
         super().__init__(charm, key)
-
         self._store.set_default(slurm_installed=False)
         self._store.set_default(slurm_started=False)
-
-        # Throw an exception if initialized with an unsupported slurm
-        # component.
-        if key == "slurmdbd":
-            self._slurm_component = key
-            self._slurm_conf_template_name = 'slurmdbd.conf.tmpl'
-            self._slurm_conf_template_location = \
-                self._TEMPLATE_DIR / self._slurm_conf_template_name
-            self._slurm_conf = self._SLURM_CONF_DIR / 'slurmdbd.conf'
-        elif key in [
-           "slurmd", "slurmrestd", "slurmctld", "slurmdbd"]:
+        
+        components = [
+                'slurmd',
+                'slurmctld',
+                'slurmrestd',
+                'slurmd',
+        ]
+        
+        if key in components:
             self._slurm_component = key
             self._slurm_conf_template_name = 'slurm.conf.tmpl'
             self._slurm_conf_template_location = \
                 self._TEMPLATE_DIR / self._slurm_conf_template_name
             self._slurm_conf = self._SLURM_CONF_DIR / 'slurm.conf'
+        elif key == "slurmdbd":
+            self._slurm_component = key
+            self._slurm_conf_template_name = 'slurmdbd.conf.tmpl'
+            self._slurm_conf_template_location = \
+                self._TEMPLATE_DIR / self._slurm_conf_template_name
+            self._slurm_conf = self._SLURM_CONF_DIR / 'slurmdbd.conf'
+        
         else:
-            raise Exception("Slurm component not supported: {key}")
-
+            raise Exception(f'slurm component {key} not supported')
+        
         self._source_systemd_template = \
             self._TEMPLATE_DIR / f'{self._slurm_component}.service'
         self._target_systemd_template = \
