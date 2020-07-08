@@ -138,7 +138,7 @@ class SlurmOpsManager(Object):
     _SLURM_CONF_DIR = Path('/etc/slurm')
     _SLURM_LOG_DIR = Path('/var/log/slurm')
     _SLURM_SBIN_DIR = Path('/usr/local/sbin')
-    _SLURM_SYSCONFIG_DIR = Path("/etc/sysconfig/slurm")
+    _SLURM_SYSCONFIG_DIR = Path("/etc/sysconfig")
 
     _SLURM_USER = "slurm"
     _SLURM_UID = 995
@@ -184,6 +184,7 @@ class SlurmOpsManager(Object):
 
         self._log_file = self._SLURM_LOG_DIR / f'{self._slurm_component}.log'
         self._daemon = self._SLURM_SBIN_DIR / f'{self._slurm_component}'
+        self._environment_file = self._SLURM_SYSCONFIG_DIR / f'{self._slurm_component}'
 
         #self.framework.observe(
         #    self.on.render_config_and_restart,
@@ -262,12 +263,18 @@ class SlurmOpsManager(Object):
         """
         self._create_slurm_user_and_group()
         self._prepare_filesystem()
+        self._create_environment_file()
 
         self._provision_slurm_resource()
         self._set_ld_library_path()
 
         self._setup_systemd()
         self._store.slurm_installed = True
+
+    def _create_environment_file(self):
+        self._environment_file.write_text(
+            f"SLURM_CONF={str(self._slurm_conf)}"
+        )
 
     def _chown_slurm_user_and_group_recursive(self, slurm_dir):
         """Recursively chown filesystem location to slurm user/slurm group."""
