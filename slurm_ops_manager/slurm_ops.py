@@ -187,16 +187,23 @@ class SlurmOpsManager(Object):
         self._daemon = self._SLURM_SBIN_DIR / f'{self._slurm_component}'
         self._environment_file = self._SLURM_SYSCONFIG_DIR / f'{self._slurm_component}'
 
-        #self.framework.observe(
-        #    self.on.render_config_and_restart,
-        #    self._on_render_config_and_restart
-        #)
-
     def render_config_and_restart(self, slurm_config):
+
         if not type(slurm_config) == dict:
             raise TypeError("Incorrect type for config.")
+
         self._write_config(slurm_config)
-        #self._slurm_systemctl("restart")
+        if self.is_active:
+            self._slurm_systemctl("restart")
+        else:
+            self._slurm_systemctl("start")
+
+        if not self.is_active:
+            raise Exception(f"SLURM {self._slurm_component}: not starting")
+
+    @property
+    def is_active(self)
+        return subprocess.call(['systemctl', 'is-active', self._slurm_component) == 0
 
     @property
     def inventory(self):
