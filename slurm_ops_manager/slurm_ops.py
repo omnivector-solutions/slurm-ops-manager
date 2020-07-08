@@ -132,6 +132,8 @@ class SlurmInstallManager(Object):
     _TEMPLATE_DIR = _CHARM_DIR / 'templates'
 
     _SLURM_CONF_DIR = Path('/etc/slurm')
+    _SLURM_LOG_DIR = Path('/var/log/slurm')
+    _SLURM_SBIN_DIR = Path('/usr/local/sbin')
     _SLURM_USER = "slurm"
     _SLURM_UID = 995
     _SLURM_GROUP = "slurm"
@@ -152,32 +154,30 @@ class SlurmInstallManager(Object):
         }
         
         if component in ['slurmd', 'slurmctld', 'slurmrestd']:
-
-            self._slurm_component = component
             self._slurm_conf_template_name = 'slurm.conf.tmpl'
-            self._slurm_conf_template_location = \
-                self._TEMPLATE_DIR / self._slurm_conf_template_name
             self._slurm_conf = self._SLURM_CONF_DIR / 'slurm.conf'
-
         elif component == "slurmdbd":
-
-            self._slurm_component = component
             self._slurm_conf_template_name = 'slurmdbd.conf.tmpl'
-            self._slurm_conf_template_location = \
-                self._TEMPLATE_DIR / self._slurm_conf_template_name
             self._slurm_conf = self._SLURM_CONF_DIR / 'slurmdbd.conf'
-        
         else:
             raise Exception(f'slurm component {component} not supported')
 
+        self._slurm_component = component
+
         self.hostname = socket.gethostname().split(".")[0]
         self.port = port_map[component]
-        
+
+        self._slurm_conf_template_location = \
+            self._TEMPLATE_DIR / self._slurm_conf_template_name
+
         self._source_systemd_template = \
             self._TEMPLATE_DIR / f'{self._slurm_component}.service'
 
         self._target_systemd_template = \
             Path(f'/etc/systemd/system/{self._slurm_component}.service')
+
+        self._log_file = self._SLURM_LOG_DIR / f'{self._slurm_component}.log'
+        self._daemon = self._SLURM_SBIN_DIR / f'{self._slurm_component}'
 
         self.framework.observe(
             self.on.render_config_and_restart,
