@@ -8,7 +8,6 @@ User=slurm
 Group=slurm
 Type=forking
 EnvironmentFile=-/etc/sysconfig/slurmctld
-ExecStart=/root/target/sbin/slurmctld $SLURMCTLD_OPTIONS
 ExecStart=/usr/local/sbin/slurmctld -f /etc/slurm/slurm.conf -L /var/log/slurm/slurmctld.log -cDvvvvv
 ExecReload=/bin/kill -HUP $MAINPID
 PIDFile=/var/run/slurmctld.pid
