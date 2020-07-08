@@ -40,7 +40,7 @@ logger = logging.getLogger()
 #  $            #  the end of the string
 #  )            # End of lookahead
 
-def get_inventory():
+def _get_inventory():
     try:
         inventory = subprocess.check_output(
             "slurmd -C", shell=True
@@ -54,13 +54,16 @@ def get_inventory():
 
 # Get the number of GPUs and check that they exist at /dev/nvidiaX
 def _get_gpu():
-    gpu = int(
-        subprocess.check_output(
-            "lspci | grep -i nvidia | awk '{print $1}' "
-            "| cut -d : -f 1 | sort -u | wc -l",
-            shell=True
+    try:
+        gpu = int(
+            subprocess.check_output(
+                "lspci | grep -i nvidia | awk '{print $1}' "
+                "| cut -d : -f 1 | sort -u | wc -l",
+                shell=True
+            )
         )
-    )
+    except subprocess.CalledProcessError as e:
+        print(e)
 
     for i in range(gpu):
         gpu_path = "/dev/nvidia" + str(i)
@@ -75,9 +78,45 @@ def get_inventory():
     return inv
 
 
+class SlurmConfig:
+
+    def __init__(self, slurm_config=None):
+        self.set_slurm_config(slurm_config)
+
+    def set_slurm_config(self, slurm_config):
+        self._slurm_config = slurm_config
+
+    @property
+    def slurm_config(self):
+        return self._slurm_config
+
+    @classmethod
+    def restore(cls, snapshot):
+        return cls(
+            slurm_config=snapshot['slurm_config.slurm_config.'],
+        )
+
+    def snapshot(self):
+        return {
+            'slurm_config.slurm_config': self.slurm_config,
+        }
+
 
 class RenderConfigAndRestartEvent(EventBase):
-    pass
+    def __init__(self, handle, slurm_config):
+        super().__init__(handle, slurm_config)
+        logger.info(handle)
+        self._slurm_config = slurm_config
+
+    @property
+    def slurm_conifg(self):
+        return self._slurm_config
+
+    def snapshot(self):
+        return self._slurm_config.snapshot()
+
+    def restore(self, snapshot):
+        self._slurm_config = SlurmConfig.restore(snapshot)
 
 
 class SlurmOpsEvents(ObjectEvents):
@@ -104,37 +143,44 @@ class SlurmInstallManager(Object):
     _SLURM_GID = 995
     _SLURM_TMP_RESOURCE = "/tmp/slurm-resource"
 
-    def __init__(self, charm, key):
-        """Determine slurm component and config template from key."""
-        super().__init__(charm, key)
+    def __init__(self, charm, component):
+        """Determine values based on slurm component."""
+        super().__init__(charm, component)
         self._store.set_default(slurm_installed=False)
         self._store.set_default(slurm_started=False)
+
+        port_map = {
+            'slurmdbd': 6819,
+            'slurmd': 6818,
+            'slurmctld': 6817,
+            'slurmrestd': 6820,
+        }
         
-        components = [
-                'slurmd',
-                'slurmctld',
-                'slurmrestd',
-                'slurmd',
-        ]
-        
-        if key in components:
-            self._slurm_component = key
+        if component in ['slurmd', 'slurmctld', 'slurmrestd']:
+
+            self._slurm_component = component
             self._slurm_conf_template_name = 'slurm.conf.tmpl'
             self._slurm_conf_template_location = \
                 self._TEMPLATE_DIR / self._slurm_conf_template_name
             self._slurm_conf = self._SLURM_CONF_DIR / 'slurm.conf'
-        elif key == "slurmdbd":
-            self._slurm_component = key
+
+        elif component == "slurmdbd":
+
+            self._slurm_component = component
             self._slurm_conf_template_name = 'slurmdbd.conf.tmpl'
             self._slurm_conf_template_location = \
                 self._TEMPLATE_DIR / self._slurm_conf_template_name
             self._slurm_conf = self._SLURM_CONF_DIR / 'slurmdbd.conf'
         
         else:
-            raise Exception(f'slurm component {key} not supported')
+            raise Exception(f'slurm component {component} not supported')
+
+        self.hostname = socket.gethostname().split(".")[0]
+        self.port = port_map[component]
         
         self._source_systemd_template = \
             self._TEMPLATE_DIR / f'{self._slurm_component}.service'
+
         self._target_systemd_template = \
             Path(f'/etc/systemd/system/{self._slurm_component}.service')
 
@@ -144,8 +190,8 @@ class SlurmInstallManager(Object):
         )
 
     def _on_render_config_and_restart(self, event):
-        slurm_conf = json.loads(event.slurm_conf)
-        self._write_config(slurm_conf)
+        slurm_config = json.loads(event.slurm_config.slurm_config)
+        self._write_config(slurm_config)
         self._slurm_systemctl("restart")
 
     @property
