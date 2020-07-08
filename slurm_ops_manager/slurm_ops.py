@@ -262,6 +262,7 @@ class SlurmOpsManager(Object):
         * create filesystem for slurm
         * provision slurm resource
         """
+        self._install_os_deps()
         self._create_slurm_user_and_group()
         self._prepare_filesystem()
         self._create_environment_file()
