@@ -123,7 +123,7 @@ class SlurmOpsEvents(ObjectEvents):
     )
 
 
-class SlurmInstallManager(Object):
+class SlurmOpsManager(Object):
     """Slurm installation of lifecycle ops."""
 
     on = SlurmOpsEvents()
