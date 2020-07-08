@@ -118,17 +118,17 @@ def get_inventory():
 #        self._slurm_config = SlurmConfig.restore(snapshot)
 #
 
-class SlurmOpsEvents(ObjectEvents):
-    """SlurmOps Events"""
-    render_config_and_restart = EventSource(
-        RenderConfigAndRestartEvent
-    )
+#class SlurmOpsEvents(ObjectEvents):
+#    """SlurmOps Events"""
+#    render_config_and_restart = EventSource(
+#        RenderConfigAndRestartEvent
+#    )
 
 
 class SlurmOpsManager(Object):
     """Slurm installation of lifecycle ops."""
 
-    on = SlurmOpsEvents()
+#    on = SlurmOpsEvents()
 
     _store = StoredState()
 
