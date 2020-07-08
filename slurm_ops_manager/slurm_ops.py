@@ -202,7 +202,7 @@ class SlurmOpsManager(Object):
             raise Exception(f"SLURM {self._slurm_component}: not starting")
 
     @property
-    def is_active(self)
+    def is_active(self):
         return subprocess.call(['systemctl', 'is-active', self._slurm_component) == 0
 
     @property
