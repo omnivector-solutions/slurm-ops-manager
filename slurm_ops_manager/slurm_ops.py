@@ -266,13 +266,13 @@ class SlurmOpsManager(Object):
         self._create_environment_file()
         self._set_ld_library_path()
    
-        self._install_munge_snap()
+        self._install_munge()
         self._provision_slurm_resource()
 
         self._setup_systemd()
         self._store.slurm_installed = True
 
-    def _provision_munge_snap(self):
+    def _install_munge(self):
         try:
             subprocess.call(["snap", "install", "munge"])
         except subprocess.CalledProcessError as e:
