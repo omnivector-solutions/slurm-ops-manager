@@ -203,7 +203,7 @@ class SlurmOpsManager(Object):
 
     @property
     def is_active(self):
-        return subprocess.call(['systemctl', 'is-active', self._slurm_component) == 0
+        return subprocess.call(['systemctl', 'is-active', self._slurm_component]) == 0
 
     @property
     def inventory(self):
