@@ -192,7 +192,7 @@ class SlurmInstallManager(Object):
     def _on_render_config_and_restart(self, event):
         slurm_config = json.loads(event.slurm_config.slurm_config)
         self._write_config(slurm_config)
-        self._slurm_systemctl("restart")
+        #self._slurm_systemctl("restart")
 
     @property
     def inventory(self):
