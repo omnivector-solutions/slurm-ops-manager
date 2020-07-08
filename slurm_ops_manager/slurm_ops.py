@@ -191,7 +191,7 @@ class SlurmOpsManager(Object):
         #)
 
     def render_config_and_restart(self, slurm_config):
-        if not type(slurm_conifg) == dict:
+        if not type(slurm_config) == dict:
             raise TypeError("Incorrect type for config.")
         self._write_config(slurm_config)
         #self._slurm_systemctl("restart")
