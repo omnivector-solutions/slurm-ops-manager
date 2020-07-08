@@ -136,6 +136,7 @@ class SlurmOpsManager(Object):
     _TEMPLATE_DIR = _CHARM_DIR / 'templates'
 
     _SLURM_CONF_DIR = Path('/etc/slurm')
+    _SLURM_PID_DIR = Path('/srv/slurm')
     _SLURM_LOG_DIR = Path('/var/log/slurm')
     _SLURM_SBIN_DIR = Path('/usr/local/sbin')
     _SLURM_SYSCONFIG_DIR = Path("/etc/sysconfig")
@@ -350,6 +351,7 @@ class SlurmOpsManager(Object):
         slurm_dirs = [
             self._SLURM_CONF_DIR,
             self._SLURM_LOG_DIR,
+            self._SLURM_PID_DIR,
             self._SLURM_SYSCONFIG_DIR,
         ]
         for slurm_dir in slurm_dirs:

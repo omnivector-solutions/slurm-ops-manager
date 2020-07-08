@@ -8,7 +8,7 @@ Type=forking
 EnvironmentFile=-/etc/sysconfig/slurmdbd
 ExecStart=/usr/local/sbin/slurmdbd -vvvvv
 ExecReload=/bin/kill -HUP $MAINPID
-PIDFile=/run/slurmdbd.pid
+PIDFile=/srv/slurm/slurmdbd.pid
 LimitNOFILE=65536
 TasksMax=infinity
 
