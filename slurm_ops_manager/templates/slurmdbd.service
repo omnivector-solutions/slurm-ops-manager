@@ -8,9 +8,10 @@ User=slurm
 Group=slurm
 Type=forking
 EnvironmentFile=-/etc/sysconfig/slurmdbd
+ExecStartPre=mkdir -p /run/slurm && chown -R slurm:slurm /run/slurm
 ExecStart=/usr/local/sbin/slurmdbd -vvvvv
 ExecReload=/bin/kill -HUP $MAINPID
-PIDFile=/srv/slurm/slurmdbd.pid
+PIDFile=/run/slurm/slurmdbd.pid
 LimitNOFILE=65536
 TasksMax=infinity
 

@@ -274,6 +274,19 @@ class SlurmOpsManager(Object):
         self._setup_systemd()
         self._store.slurm_installed = True
 
+    def _install_os_deps(self):
+        try:
+            subprocess.call([
+                'apt',
+                'install',
+                'libmunge2',
+                'libmysqlclient-dev',
+                '-y',
+            ])
+        except subprocess.CalledProcessError as e:
+            logger.debug(e)
+            
+
     def _install_munge(self):
         try:
             subprocess.call(["snap", "install", "munge"])
