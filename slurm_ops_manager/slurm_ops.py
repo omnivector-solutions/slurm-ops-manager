@@ -1,21 +1,16 @@
 #!/usr/bin/env python3
 """This module provides the SlurmInstallManager."""
-
-import os
-
-import sys
-import re
+import json
 import logging
-
-from pathlib import Path
-
+import os
+import re
 import subprocess
-
+import sys
+from pathlib import Path
 from time import sleep
 
 
 from jinja2 import Environment, FileSystemLoader
-
 
 from ops.framework import (
     Object,
