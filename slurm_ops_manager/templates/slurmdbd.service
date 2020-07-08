@@ -1,6 +1,6 @@
 [Unit]
 Description=Slurm DBD accounting daemon
-After=network.target munge.service
+After=network.target snap.munge.munged.service
 ConditionPathExists=/etc/slurm/slurmdbd.conf
 
 [Service]
@@ -8,7 +8,7 @@ Type=forking
 EnvironmentFile=-/etc/sysconfig/slurmdbd
 ExecStart=/usr/local/sbin/slurmdbd -vvvvv
 ExecReload=/bin/kill -HUP $MAINPID
-PIDFile=/var/run/slurmdbd.pid
+PIDFile=/run/slurmdbd.pid
 LimitNOFILE=65536
 TasksMax=infinity
 

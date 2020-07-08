@@ -6,11 +6,11 @@ DbdAddr={{ slurmdbd_hostname }}
 DbdPort={{ slurmdbd_port }}
 
 AuthType=auth/munge
+AuthInfo=socket=/var/snap/munge/current/munge.socket.2
 
 SlurmUser=slurm
-SlurmGroup=slurm
 
-PidFile=/var/run/slurmdbd.pid
+PidFile=/run/slurmdbd.pid
 
 DebugLevel={{ slurmdbd_debug }} 
 LogFile=/var/log/slurmdbd.log
