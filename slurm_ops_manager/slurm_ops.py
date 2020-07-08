@@ -13,6 +13,8 @@ from time import sleep
 from jinja2 import Environment, FileSystemLoader
 
 from ops.framework import (
+    EventBase,
+    EventSource,
     Object,
     ObjectEvents,
     StoredState,
