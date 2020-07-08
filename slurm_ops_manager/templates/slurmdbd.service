@@ -6,13 +6,13 @@ ConditionPathExists=/etc/slurm/slurmdbd.conf
 [Service]
 User=slurm
 Group=slurm
-Type=forking
+Type=simple
 EnvironmentFile=-/etc/sysconfig/slurmdbd
 ExecStartPre=mkdir -p /srv/slurm
 ExecStartPre=chown -R slurm:slurm /srv/slurm
 ExecStart=/usr/local/sbin/slurmdbd -Dvvvvv
 ExecReload=/bin/kill -HUP $MAINPID
-PIDFile=/run/slurm/slurmdbd.pid
+PIDFile=/srv/slurm/slurmdbd.pid
 LimitNOFILE=65536
 TasksMax=infinity
 
