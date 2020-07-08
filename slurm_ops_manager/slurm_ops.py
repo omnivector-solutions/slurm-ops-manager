@@ -397,6 +397,6 @@ class SlurmOpsManager(Object):
                 "systemctl",
                 "daemon-reload",
             ])
-            self.slurm_systemctl("enable")
+            self._slurm_systemctl("enable")
         except subprocess.CalledProcessError as e:
             logger.error(f"Error setting up systemd - {e}")
