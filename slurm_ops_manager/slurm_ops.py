@@ -138,6 +138,8 @@ class SlurmOpsManager(Object):
     _SLURM_CONF_DIR = Path('/etc/slurm')
     _SLURM_LOG_DIR = Path('/var/log/slurm')
     _SLURM_SBIN_DIR = Path('/usr/local/sbin')
+    _SLURM_SYSCONFIG_DIR = Path("/etc/sysconfig/slurm")
+
     _SLURM_USER = "slurm"
     _SLURM_UID = 995
     _SLURM_GROUP = "slurm"
@@ -309,7 +311,6 @@ class SlurmOpsManager(Object):
             "/var/spool/slurmd",
             "/var/run/slurmd",
             "/var/lib/slurmd",
-            "/etc/slurm",
         ]
         for slurmd_dir in slurmd_dirs:
             Path(slurmd_dir).mkdir(parents=True)
@@ -333,12 +334,13 @@ class SlurmOpsManager(Object):
     def _prepare_filesystem(self):
         """Create the needed system directories needed by slurm."""
         slurm_dirs = [
-            "/etc/sysconfig/slurm",
-            "/var/log/slurm",
+            self._SLURM_CONF_DIR,
+            self._SLURM_LOG_DIR,
+            self._SLURM_SYSCONFIG_DIR,
         ]
         for slurm_dir in slurm_dirs:
-            Path(slurm_dir).mkdir(parents=True)
-            self._chown_slurm_user_and_group_recursive(slurm_dir)
+            slurm_dir.mkdir(parents=True)
+            self._chown_slurm_user_and_group_recursive(str(slurm_dir))
 
         if self._slurm_component == "slurmd":
             self._prepare_for_slurmd()
