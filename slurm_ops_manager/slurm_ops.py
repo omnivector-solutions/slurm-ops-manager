@@ -265,10 +265,11 @@ class SlurmOpsManager(Object):
         self._create_slurm_user_and_group()
         self._prepare_filesystem()
         self._create_environment_file()
-        self._set_ld_library_path()
    
         self._install_munge()
         self._provision_slurm_resource()
+
+        self._set_ld_library_path()
 
         self._setup_systemd()
         self._store.slurm_installed = True
