@@ -264,12 +264,19 @@ class SlurmOpsManager(Object):
         self._create_slurm_user_and_group()
         self._prepare_filesystem()
         self._create_environment_file()
-
-        self._provision_slurm_resource()
         self._set_ld_library_path()
+   
+        self._install_munge_snap()
+        self._provision_slurm_resource()
 
         self._setup_systemd()
         self._store.slurm_installed = True
+
+    def _provision_munge_snap(self):
+        try:
+            subprocess.call(["snap", "install", "munge"])
+        except subprocess.CalledProcessError as e:
+            logger.debug(e)
 
     def _create_environment_file(self):
         self._environment_file.write_text(
