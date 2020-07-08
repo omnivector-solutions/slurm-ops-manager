@@ -77,46 +77,46 @@ def get_inventory():
     return inv
 
 
-class SlurmConfig:
+#class SlurmConfig:
+#
+#    def __init__(self, slurm_config=None):
+#        self.set_slurm_config(slurm_config)
+#
+#    def set_slurm_config(self, slurm_config):
+#        self._slurm_config = slurm_config
+#
+#    @property
+#    def slurm_config(self):
+#        return self._slurm_config
+#
+#    @classmethod
+#    def restore(cls, snapshot):
+#        return cls(
+#            slurm_config=snapshot['slurm_config.slurm_config.'],
+#        )
+#
+#    def snapshot(self):
+#        return {
+#            'slurm_config.slurm_config': self.slurm_config,
+#        }
 
-    def __init__(self, slurm_config=None):
-        self.set_slurm_config(slurm_config)
 
-    def set_slurm_config(self, slurm_config):
-        self._slurm_config = slurm_config
-
-    @property
-    def slurm_config(self):
-        return self._slurm_config
-
-    @classmethod
-    def restore(cls, snapshot):
-        return cls(
-            slurm_config=snapshot['slurm_config.slurm_config.'],
-        )
-
-    def snapshot(self):
-        return {
-            'slurm_config.slurm_config': self.slurm_config,
-        }
-
-
-class RenderConfigAndRestartEvent(EventBase):
-    def __init__(self, handle, slurm_config):
-        super().__init__(handle, slurm_config)
-        logger.info(handle)
-        self._slurm_config = slurm_config
-
-    @property
-    def slurm_conifg(self):
-        return self._slurm_config
-
-    def snapshot(self):
-        return self._slurm_config.snapshot()
-
-    def restore(self, snapshot):
-        self._slurm_config = SlurmConfig.restore(snapshot)
-
+#class RenderConfigAndRestartEvent(EventBase):
+#    def __init__(self, handle, slurm_config):
+#        super().__init__(handle, slurm_config)
+#        logger.info(handle)
+#        self._slurm_config = slurm_config
+#
+#    @property
+#    def slurm_conifg(self):
+#        return self._slurm_config
+#
+#    def snapshot(self):
+#        return self._slurm_config.snapshot()
+#
+#    def restore(self, snapshot):
+#        self._slurm_config = SlurmConfig.restore(snapshot)
+#
 
 class SlurmOpsEvents(ObjectEvents):
     """SlurmOps Events"""
@@ -183,13 +183,14 @@ class SlurmOpsManager(Object):
         self._log_file = self._SLURM_LOG_DIR / f'{self._slurm_component}.log'
         self._daemon = self._SLURM_SBIN_DIR / f'{self._slurm_component}'
 
-        self.framework.observe(
-            self.on.render_config_and_restart,
-            self._on_render_config_and_restart
-        )
+        #self.framework.observe(
+        #    self.on.render_config_and_restart,
+        #    self._on_render_config_and_restart
+        #)
 
-    def _on_render_config_and_restart(self, event):
-        slurm_config = json.loads(event.slurm_config.slurm_config)
+    def render_config_and_restart(self, slurm_config):
+        if not type(slurm_conifg) == dict:
+            raise TypeError("Incorrect type for config.")
         self._write_config(slurm_config)
         #self._slurm_systemctl("restart")
 
