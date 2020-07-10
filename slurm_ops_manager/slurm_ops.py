@@ -77,54 +77,6 @@ def get_inventory():
     return inv
 
 
-#class SlurmConfig:
-#
-#    def __init__(self, slurm_config=None):
-#        self.set_slurm_config(slurm_config)
-#
-#    def set_slurm_config(self, slurm_config):
-#        self._slurm_config = slurm_config
-#
-#    @property
-#    def slurm_config(self):
-#        return self._slurm_config
-#
-#    @classmethod
-#    def restore(cls, snapshot):
-#        return cls(
-#            slurm_config=snapshot['slurm_config.slurm_config.'],
-#        )
-#
-#    def snapshot(self):
-#        return {
-#            'slurm_config.slurm_config': self.slurm_config,
-#        }
-
-
-#class RenderConfigAndRestartEvent(EventBase):
-#    def __init__(self, handle, slurm_config):
-#        super().__init__(handle, slurm_config)
-#        logger.info(handle)
-#        self._slurm_config = slurm_config
-#
-#    @property
-#    def slurm_conifg(self):
-#        return self._slurm_config
-#
-#    def snapshot(self):
-#        return self._slurm_config.snapshot()
-#
-#    def restore(self, snapshot):
-#        self._slurm_config = SlurmConfig.restore(snapshot)
-#
-
-#class SlurmOpsEvents(ObjectEvents):
-#    """SlurmOps Events"""
-#    render_config_and_restart = EventSource(
-#        RenderConfigAndRestartEvent
-#    )
-
-
 class SlurmOpsManager(Object):
     """Slurm installation of lifecycle ops."""
 
@@ -146,6 +98,7 @@ class SlurmOpsManager(Object):
     _SLURM_GROUP = "slurm"
     _SLURM_GID = 995
     _SLURM_TMP_RESOURCE = "/tmp/slurm-resource"
+    _MUNGE_KEY_PATH = Path("/var/snap/munge/common/etc/munge/munge.key")
 
     def __init__(self, charm, component):
         """Determine values based on slurm component."""
@@ -300,6 +253,10 @@ class SlurmOpsManager(Object):
             subprocess.call(["snap", "install", "munge"])
         except subprocess.CalledProcessError as e:
             logger.debug(e)
+    
+    def write_munge_key(self, munge_key):
+        key = b64decode(munge_key.encode())
+        self.MUNGE_KEY_PATH.write_bytes(key)
 
     def _create_environment_file(self):
         self._environment_file.write_text(
