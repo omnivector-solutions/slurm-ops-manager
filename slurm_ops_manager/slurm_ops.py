@@ -79,7 +79,6 @@ def get_inventory():
 class SlurmOpsManager(Object):
     """Slurm installation of lifecycle ops."""
 
-#    on = SlurmOpsEvents()
 
     _store = StoredState()
 
@@ -255,7 +254,7 @@ class SlurmOpsManager(Object):
     
     def write_munge_key(self, munge_key):
         key = base64.b64decode(munge_key.encode())
-        self.MUNGE_KEY_PATH.write_bytes(key)
+        self._MUNGE_KEY_PATH.write_bytes(key)
 
     def _create_environment_file(self):
         self._environment_file.write_text(
