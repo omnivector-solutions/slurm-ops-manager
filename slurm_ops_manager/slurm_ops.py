@@ -7,7 +7,7 @@ import re
 import socket
 import subprocess
 import sys
-
+from base64 import b64encode 
 from pathlib import Path
 from time import sleep
 
