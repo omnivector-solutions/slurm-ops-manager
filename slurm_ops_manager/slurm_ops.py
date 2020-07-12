@@ -38,7 +38,7 @@ logger = logging.getLogger()
 #  $            #  the end of the string
 #  )            # End of lookahead
 
-def _get_inventory():
+def _get_inv():
     try:
         inventory = subprocess.check_output(
             "slurmd -C", shell=True
