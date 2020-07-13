@@ -36,6 +36,8 @@ SlurmUser=slurm
 StateSaveLocation=/var/lib/slurmd
 TaskPlugin=task/none
 
+PluginDir=/var/lib/slurmd
+
 # TIMERS 
 KillWait={{ kill_wait }} 
 MinJobAge={{ min_job_age }} 
@@ -67,7 +69,7 @@ SlurmdDebug={{ slurmd_debug }}
 SlurmdLogFile=/var/log/slurm/slurmd.log
 
 # INCLUDE CLUSTER SPECIFIC CONFIGURATION OVERRIDE
-include /etc/slurm/slurm-%c.conf
+#include /etc/slurm/slurm-%c.conf
 
 #GRES type
 GresTypes=gpu 
