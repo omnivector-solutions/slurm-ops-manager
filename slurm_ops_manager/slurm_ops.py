@@ -79,13 +79,13 @@ def get_inventory():
 class ConfigureAndRestartEvent(EventBase):
     """Emits the slurm_config."""
 
-    def __init__(self, handle, slurm_config):
-        super().__init__(handle)
+    def __init__(self, handle, slurm_conifg):
+        super().__init__(handle, slurm_conifg)
         self._slurm_config = slurm_config
 
     @property
     def slurm_config(self):
-        return self._slurmd_config
+        return self._slurm_config
 
     def snapshot(self):
         return {'slurm_config': self._slurm_config}
