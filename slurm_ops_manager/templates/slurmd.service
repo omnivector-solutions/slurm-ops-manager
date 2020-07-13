@@ -3,7 +3,7 @@ Description=Slurm node daemon
 ConditionPathExists=/etc/slurm/slurm.conf
 
 [Service]
-Type=forking
+Type=simple
 User=slurm
 Group=slurm
 EnvironmentFile=-/etc/sysconfig/slurmd
