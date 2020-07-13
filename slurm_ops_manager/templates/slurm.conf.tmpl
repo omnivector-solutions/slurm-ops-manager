@@ -27,9 +27,9 @@ MpiDefault={{ mpi_default }}
 # TODO: Add support for cgroup
 ProctrackType=proctrack/linuxproc
 ReturnToService=1
-SlurmctldPidFile=/var/run/slurmctld.pid
+SlurmctldPidFile=/srv/slurm/slurmctld.pid
 SlurmctldPort={{ active_controller_port }} 
-SlurmdPidFile=/var/run/slurmd.pid
+SlurmdPidFile=/srv/slurm/slurmd.pid
 SlurmdPort=6818
 SlurmdSpoolDir=/var/spool/slurmd
 SlurmUser=slurm

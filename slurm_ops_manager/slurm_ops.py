@@ -113,6 +113,9 @@ class SlurmOpsManager(Object):
     _SLURM_LOG_DIR = Path('/var/log/slurm')
     _SLURM_SBIN_DIR = Path('/usr/local/sbin')
     _SLURM_SYSCONFIG_DIR = Path("/etc/sysconfig")
+    _SLURM_SPOOL_DIR = Path("/var/spool/slurmd")
+    _SLURM_STATE_DIR = Path("/var/lib/slurmd")
+    _SLURM_PLUGIN_DIR = Path("/usr/local/lib/slurm")
 
     _SLURM_USER = "slurm"
     _SLURM_UID = 995
@@ -329,18 +332,21 @@ class SlurmOpsManager(Object):
         except subprocess.CalledProcessError as e:
             logger.error(f"Error creating {self._SLURM_USER} - {e}")
 
-    def _prepare_for_slurmd(self):
-        """Create slurmd specific files and dirs."""
-        slurmd_dirs = [
-            "/var/spool/slurmd",
-            "/var/run/slurmd",
-            "/var/lib/slurmd",
+    def _prepare_filesystem(self):
+        """Create the needed system directories needed by slurm."""
+        slurm_dirs = [
+            self._SLURM_CONF_DIR,
+            self._SLURM_LOG_DIR,
+            self._SLURM_PID_DIR,
+            self._SLURM_SYSCONFIG_DIR,
+            self._SLURM_SPOOL_DIR,
+            self._SLURM_STATE_DIR,
         ]
-        for slurmd_dir in slurmd_dirs:
-            Path(slurmd_dir).mkdir(parents=True)
-            self._chown_slurm_user_and_group_recursive(slurmd_dir)
+        for slurm_dir in slurm_dirs:
+            slurm_dir.mkdir(parents=True, exist_ok=True)
+            self._chown_slurm_user_and_group_recursive(str(slurm_dir))
 
-        slurmd_files = [
+        slurm_state_files = [
             "/var/lib/slurmd/node_state",
             "/var/lib/slurmd/front_end_state",
             "/var/lib/slurmd/job_state",
@@ -351,24 +357,9 @@ class SlurmOpsManager(Object):
             "/var/lib/slurmd/qos_usage",
             "/var/lib/slurmd/fed_mgr_state",
         ]
-        for slurmd_file in slurmd_files:
+        for slurmd_file in slurm_state_files:
             Path(slurmd_file).touch()
         self._chown_slurm_user_and_group_recursive('/var/lib/slurmd')
-
-    def _prepare_filesystem(self):
-        """Create the needed system directories needed by slurm."""
-        slurm_dirs = [
-            self._SLURM_CONF_DIR,
-            self._SLURM_LOG_DIR,
-            self._SLURM_PID_DIR,
-            self._SLURM_SYSCONFIG_DIR,
-        ]
-        for slurm_dir in slurm_dirs:
-            slurm_dir.mkdir(parents=True)
-            self._chown_slurm_user_and_group_recursive(str(slurm_dir))
-
-        if self._slurm_component == "slurmd":
-            self._prepare_for_slurmd()
 
     def _provision_slurm_resource(self):
         """Provision the slurm resource."""
