@@ -76,7 +76,7 @@ GresTypes=gpu
 
 # COMPUTE NODES 
 {% for node in nodes %}
-NodeName={{ node.hostname }} NodeAddr={{ node.ingress_address }} State=UNKNOWN Boards={{ node.inventory.Boards }} SocketsPerBoard={{ node.inventory.SocketsPerBoard }} CoresPerSocket={{ node.inventory.CoresPerSocket }} ThreadsPerCore={{ node.inventory.ThreadsPerCore }} RealMemory={{ node.inventory.RealMemory }} {% if node.inventory.gpus > 0 -%} Gres=gpu:{{ node.inventory.gpus }} {%- endif %} 
+NodeName={{ node.hostname }} NodeAddr={{ node.ingress_address }} State=UNKNOWN Boards={{ node.inventory.Boards }} SocketsPerBoard={{ node.inventory.SocketsPerBoard }} CoresPerSocket={{ node.inventory.CoresPerSocket }} ThreadsPerCore={{ node.inventory.ThreadsPerCore }} RealMemory={{ node.inventory.RealMemory }}
 {%- endfor -%}
 {% for partition, values in partitions.items() %}
 PartitionName={{ partition }} Nodes={{ values.hosts|join(',') }} Default={{ 'YES' if values.default else 'NO' }} State=UP

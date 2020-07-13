@@ -176,13 +176,13 @@ class SlurmOpsManager(Object):
             raise TypeError("Incorrect type for config.")
 
         self._write_config(slurm_config)
-        if self.is_active:
-            self._slurm_systemctl("restart")
-        else:
-            self._slurm_systemctl("start")
+        #if self.is_active:
+        #    self._slurm_systemctl("restart")
+        #else:
+        #    self._slurm_systemctl("start")
 
-        if not self.is_active:
-            raise Exception(f"SLURM {self._slurm_component}: not starting")
+        #if not self.is_active:
+        #    raise Exception(f"SLURM {self._slurm_component}: not starting")
 
     @property
     def is_active(self):
