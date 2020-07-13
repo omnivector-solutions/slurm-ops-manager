@@ -76,9 +76,32 @@ def get_inventory():
     return inv
 
 
+class ConfigureAndRestartEvent(EventBase):
+    """Emits the slurm_config."""
+
+    def __init__(self, handle, slurmdbd_info):
+        super().__init__(handle)
+        self._slurm_config = slurm_config
+
+    @property
+    def slurm_config(self):
+        return self._slurmd_config
+
+    def snapshot(self):
+        return {'slurmdbd_config': self._slurm_config}
+
+    def restore(self, snapshot):
+        self._slurm_config = snapshot.get('slurm_config')
+
+
+class SlurmOpsManagerEvents(ObjectEvents):
+    configure_and_restart = EventSource(ConfigureAndRestartEvent)
+
+
 class SlurmOpsManager(Object):
     """Slurm installation of lifecycle ops."""
 
+    on = SlurmOpsManagerEvents()
 
     _store = StoredState()
 
@@ -103,6 +126,11 @@ class SlurmOpsManager(Object):
         super().__init__(charm, component)
         self._store.set_default(slurm_installed=False)
         self._store.set_default(slurm_started=False)
+
+        self.framework.observe(
+            self.on.configure_and_restart,
+            self._on_configure_and_restart
+        )
 
         port_map = {
             'slurmdbd': 6819,
@@ -137,6 +165,10 @@ class SlurmOpsManager(Object):
         self._log_file = self._SLURM_LOG_DIR / f'{self._slurm_component}.log'
         self._daemon = self._SLURM_SBIN_DIR / f'{self._slurm_component}'
         self._environment_file = self._SLURM_SYSCONFIG_DIR / f'{self._slurm_component}'
+
+    def _on_configure_and_restart(self, event):
+        slurm_config = json.loads(event.slurm_config)
+        self.render_config_and_restart(slurm_config)
 
     def render_config_and_restart(self, slurm_config):
 
