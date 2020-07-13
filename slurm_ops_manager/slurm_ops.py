@@ -9,7 +9,7 @@ import subprocess
 import sys
 from pathlib import Path
 from time import sleep
-import base64
+from base64 import b64encode, b64decode
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -122,7 +122,7 @@ class SlurmOpsManager(Object):
     _SLURM_GROUP = "slurm"
     _SLURM_GID = 995
     _SLURM_TMP_RESOURCE = "/tmp/slurm-resource"
-    _MUNGE_KEY_PATH = Path("/var/snap/munge/common/etc/munge/munge.key")
+    _MUNGE_KEY_PATH = Path("/etc/munge/munge.key")
 
     def __init__(self, charm, component):
         """Determine values based on slurm component."""
@@ -283,14 +283,20 @@ class SlurmOpsManager(Object):
 
     def _install_munge(self):
         try:
-            subprocess.call(["snap", "install", "munge"])
+            subprocess.call(["apt-get", "install", "munge", "-y"])
         except subprocess.CalledProcessError as e:
             logger.debug(e)
     
     def write_munge_key(self, munge_key):
-        key = base64.b64decode(munge_key.encode())
+        key = b64decode(munge_key.encode())
         self._MUNGE_KEY_PATH.write_bytes(key)
+        subprocess.run(["service", "restart", "munge"])
 
+    def get_munge_key(self):
+        munge = open("/etc/munge/munge.key", "rb").read()
+        munge_key = b64encode(munge).decode()
+        return munge_key
+    
     def _create_environment_file(self):
         self._environment_file.write_text(
             f"SLURM_CONF={str(self._slurm_conf)}"
