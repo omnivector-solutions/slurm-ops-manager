@@ -19,6 +19,7 @@ BackupAddr={{ backup_controller_ingress_address }}
 {% endif %}
 
 AuthType=auth/munge
+AuthInfo="socket=/var/snap/munge/current/munged.socket.2"
 CryptoType=crypto/munge
 MailProg=/usr/bin/mail 
 MpiDefault={{ mpi_default }}
@@ -26,13 +27,13 @@ MpiDefault={{ mpi_default }}
 # TODO: Add support for cgroup
 ProctrackType=proctrack/linuxproc
 ReturnToService=1
-SlurmctldPidFile={{ slurmctld_pid_file }}
-SlurmctldPort={{ slurmctld_port }} 
-SlurmdPidFile={{ slurmd_pid_file }}
-SlurmdPort={{ slurmd_port }} 
-SlurmdSpoolDir={{ slurmd_spool_dir }}
-SlurmUser={{ slurm_user }}
-StateSaveLocation={{ state_save_location }}
+SlurmctldPidFile=/var/run/slurmctld.pid
+SlurmctldPort={{ active_controller_port }} 
+SlurmdPidFile=/var/run/slurmd.pid
+SlurmdPort=6818
+SlurmdSpoolDir=/var/spool/slurmd
+SlurmUser=slurm
+StateSaveLocation=/var/lib/slurmd
 TaskPlugin=task/none
 
 # TIMERS 
@@ -51,22 +52,19 @@ SelectTypeParameters={{ select_type_parameters }}
 
 # LOGGING AND ACCOUNTING 
 ClusterName={{ clustername }}
-{% if dbd_host %}
-# SLURMDBD CONFIGURED ON {{ dbd_host }}
+
+# SLURMDBD CONFIGURED ON {{ slurmdbd_hostname }}
 AccountingStorageType=accounting_storage/slurmdbd
 JobAcctGatherType=jobacct_gather/linux
-AccountingStorageHost={{ dbd_ipaddr }}
-AccountingStoragePort={{ dbd_port }}
-{% else %}
-# NO SLURMDBD CONFIGURED
-AccountingStorageType=accounting_storage/none
-JobAcctGatherType=jobacct_gather/none
-{% endif %}
+AccountingStorageHost={{ slurmdbd_hostname }}
+AccountingStoragePort={{ slurmdbd_port }}
+AccountingStoragePass="/var/snap/munge/current/munged.socket.2"
+
 JobAcctGatherFrequency=30 
 SlurmctldDebug={{ slurmctld_debug }} 
-SlurmctldLogFile={{ slurmctld_log_file }}
+SlurmctldLogFile=/var/log/slurm/slurmctld.log
 SlurmdDebug={{ slurmd_debug }} 
-SlurmdLogFile={{ slurmd_log_file }}
+SlurmdLogFile=/var/log/slurm/slurmd.log
 
 # INCLUDE CLUSTER SPECIFIC CONFIGURATION OVERRIDE
 include /etc/slurm/slurm-%c.conf
