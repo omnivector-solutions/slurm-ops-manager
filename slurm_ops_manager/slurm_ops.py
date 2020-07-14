@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """This module provides the SlurmInstallManager."""
 from base64 import b64decode, b64encode
+import json
 import logging
 import os
 from pathlib import Path
@@ -185,11 +186,11 @@ class SlurmOpsManager(Object):
         return subprocess.call(['systemctl', 'is-active', self._slurm_component]) == 0
 
     @property
-    def inventory(self) -> dict:
+    def inventory(self) -> str:
         """Return the node inventory and gpu count."""
         inv = _get_inv()
         inv['gpus'] = _get_gpu()
-        return inv
+        return json.dumps(inv)
 
     @property
     def slurm_installed(self) -> bool:
