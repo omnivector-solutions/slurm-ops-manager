@@ -299,7 +299,7 @@ class SlurmOpsManager(Object):
 
     def get_munge_key(self):
         munge_key = self._MUNGE_KEY_PATH.read_bytes()
-        return base64.b64encode(munge_key).decode()
+        return b64encode(munge_key).decode()
 
     def _create_environment_file(self):
         self._environment_file.write_text(
