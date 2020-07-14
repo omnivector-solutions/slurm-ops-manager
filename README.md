@@ -1,4 +1,4 @@
-# slurm-install-manager
+# slurm-ops-manager
 
 This library is used to facilitate the installation and configuration of slurm.
 
