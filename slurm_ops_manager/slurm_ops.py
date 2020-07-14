@@ -297,7 +297,7 @@ class SlurmOpsManager(Object):
         except subprocess.CalledProcessError as e:
             logger.debug(e)
 
-    def get_munge_key(self, munge_key):
+    def get_munge_key(self):
         munge_key = self._MUNGE_KEY_PATH.read_bytes()
         return base64.b64encode(munge_key).decode()
 
