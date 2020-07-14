@@ -122,7 +122,7 @@ class SlurmOpsManager(Object):
     _SLURM_GROUP = "slurm"
     _SLURM_GID = 995
     _SLURM_TMP_RESOURCE = "/tmp/slurm-resource"
-    _MUNGE_KEY_PATH = Path("/var/snap/munge/common/etc/munge/munge.key")
+    _MUNGE_KEY_PATH = Path("/etc/munge/munge.key")
 
     def __init__(self, charm, component):
         """Determine values based on slurm component."""
@@ -179,13 +179,15 @@ class SlurmOpsManager(Object):
             raise TypeError("Incorrect type for config.")
 
         self._write_config(slurm_config)
-        #if self.is_active:
-        #    self._slurm_systemctl("restart")
-        #else:
-        #    self._slurm_systemctl("start")
+        self._write_munge_key_and_restart(slurm_config['munge_key'])
 
-        #if not self.is_active:
-        #    raise Exception(f"SLURM {self._slurm_component}: not starting")
+        if self.is_active:
+            self._slurm_systemctl("restart")
+        else:
+            self._slurm_systemctl("start")
+
+        if not self.is_active:
+            raise Exception(f"SLURM {self._slurm_component}: not starting")
 
     @property
     def is_active(self):
@@ -283,13 +285,22 @@ class SlurmOpsManager(Object):
 
     def _install_munge(self):
         try:
-            subprocess.call(["snap", "install", "munge"])
+            subprocess.call(["apt", "install", "munge", "-y"])
         except subprocess.CalledProcessError as e:
             logger.debug(e)
-    
-    def write_munge_key(self, munge_key):
+
+    def _write_munge_key_and_restart(self, munge_key):
         key = base64.b64decode(munge_key.encode())
         self._MUNGE_KEY_PATH.write_bytes(key)
+
+        try:
+            subprocess.call(["service", "munge", "restart"])
+        except subprocess.CalledProcessError as e:
+            logger.debug(e)
+
+    def get_munge_key(self, munge_key):
+        munge_key = self._MUNGE_KEY_PATH.read_bytes()
+        return base64.b64encode(munge_key).decode()
 
     def _create_environment_file(self):
         self._environment_file.write_text(
