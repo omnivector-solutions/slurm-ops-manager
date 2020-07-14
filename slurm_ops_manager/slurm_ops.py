@@ -301,10 +301,11 @@ class SlurmOpsManager(Object):
         munge_key = self._MUNGE_KEY_PATH.read_bytes()
         return b64encode(munge_key).decode()
 
-    def _create_environment_file(self):
-        self._environment_file.write_text(
-            f"SLURM_CONF={str(self._slurm_conf)}"
-        )
+    def _create_environment_files(self):
+        slurm_conf = f"\nSLURM_CONF={str(self._slurm_conf)}\n"
+        self._environment_file.write_text(slurm_conf)
+        with open("/etc/environment", 'a') as f:
+            f.write(slurm_conf)
 
     def _chown_slurm_user_and_group_recursive(self, slurm_dir):
         """Recursively chown filesystem location to slurm user/slurm group."""
