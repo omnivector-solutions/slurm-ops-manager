@@ -260,7 +260,7 @@ class SlurmOpsManager(Object):
         self._install_os_deps()
         self._create_slurm_user_and_group()
         self._prepare_filesystem()
-        self._create_environment_file()
+        self._create_environment_files()
    
         self._install_munge()
         self._provision_slurm_resource()
