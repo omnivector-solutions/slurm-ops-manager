@@ -9,7 +9,7 @@ import subprocess
 import sys
 from pathlib import Path
 from time import sleep
-import base64
+from base64 import b64encode, b64decode
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -290,9 +290,8 @@ class SlurmOpsManager(Object):
             logger.debug(e)
 
     def _write_munge_key_and_restart(self, munge_key):
-        key = base64.b64decode(munge_key.encode())
+        key = b64decode(munge_key.encode())
         self._MUNGE_KEY_PATH.write_bytes(key)
-
         try:
             subprocess.call(["service", "munge", "restart"])
         except subprocess.CalledProcessError as e:
