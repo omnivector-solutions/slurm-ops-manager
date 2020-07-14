@@ -6,7 +6,7 @@ ConditionPathExists=/etc/slurm/slurm.conf
 [Service]
 User=slurm
 Group=slurm
-Type=forking
+Type=simple
 ExecStartPre=mkdir -p /srv/slurm
 ExecStartPre=chown -R slurm:slurm /srv/slurm
 EnvironmentFile=-/etc/sysconfig/slurmctld
