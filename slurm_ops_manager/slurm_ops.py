@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """This module provides the SlurmInstallManager."""
-from base64 import b64decode, b64encode
 import json
 import logging
 import os
-from pathlib import Path
 import re
 import socket
 import subprocess
+from base64 import b64decode, b64encode
+from pathlib import Path
 from time import sleep
 
 from jinja2 import Environment, FileSystemLoader
@@ -162,7 +162,8 @@ class SlurmOpsManager(Object):
 
         self._log_file = self._SLURM_LOG_DIR / f'{self._slurm_component}.log'
         self._daemon = self._SLURM_SBIN_DIR / f'{self._slurm_component}'
-        self._environment_file = self._SLURM_SYSCONFIG_DIR / f'{self._slurm_component}'
+        self._environment_file = \
+            self._SLURM_SYSCONFIG_DIR / f'{self._slurm_component}'
 
     def render_config_and_restart(self, slurm_config) -> None:
         """Render the slurm.conf and munge key, restart slurm and munge."""
@@ -183,7 +184,9 @@ class SlurmOpsManager(Object):
     @property
     def is_active(self) -> bool:
         """Return True if slurm is running and false if it isn't."""
-        return subprocess.call(['systemctl', 'is-active', self._slurm_component]) == 0
+        return subprocess.call(
+            ['systemctl', 'is-active', self._slurm_component]
+        ) == 0
 
     @property
     def inventory(self) -> str:
@@ -408,7 +411,7 @@ class SlurmOpsManager(Object):
             logger.error(f"Error setting LD_LIBRARY_PATH - {e}")
 
     def _setup_systemd(self) -> None:
-        """Preforms setup the systemd service for the respective slurm component."""
+        """Preforms setup the systemd service."""
         try:
             subprocess.call([
                 "cp",
