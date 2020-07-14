@@ -19,7 +19,7 @@ BackupAddr={{ backup_controller_ingress_address }}
 {% endif %}
 
 AuthType=auth/munge
-AuthInfo="socket=/var/snap/munge/current/munged.socket.2"
+AuthInfo="socket=/var/run/munge/munged.socket.2"
 CryptoType=crypto/munge
 MailProg=/usr/bin/mail 
 MpiDefault={{ mpi_default }}
@@ -60,7 +60,7 @@ AccountingStorageType=accounting_storage/slurmdbd
 JobAcctGatherType=jobacct_gather/linux
 AccountingStorageHost={{ slurmdbd_hostname }}
 AccountingStoragePort={{ slurmdbd_port }}
-AccountingStoragePass="/var/snap/munge/current/munged.socket.2"
+AccountingStoragePass="/var/run/munge/munged.socket.2"
 
 JobAcctGatherFrequency=30 
 SlurmctldDebug={{ slurmctld_debug }} 
