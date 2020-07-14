@@ -12,10 +12,7 @@ from time import sleep
 
 from jinja2 import Environment, FileSystemLoader
 from ops.framework import (
-    EventBase,
-    EventSource,
     Object,
-    ObjectEvents,
     StoredState,
 )
 from ops.model import ModelError
@@ -67,38 +64,8 @@ def _get_gpu() -> int:
     return gpu
 
 
-class ConfigureAndRestartEvent(EventBase):
-    """Emits the slurm_config."""
-
-    def __init__(self, handle, slurm_config):
-        """Set self._slurm_config."""
-        super().__init__(handle)
-        self._slurm_config = slurm_config
-
-    @property
-    def slurm_config(self) -> str:
-        """Property that returns the slurm_config."""
-        return self._slurm_config
-
-    def snapshot(self) -> dict:
-        """Retun the slurm_config."""
-        return {'slurm_config': self._slurm_config}
-
-    def restore(self, snapshot) -> str:
-        """Restore the slurm_config from the snapshot."""
-        self._slurm_config = snapshot.get('slurm_config')
-
-
-class SlurmOpsManagerEvents(ObjectEvents):
-    """SlurmOpsManager Events."""
-
-    configure_and_restart = EventSource(ConfigureAndRestartEvent)
-
-
 class SlurmOpsManager(Object):
     """Slurm installation of lifecycle ops."""
-
-    on = SlurmOpsManagerEvents()
 
     _store = StoredState()
 
@@ -126,11 +93,6 @@ class SlurmOpsManager(Object):
         super().__init__(charm, component)
         self._store.set_default(slurm_installed=False)
         self._store.set_default(slurm_started=False)
-
-        self.framework.observe(
-            self.on.configure_and_restart,
-            self._on_configure_and_restart
-        )
 
         port_map = {
             'slurmdbd': 6819,
