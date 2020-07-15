@@ -1,16 +1,18 @@
 [Unit]
 Description=Slurm controller daemon
-After=network.target munge.service
+After=network.target snap.munge.munged.service
 ConditionPathExists=/etc/slurm/slurm.conf
 
 [Service]
 User=slurm
 Group=slurm
-Type=forking
+Type=simple
+ExecStartPre=mkdir -p /srv/slurm
+ExecStartPre=chown -R slurm:slurm /srv/slurm
 EnvironmentFile=-/etc/sysconfig/slurmctld
 ExecStart=/usr/local/sbin/slurmctld -f /etc/slurm/slurm.conf -L /var/log/slurm/slurmctld.log -cDvvvvv
 ExecReload=/bin/kill -HUP $MAINPID
-PIDFile=/var/run/slurmctld.pid
+PIDFile=/srv/slurm/slurmctld.pid
 LimitNOFILE=65536
 TasksMax=infinity
 

@@ -6,21 +6,15 @@ import os
 import re
 import socket
 import subprocess
-import sys
+from base64 import b64decode, b64encode
 from pathlib import Path
 from time import sleep
-import base64
 
 from jinja2 import Environment, FileSystemLoader
-
 from ops.framework import (
-    EventBase,
-    EventSource,
     Object,
-    ObjectEvents,
     StoredState,
 )
-
 from ops.model import ModelError
 
 
@@ -38,7 +32,7 @@ logger = logging.getLogger()
 #  $            #  the end of the string
 #  )            # End of lookahead
 
-def _get_inv():
+def _get_inv() -> dict:
     try:
         inventory = subprocess.check_output(
             "slurmd -C", shell=True
@@ -51,7 +45,7 @@ def _get_inv():
 
 
 # Get the number of GPUs and check that they exist at /dev/nvidiaX
-def _get_gpu():
+def _get_gpu() -> int:
     try:
         gpu = int(
             subprocess.check_output(
@@ -70,38 +64,8 @@ def _get_gpu():
     return gpu
 
 
-def get_inventory():
-    inv = _get_inv()
-    inv['gpus'] = _get_gpu()
-    return inv
-
-
-class ConfigureAndRestartEvent(EventBase):
-    """Emits the slurm_config."""
-
-    def __init__(self, handle, slurmdbd_info):
-        super().__init__(handle)
-        self._slurm_config = slurm_config
-
-    @property
-    def slurm_config(self):
-        return self._slurmd_config
-
-    def snapshot(self):
-        return {'slurmdbd_config': self._slurm_config}
-
-    def restore(self, snapshot):
-        self._slurm_config = snapshot.get('slurm_config')
-
-
-class SlurmOpsManagerEvents(ObjectEvents):
-    configure_and_restart = EventSource(ConfigureAndRestartEvent)
-
-
 class SlurmOpsManager(Object):
     """Slurm installation of lifecycle ops."""
-
-    on = SlurmOpsManagerEvents()
 
     _store = StoredState()
 
@@ -113,13 +77,16 @@ class SlurmOpsManager(Object):
     _SLURM_LOG_DIR = Path('/var/log/slurm')
     _SLURM_SBIN_DIR = Path('/usr/local/sbin')
     _SLURM_SYSCONFIG_DIR = Path("/etc/sysconfig")
+    _SLURM_SPOOL_DIR = Path("/var/spool/slurmd")
+    _SLURM_STATE_DIR = Path("/var/lib/slurmd")
+    _SLURM_PLUGIN_DIR = Path("/usr/local/lib/slurm")
 
     _SLURM_USER = "slurm"
     _SLURM_UID = 995
     _SLURM_GROUP = "slurm"
     _SLURM_GID = 995
     _SLURM_TMP_RESOURCE = "/tmp/slurm-resource"
-    _MUNGE_KEY_PATH = Path("/var/snap/munge/common/etc/munge/munge.key")
+    _MUNGE_KEY_PATH = Path("/etc/munge/munge.key")
 
     def __init__(self, charm, component):
         """Determine values based on slurm component."""
@@ -127,18 +94,13 @@ class SlurmOpsManager(Object):
         self._store.set_default(slurm_installed=False)
         self._store.set_default(slurm_started=False)
 
-        self.framework.observe(
-            self.on.configure_and_restart,
-            self._on_configure_and_restart
-        )
-
         port_map = {
             'slurmdbd': 6819,
             'slurmd': 6818,
             'slurmctld': 6817,
             'slurmrestd': 6820,
         }
-        
+
         if component in ['slurmd', 'slurmctld', 'slurmrestd']:
             self._slurm_conf_template_name = 'slurm.conf.tmpl'
             self._slurm_conf = self._SLURM_CONF_DIR / 'slurm.conf'
@@ -155,27 +117,24 @@ class SlurmOpsManager(Object):
 
         self._slurm_conf_template_location = \
             self._TEMPLATE_DIR / self._slurm_conf_template_name
-
         self._source_systemd_template = \
             self._TEMPLATE_DIR / f'{self._slurm_component}.service'
-
         self._target_systemd_template = \
             Path(f'/etc/systemd/system/{self._slurm_component}.service')
 
         self._log_file = self._SLURM_LOG_DIR / f'{self._slurm_component}.log'
         self._daemon = self._SLURM_SBIN_DIR / f'{self._slurm_component}'
-        self._environment_file = self._SLURM_SYSCONFIG_DIR / f'{self._slurm_component}'
+        self._environment_file = \
+            self._SLURM_SYSCONFIG_DIR / f'{self._slurm_component}'
 
-    def _on_configure_and_restart(self, event):
-        slurm_config = json.loads(event.slurm_config)
-        self.render_config_and_restart(slurm_config)
-
-    def render_config_and_restart(self, slurm_config):
-
+    def render_config_and_restart(self, slurm_config) -> None:
+        """Render the slurm.conf and munge key, restart slurm and munge."""
         if not type(slurm_config) == dict:
             raise TypeError("Incorrect type for config.")
 
         self._write_config(slurm_config)
+        self._write_munge_key_and_restart(slurm_config['munge_key'])
+
         if self.is_active:
             self._slurm_systemctl("restart")
         else:
@@ -185,24 +144,31 @@ class SlurmOpsManager(Object):
             raise Exception(f"SLURM {self._slurm_component}: not starting")
 
     @property
-    def is_active(self):
-        return subprocess.call(['systemctl', 'is-active', self._slurm_component]) == 0
+    def is_active(self) -> bool:
+        """Return True if slurm is running and false if it isn't."""
+        return subprocess.call(
+            ['systemctl', 'is-active', self._slurm_component]
+        ) == 0
 
     @property
-    def inventory(self):
-        return json.dumps(get_inventory())
+    def inventory(self) -> str:
+        """Return the node inventory and gpu count."""
+        inv = _get_inv()
+        inv['gpus'] = _get_gpu()
+        return json.dumps(inv)
 
     @property
-    def slurm_installed(self):
+    def slurm_installed(self) -> bool:
+        """Return the bool from the underlying _state."""
         return self._store.slurm_installed
 
     @property
-    def slurm_component_started(self):
+    def slurm_component_started(self) -> bool:
+        """Return the bool from the underlying _state."""
         return self._store.slurm_started
 
-    def _slurm_systemctl(self, operation):
+    def _slurm_systemctl(self, operation) -> None:
         """Start systemd services for slurmd."""
-
         if operation not in ["enable", "start", "stop", "restart"]:
             msg = f"Unsupported systemctl command for {self._slurm_component}"
             raise Exception(msg)
@@ -219,17 +185,14 @@ class SlurmOpsManager(Object):
         except subprocess.CalledProcessError as e:
             logger.error(f"Error copying systemd - {e}")
 
-    def _write_config(self, context):
+    def _write_config(self, context) -> None:
         """Render the context to a template."""
-
-        #ctxt = {}
         template_name = self._slurm_conf_template_name
         source = self._slurm_conf_template_location
         target = self._slurm_conf
 
         if not type(context) == dict:
             raise TypeError("Incorrect type for config.")
-            #ctxt = {**{"hostname": self._hostname}, **context}
 
         if not source.exists():
             raise FileNotFoundError(
@@ -245,7 +208,7 @@ class SlurmOpsManager(Object):
 
         target.write_text(rendered_template.render(context))
 
-    def prepare_system_for_slurm(self):
+    def prepare_system_for_slurm(self) -> None:
         """Prepare the system for slurm.
 
         * create slurm user/group
@@ -255,17 +218,16 @@ class SlurmOpsManager(Object):
         self._install_os_deps()
         self._create_slurm_user_and_group()
         self._prepare_filesystem()
-        self._create_environment_file()
-   
+        self._create_environment_files()
+
         self._install_munge()
         self._provision_slurm_resource()
 
         self._set_ld_library_path()
-
         self._setup_systemd()
         self._store.slurm_installed = True
 
-    def _install_os_deps(self):
+    def _install_os_deps(self) -> None:
         try:
             subprocess.call([
                 'apt',
@@ -276,24 +238,33 @@ class SlurmOpsManager(Object):
             ])
         except subprocess.CalledProcessError as e:
             logger.debug(e)
-            
 
-    def _install_munge(self):
+    def _install_munge(self) -> None:
         try:
-            subprocess.call(["snap", "install", "munge"])
+            subprocess.call(["apt", "install", "munge", "-y"])
         except subprocess.CalledProcessError as e:
             logger.debug(e)
-    
-    def write_munge_key(self, munge_key):
-        key = base64.b64decode(munge_key.encode())
+
+    def _write_munge_key_and_restart(self, munge_key) -> None:
+        key = b64decode(munge_key.encode())
         self._MUNGE_KEY_PATH.write_bytes(key)
+        try:
+            subprocess.call(["service", "munge", "restart"])
+        except subprocess.CalledProcessError as e:
+            logger.debug(e)
 
-    def _create_environment_file(self):
-        self._environment_file.write_text(
-            f"SLURM_CONF={str(self._slurm_conf)}"
-        )
+    def get_munge_key(self) -> str:
+        """Read, encode, decode and return the munge key."""
+        munge_key = self._MUNGE_KEY_PATH.read_bytes()
+        return b64encode(munge_key).decode()
 
-    def _chown_slurm_user_and_group_recursive(self, slurm_dir):
+    def _create_environment_files(self) -> None:
+        slurm_conf = f"\nSLURM_CONF={str(self._slurm_conf)}\n"
+        self._environment_file.write_text(slurm_conf)
+        with open("/etc/environment", 'a') as f:
+            f.write(slurm_conf)
+
+    def _chown_slurm_user_and_group_recursive(self, slurm_dir) -> None:
         """Recursively chown filesystem location to slurm user/slurm group."""
         try:
             subprocess.call([
@@ -305,7 +276,7 @@ class SlurmOpsManager(Object):
         except subprocess.CalledProcessError as e:
             logger.error(f"Error chowning {slurm_dir} - {e}")
 
-    def _create_slurm_user_and_group(self):
+    def _create_slurm_user_and_group(self) -> None:
         """Create the slurm user and group."""
         try:
             subprocess.call([
@@ -329,18 +300,21 @@ class SlurmOpsManager(Object):
         except subprocess.CalledProcessError as e:
             logger.error(f"Error creating {self._SLURM_USER} - {e}")
 
-    def _prepare_for_slurmd(self):
-        """Create slurmd specific files and dirs."""
-        slurmd_dirs = [
-            "/var/spool/slurmd",
-            "/var/run/slurmd",
-            "/var/lib/slurmd",
+    def _prepare_filesystem(self) -> None:
+        """Create the needed system directories needed by slurm."""
+        slurm_dirs = [
+            self._SLURM_CONF_DIR,
+            self._SLURM_LOG_DIR,
+            self._SLURM_PID_DIR,
+            self._SLURM_SYSCONFIG_DIR,
+            self._SLURM_SPOOL_DIR,
+            self._SLURM_STATE_DIR,
         ]
-        for slurmd_dir in slurmd_dirs:
-            Path(slurmd_dir).mkdir(parents=True)
-            self._chown_slurm_user_and_group_recursive(slurmd_dir)
+        for slurm_dir in slurm_dirs:
+            slurm_dir.mkdir(parents=True, exist_ok=True)
+            self._chown_slurm_user_and_group_recursive(str(slurm_dir))
 
-        slurmd_files = [
+        slurm_state_files = [
             "/var/lib/slurmd/node_state",
             "/var/lib/slurmd/front_end_state",
             "/var/lib/slurmd/job_state",
@@ -351,26 +325,11 @@ class SlurmOpsManager(Object):
             "/var/lib/slurmd/qos_usage",
             "/var/lib/slurmd/fed_mgr_state",
         ]
-        for slurmd_file in slurmd_files:
+        for slurmd_file in slurm_state_files:
             Path(slurmd_file).touch()
         self._chown_slurm_user_and_group_recursive('/var/lib/slurmd')
 
-    def _prepare_filesystem(self):
-        """Create the needed system directories needed by slurm."""
-        slurm_dirs = [
-            self._SLURM_CONF_DIR,
-            self._SLURM_LOG_DIR,
-            self._SLURM_PID_DIR,
-            self._SLURM_SYSCONFIG_DIR,
-        ]
-        for slurm_dir in slurm_dirs:
-            slurm_dir.mkdir(parents=True)
-            self._chown_slurm_user_and_group_recursive(str(slurm_dir))
-
-        if self._slurm_component == "slurmd":
-            self._prepare_for_slurmd()
-
-    def _provision_slurm_resource(self):
+    def _provision_slurm_resource(self) -> None:
         """Provision the slurm resource."""
         try:
             resource_path = self.model.resources.fetch('slurm')
@@ -405,7 +364,7 @@ class SlurmOpsManager(Object):
             except subprocess.CalledProcessError as e:
                 logger.error(f"Error provisioning fs - {e}")
 
-    def _set_ld_library_path(self):
+    def _set_ld_library_path(self) -> None:
         """Set the LD_LIBRARY_PATH."""
         Path('/etc/ld.so.conf.d/slurm.conf').write_text("/usr/local/lib/slurm")
         try:
@@ -413,8 +372,8 @@ class SlurmOpsManager(Object):
         except subprocess.CalledProcessError as e:
             logger.error(f"Error setting LD_LIBRARY_PATH - {e}")
 
-    def _setup_systemd(self):
-        """Setup systemd services for slurm components."""
+    def _setup_systemd(self) -> None:
+        """Preforms setup the systemd service."""
         try:
             subprocess.call([
                 "cp",
