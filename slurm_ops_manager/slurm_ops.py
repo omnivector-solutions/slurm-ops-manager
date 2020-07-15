@@ -279,7 +279,7 @@ class SlurmOpsManager(Object):
             ])
         except subprocess.CalledProcessError as e:
             logger.error(
-               f"Setting the snap.mode failed. snap.mode={self.snap_mode} - {e}"
+               f"Setting the snap.mode failed. snap.mode={self._slurm_component} - {e}"
             )
 
     def prepare_system_for_slurm(self) -> None:
@@ -300,6 +300,7 @@ class SlurmOpsManager(Object):
             self._setup_systemd()
             self._store.slurm_installed = True
         else:
+            logger.debug("installing the snap resource")
             self._install_snap()
             self._snap_connect()
             self._set_snap_mode()
