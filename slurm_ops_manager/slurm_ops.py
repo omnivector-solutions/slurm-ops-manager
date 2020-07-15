@@ -105,7 +105,8 @@ class SlurmOpsManager(Object):
         logger.debug(self.resource_path)
         self.framework.breakpoint()
         self._is_tar = tarfile.is_tarfile(self.resource_path)
-
+        logger.debu("inside init #########################################")
+        logger.debu(self._is_tar)
         if self._is_tar:
             self._MUNGE_KEY_PATH = Path("/etc/munge/munge.key")
         else:
