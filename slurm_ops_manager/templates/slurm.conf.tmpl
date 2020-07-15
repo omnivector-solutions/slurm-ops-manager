@@ -20,7 +20,7 @@ BackupAddr={{ backup_controller_ingress_address }}
 {% endif %}
 
 AuthType=auth/munge
-AuthInfo="socket=/var/run/munge/munge.socket.2"
+AuthInfo="socket={{ munge_socket }}"
 
 CryptoType=crypto/munge
 
