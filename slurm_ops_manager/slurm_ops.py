@@ -101,7 +101,7 @@ class SlurmOpsManager(Object):
             'slurmctld': 6817,
             'slurmrestd': 6820,
         }
-
+        self.framework.breakpoint()
         self._is_tar = tarfile.is_tarfile(self.model.resources.fetch('slurm'))
 
         if self._is_tar:
