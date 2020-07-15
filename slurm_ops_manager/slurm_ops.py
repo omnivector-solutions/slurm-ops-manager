@@ -101,8 +101,10 @@ class SlurmOpsManager(Object):
             'slurmctld': 6817,
             'slurmrestd': 6820,
         }
+        self.resource_path = self.model.resources.fetch('slurm')
+        logger.debug(self.resource_path)
         self.framework.breakpoint()
-        self._is_tar = tarfile.is_tarfile(self.model.resources.fetch('slurm'))
+        self._is_tar = tarfile.is_tarfile(self.resource_path)
 
         if self._is_tar:
             self._MUNGE_KEY_PATH = Path("/etc/munge/munge.key")
