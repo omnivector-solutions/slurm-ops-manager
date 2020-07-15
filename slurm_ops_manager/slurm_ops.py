@@ -73,6 +73,7 @@ class SlurmOpsManager(Object):
     _TEMPLATE_DIR = _CHARM_DIR / 'templates'
 
     _SLURM_CONF_DIR = Path('/etc/slurm')
+    _SLURM_SNAP_CONF_DIR = Path('/var/snap/slurm/common/etc/slurm-configurator/')
     _SLURM_PID_DIR = Path('/srv/slurm')
     _SLURM_LOG_DIR = Path('/var/log/slurm')
     _SLURM_SBIN_DIR = Path('/usr/local/sbin')
@@ -86,7 +87,6 @@ class SlurmOpsManager(Object):
     _SLURM_GROUP = "slurm"
     _SLURM_GID = 995
     _SLURM_TMP_RESOURCE = "/tmp/slurm-resource"
-    _MUNGE_KEY_PATH = Path("/etc/munge/munge.key")
 
     def __init__(self, charm, component):
         """Determine values based on slurm component."""
@@ -101,12 +101,26 @@ class SlurmOpsManager(Object):
             'slurmrestd': 6820,
         }
 
+        self._is_tar = tarfile.is_tarfile(self.model.resources.fetch('slurm'))
+
+        if self._is_tar:
+            self._MUNGE_KEY_PATH = Path("/etc/munge/munge.key")
+        else:
+            self._MUNGE_KEY_PATH = Path("/var/snap/slurm/common/etc/munge/munge.key")
+        
         if component in ['slurmd', 'slurmctld', 'slurmrestd']:
             self._slurm_conf_template_name = 'slurm.conf.tmpl'
-            self._slurm_conf = self._SLURM_CONF_DIR / 'slurm.conf'
+            if self._is_tar:
+                self._slurm_conf = self._SLURM_CONF_DIR / 'slurm.conf'
+            else:
+                self._slurm_conf = self._SLURM_SNAP_CONF_DIR / 'slurm.conf'
         elif component == "slurmdbd":
             self._slurm_conf_template_name = 'slurmdbd.conf.tmpl'
-            self._slurm_conf = self._SLURM_CONF_DIR / 'slurmdbd.conf'
+            if self._is_tar:
+                self._slurm_conf = self._SLURM_CONF_DIR / 'slurmdbd.conf'
+            else:
+                self._slurm_conf = self._SLURM_SNAP_CONF_DIR / 'slurmdbd.conf'
+
         else:
             raise Exception(f'slurm component {component} not supported')
 
@@ -207,6 +221,62 @@ class SlurmOpsManager(Object):
             target.unlink()
 
         target.write_text(rendered_template.render(context))
+    
+
+    def _install_snap(self):
+        snap_install_cmd = ["snap", "install"]
+        resource_path = None
+        try:
+            resource_path = self.model.resources.fetch('slurm')
+        except ModelError as e:
+            logger.error(
+                f"Resource could not be found when executing: {e}",
+                exc_info=True,
+            )
+        if resource_path:
+            snap_install_cmd.append(resource_path)
+            snap_install_cmd.append("--dangerous")
+        else:
+            snap_store_channel = self.fw_adapter.get_config("snap-store-channel")
+            snap_install_cmd.append("slurm")
+            snap_install_cmd.append(f"--{snap_store_channel}")
+        try:
+            subprocess.call(snap_install_cmd)
+        except subprocess.CalledProcessError as e:
+            logger.error(
+                f"Could not install the slurm snap using the command: {e}"
+            )
+    def _snap_connect(self, slot=None):
+        connect_commands = [
+            ["snap", "connect", "slurm:network-control"],
+            ["snap", "connect", "slurm:system-observe"],
+            ["snap", "connect", "slurm:hardware-observe"],
+        ]
+
+        for connect_command in connect_commands:
+            if slot:
+                connect_command.append(slot)
+            try:
+                subprocess.call(connect_command)
+            except subprocess.CalledProcessError as e:
+                logger.error(
+                    f"Could not connect snap interface: {e}"
+                    
+                )
+    def _set_snap_mode(self):
+        """Set the snap mode, thorw an exception if it fails.
+        """
+        try:
+            subprocess.call([
+                "snap",
+                "set",
+                "slurm",
+                f"snap.mode={self._slurm_component}",
+            ])
+        except subprocess.CalledProcessError as e:
+            logger.error(
+               f"Setting the snap.mode failed. snap.mode={self.snap_mode} - {e}"
+            )
 
     def prepare_system_for_slurm(self) -> None:
         """Prepare the system for slurm.
@@ -215,17 +285,21 @@ class SlurmOpsManager(Object):
         * create filesystem for slurm
         * provision slurm resource
         """
-        self._install_os_deps()
-        self._create_slurm_user_and_group()
-        self._prepare_filesystem()
-        self._create_environment_files()
+        if self._is_tar:
+            self._install_os_deps()
+            self._create_slurm_user_and_group()
+            self._prepare_filesystem()
+            self._create_environment_files()
+            self._install_munge()
+            self._provision_slurm_resource()
+            self._set_ld_library_path()
+            self._setup_systemd()
+            self._store.slurm_installed = True
+        else:
+            self._install_snap()
+            self._snap_connect()
+            self._set_snap_mode()
 
-        self._install_munge()
-        self._provision_slurm_resource()
-
-        self._set_ld_library_path()
-        self._setup_systemd()
-        self._store.slurm_installed = True
 
     def _install_os_deps(self) -> None:
         try:
@@ -254,7 +328,7 @@ class SlurmOpsManager(Object):
             logger.debug(e)
 
     def get_munge_key(self) -> str:
-        """Read, encode, decode and return the munge key."""
+        """Read, encode, decode and return the munge key as a string."""
         munge_key = self._MUNGE_KEY_PATH.read_bytes()
         return b64encode(munge_key).decode()
 
