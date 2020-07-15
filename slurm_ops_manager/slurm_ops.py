@@ -81,6 +81,8 @@ class SlurmOpsManager(Object):
     _SLURM_STATE_DIR = Path("/var/lib/slurmd")
     _SLURM_PLUGIN_DIR = Path("/usr/local/lib/slurm")
 
+    _MUNGE_SOCKET = Path("/var/run/munge/munge.socket.2")
+
     _SLURM_USER = "slurm"
     _SLURM_UID = 995
     _SLURM_GROUP = "slurm"
@@ -126,6 +128,10 @@ class SlurmOpsManager(Object):
         self._daemon = self._SLURM_SBIN_DIR / f'{self._slurm_component}'
         self._environment_file = \
             self._SLURM_SYSCONFIG_DIR / f'{self._slurm_component}'
+
+    @property
+    def munge_socket(self):
+        return str(self._MUNGE_SOCKET)
 
     def render_config_and_restart(self, slurm_config) -> None:
         """Render the slurm.conf and munge key, restart slurm and munge."""
