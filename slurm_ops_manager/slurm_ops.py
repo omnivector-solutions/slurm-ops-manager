@@ -6,6 +6,7 @@ import os
 import re
 import socket
 import subprocess
+import tarfile
 from base64 import b64decode, b64encode
 from pathlib import Path
 from time import sleep
