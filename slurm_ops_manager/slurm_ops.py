@@ -33,11 +33,15 @@ logger = logging.getLogger()
 #  $            #  the end of the string
 #  )            # End of lookahead
 
-def _get_inv() -> dict:
+def _get_inv(is_tar) -> dict:
+    cmd = "/snap/slurm/x1/slurm-bins/slurmd -C"
+    if not is_tar:
+        cmd = "/snap/slurm/x1/slurm-bins/slurmd -C"
+    else:
+        cmd = "slurmd -C"
     try:
         inventory = subprocess.check_output(
-            "slurmd -C", shell=True
-        ).strip().decode('ascii')
+            cmd, shell=True).strip().decode('ascii')
     except subprocess.CalledProcessError as e:
         logger.debug(f"Failed getting inventory - {e}")
 
@@ -229,7 +233,7 @@ class SlurmOpsManager(Object):
     @property
     def inventory(self) -> str:
         """Return the node inventory and gpu count."""
-        inv = _get_inv()
+        inv = _get_inv(self._is_tar)
         inv['gpus'] = _get_gpu()
         return json.dumps(inv)
 
