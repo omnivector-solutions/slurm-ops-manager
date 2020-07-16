@@ -219,9 +219,12 @@ class SlurmOpsManager(Object):
     @property
     def is_active(self) -> bool:
         """Return True if slurm is running and false if it isn't."""
-        return subprocess.call(
-            ['systemctl', 'is-active', self._slurm_component]
-        ) == 0
+        if self._istar:
+            cmd = ['systemctl', 'is-active', self._slurm_component]
+        else:
+            component = "snap.slurm." + self._slurm_component
+            cmd = ['systemctl', 'is-active', component]
+        return subprocess.call(cmd) == 0
 
     @property
     def inventory(self) -> str:
