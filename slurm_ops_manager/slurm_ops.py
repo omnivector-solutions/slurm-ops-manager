@@ -103,7 +103,6 @@ class SlurmOpsManager(Object):
         }
         self.resource_path = self.model.resources.fetch('slurm')
         logger.debug(self.resource_path)
-        self.framework.breakpoint()
         self._is_tar = tarfile.is_tarfile(self.resource_path)
         logger.debug("inside init #########################################")
         logger.debug(self._is_tar)
