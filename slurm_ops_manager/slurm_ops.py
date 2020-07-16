@@ -239,6 +239,7 @@ class SlurmOpsManager(Object):
         if resource_path:
             snap_install_cmd.append(resource_path)
             snap_install_cmd.append("--dangerous")
+            snap_install_cmd.append("--classic")
         else:
             snap_store_channel = self.fw_adapter.get_config("snap-store-channel")
             snap_install_cmd.append("slurm")
@@ -288,6 +289,7 @@ class SlurmOpsManager(Object):
         * create filesystem for slurm
         * provision slurm resource
         """
+        logger.debug(f"inside prepare_system_For slurm {self._is_tar}")
         if self._is_tar:
             self._install_os_deps()
             self._create_slurm_user_and_group()
