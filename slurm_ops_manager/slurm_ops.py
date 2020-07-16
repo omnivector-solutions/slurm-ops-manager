@@ -144,6 +144,7 @@ class SlurmOpsManager(Object):
         self._environment_file = \
             self._SLURM_SYSCONFIG_DIR / f'{self._slurm_component}'
 
+    
     def render_config_and_restart(self, slurm_config) -> None:
         """Render the slurm.conf and munge key, restart slurm and munge."""
         if not type(slurm_config) == dict:
@@ -159,6 +160,61 @@ class SlurmOpsManager(Object):
 
         if not self.is_active:
             raise Exception(f"SLURM {self._slurm_component}: not starting")
+    
+    
+    def _slurm_systemctl(self, operation) -> None:
+        """Start systemd services for slurmd."""
+        if operation not in ["enable", "start", "stop", "restart"]:
+            msg = f"Unsupported systemctl command for {self._slurm_component}"
+            raise Exception(msg)
+
+        if not self._is_tar:
+            component = "snap.slurm." + self._slurm_component
+            try:
+                subprocess.call([
+                    "systemctl",
+                    operation,
+                    component,
+                ])
+            except subprocess.CalledProcessError as e:
+                logger.error(f"Error exectuing _slurm_systemctl - {e}")
+        else:
+            try:
+                subprocess.call([
+                    "systemctl",
+                    operation,
+                    self._slurm_component,
+            ])
+            except subprocess.CalledProcessError as e:
+                logger.error(f"Error exectuing systemctl - {e}")
+            
+            # Fix this later
+            if operation == "start":
+                self._store.slurm_started = True
+
+    
+    def _write_config(self, context) -> None:
+        """Render the context to a template."""
+        template_name = self._slurm_conf_template_name
+        source = self._slurm_conf_template_location
+        target = self._slurm_conf
+
+        if not type(context) == dict:
+            raise TypeError("Incorrect type for config.")
+
+        if not source.exists():
+            raise FileNotFoundError(
+                "The slurm config template cannot be found."
+            )
+
+        rendered_template = Environment(
+            loader=FileSystemLoader(str(self._TEMPLATE_DIR))
+        ).get_template(template_name)
+
+        if target.exists():
+            target.unlink()
+
+        target.write_text(rendered_template.render(context))
 
     @property
     def is_active(self) -> bool:
@@ -184,47 +240,6 @@ class SlurmOpsManager(Object):
         """Return the bool from the underlying _state."""
         return self._store.slurm_started
 
-    def _slurm_systemctl(self, operation) -> None:
-        """Start systemd services for slurmd."""
-        if operation not in ["enable", "start", "stop", "restart"]:
-            msg = f"Unsupported systemctl command for {self._slurm_component}"
-            raise Exception(msg)
-
-        try:
-            subprocess.call([
-                "systemctl",
-                operation,
-                self._slurm_component,
-            ])
-            # Fix this later
-            if operation == "start":
-                self._store.slurm_started = True
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Error copying systemd - {e}")
-
-    def _write_config(self, context) -> None:
-        """Render the context to a template."""
-        template_name = self._slurm_conf_template_name
-        source = self._slurm_conf_template_location
-        target = self._slurm_conf
-
-        if not type(context) == dict:
-            raise TypeError("Incorrect type for config.")
-
-        if not source.exists():
-            raise FileNotFoundError(
-                "The slurm config template cannot be found."
-            )
-
-        rendered_template = Environment(
-            loader=FileSystemLoader(str(self._TEMPLATE_DIR))
-        ).get_template(template_name)
-
-        if target.exists():
-            target.unlink()
-
-        target.write_text(rendered_template.render(context))
-    
 
     def _install_snap(self):
         snap_install_cmd = ["snap", "install"]
