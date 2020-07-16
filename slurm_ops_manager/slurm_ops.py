@@ -320,6 +320,7 @@ class SlurmOpsManager(Object):
             self._install_snap()
             self._snap_connect()
             self._set_snap_mode()
+            self._store.slurm_installed = True
 
 
     def _install_os_deps(self) -> None:
