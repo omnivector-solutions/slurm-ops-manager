@@ -2,7 +2,6 @@
 """This module provides the SlurmInstallManager."""
 import logging
 import os
-import socket
 import subprocess
 from base64 import b64decode, b64encode
 from pathlib import Path
@@ -14,7 +13,7 @@ from ops.framework import (
     StoredState,
 )
 from ops.model import ModelError
-from slurm_ops_manager.utils import get_inventory
+from slurm_ops_manager.utils import get_inventory, get_hostname
 
 
 logger = logging.getLogger()
@@ -70,7 +69,7 @@ class SlurmOpsManager(Object):
 
         self._slurm_component = component
 
-        self.hostname = socket.gethostname().split(".")[0]
+        self.hostname = get_hostname()
         self.port = port_map[component]
 
         self._slurm_conf_template_location = \

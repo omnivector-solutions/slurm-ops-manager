@@ -7,10 +7,6 @@ import subprocess
 import sys
 
 
-def _get_hostname():
-    return socket.gethostname().split(".")[0]
-
-
 def _get_real_mem():
     """Return the real memory."""
     try:
@@ -78,9 +74,14 @@ def _get_gpus():
     return gpu
 
 
+def get_hostname():
+    """Return the hostname."""
+    return socket.gethostname().split(".")[0]
+
+
 def get_inventory():
     """Assemble and return the node info."""
-    hostname = _get_hostname()
+    hostname = get_hostname()
     mem = _get_real_mem()
     cpu_info = _get_cpu_info()
     gpus = _get_gpus()
