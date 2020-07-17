@@ -24,24 +24,24 @@ AuthInfo="socket={{ munge_socket }}"
 
 CryptoType=crypto/munge
 
-MailProg=/usr/bin/mail 
+MailProg={{ mail_prog }}
 
-SlurmUser=slurm
-SlurmdUser=slurm
+SlurmUser={{ slurm_user }}
+SlurmdUser={{ slurm_user }}
 
 SlurmctldPort=6817
 SlurmdPort=6818
 
-SlurmctldPidFile=/srv/slurm/slurmctld.pid
-SlurmdPidFile=/srv/slurm/slurmd.pid
+SlurmctldPidFile={{ slurmctld_pid_file }}
+SlurmdPidFile={{ slurmd_pid_file }}
 
-SlurmctldLogFile=/var/log/slurm/slurmctld.log
-SlurmdLogFile=/var/log/slurm/slurmd.log
+SlurmctldLogFile={{ slurmctld_log_file }}
+SlurmdLogFile={{ slurmd_log_file }}
 
-SlurmdSpoolDir=/var/spool/slurmd
-StateSaveLocation=/var/lib/slurmd
+SlurmdSpoolDir={{ slurmd_spool_dir }}
+StateSaveLocation={{ state_save_location }}
 
-PluginDir=/usr/local/lib/slurm
+PluginDir={{ plugin_dir }}
 
 # SLURMDBD CONFIGURED ON {{ slurmdbd_hostname }}
 AccountingStorageType=accounting_storage/slurmdbd
