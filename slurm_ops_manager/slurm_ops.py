@@ -27,8 +27,10 @@ class SlurmOpsManager(Object):
     def __init__(self, charm, component):
         """Set the initial attribute values."""
         self._store.set_default(slurm_installed=False)
+        self._state.set_default(slurm_version_set=False)
 
         self._slurm_component = component
+        self._charm = charm
         self._resource_path = self.model.resources.fetch('slurm')
         self._is_tar = tarfile.is_tarfile(self.resource_path)
 
@@ -71,8 +73,14 @@ class SlurmOpsManager(Object):
         self.slurm_resource_manager.write_munge_key(slurm_config['munge_key'])
         self.slurm_resource_manager.restart_munged()
 
-        if not self.slurm_resource_manager.is_active:
+        if not self.slurm_resource_manager.slurm_is_active:
             raise Exception(f"SLURM {self._slurm_component}: not starting")
+        else:
+            if not self._state.slurm_version_set:
+                self._charm.unit.set_workload_version(
+                    self.slurm_resource_manager.slurm_version
+                )
+                self._state.slurm_version_set=True
 
 
 class SlurmOpsManagerBase:
@@ -91,6 +99,26 @@ class SlurmOpsManagerBase:
             'slurmctld': 6817,
             'slurmrestd': 6820,
         }
+
+        self._slurm_cmds = [
+            "sacct",
+            "sacctmgr",
+            "salloc",
+            "sattach",
+            "sbatch",
+            "sbcast",
+            "scancel",
+            "scontrol",
+            "sdiag",
+            "sinfo",
+            "sprio",
+            "squeue",
+            "sreport",
+            "srun",
+            "sshare",
+            "sstat",
+            "strigger",
+        ]
 
         if component in ['slurmd', 'slurmctld', 'slurmrestd']:
             self._slurm_conf_template_name = 'slurm.conf.tmpl'
@@ -118,7 +146,7 @@ class SlurmOpsManagerBase:
             self._TEMPLATE_DIR / self._slurm_conf_template_name
 
     @property
-    def is_active(self) -> bool:
+    def slurm_is_active(self) -> bool:
         """Return True if the slurm component is running."""
         return self._slurm_systemctl("is-active") == 0
 
@@ -205,6 +233,15 @@ class SlurmOpsManagerBase:
         """Preform the install and setup operations."""
         raise Exception("Inheriting object needs to define this method.")
 
+    @property
+    def slurm_version(self):
+        """Return slurm verion."""
+        try:
+            slurm_version = subprocess.check_output(["sinfo", "-V"])
+        except subprocess.CalledProcessError as e:
+            print(f"Cannot get slurm version - {e}")
+        return slurm_version.decode().strip()
+
     def write_slurm_config(self, context) -> None:
         """Render the context to a template, adding in common configs."""
         common_config = {
@@ -271,8 +308,6 @@ class SlurmOpsManagerBase:
         except subprocess.CalledProcessError as e:
             logger.error(f"Error copying systemd - {e}")
             return -1
-
-        raise Exception("Inheriting object needs to define this method.")
 
 
 class SlurmTarManager(SlurmOpsManagerBase):
@@ -575,7 +610,8 @@ class SlurmSnapManager(SlurmOpsManagerBase):
         return "snap.slurm.munged"
 
     def setup_system(self) -> None:
-        """Install the slurm snap and set the snap.mode."""
+        """Install the slurm snap, set the snap.mode, create the aliases."""
+        # Install the slurm snap
         try:
             subprocess.call([
                 "snap",
@@ -587,6 +623,7 @@ class SlurmSnapManager(SlurmOpsManagerBase):
         except subprocess.CalledProcessError as e:
             print(f"Error installing slurm snap - {e}")
 
+        # Set the snap.mode
         try:
             subprocess.call([
                 "snap",
@@ -596,3 +633,15 @@ class SlurmSnapManager(SlurmOpsManagerBase):
             ])
         except subprocess.CalledProcessError as e:
             print(f"Error setting snap.mode - {e}")
+
+        # Create the aliases for the slurm cmds
+        for cmd in self._slurm_cmds:
+            try:
+                subprocess.call([
+                    "snap",
+                    "alias",
+                    f"slurm.{cmd}",
+                    cmd,
+                ])
+            except subprocess.CalledProcessError as e:
+                print(f"Cannot create snap alias for: {cmd}")
