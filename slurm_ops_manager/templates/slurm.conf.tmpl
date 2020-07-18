@@ -38,10 +38,10 @@ SlurmdPidFile={{ slurmd_pid_file }}
 SlurmctldLogFile={{ slurmctld_log_file }}
 SlurmdLogFile={{ slurmd_log_file }}
 
-SlurmdSpoolDir={{ slurmd_spool_dir }}
-StateSaveLocation={{ state_save_location }}
+SlurmdSpoolDir={{ slurm_spool_dir }}
+StateSaveLocation={{ slurm_state_dir }}
 
-PluginDir={{ plugin_dir }}
+PluginDir={{ slurm_plugin_dir }}
 
 # SLURMDBD CONFIGURED ON {{ slurmdbd_hostname }}
 AccountingStorageType=accounting_storage/slurmdbd
@@ -49,8 +49,6 @@ JobAcctGatherType=jobacct_gather/linux
 AccountingStorageHost={{ slurmdbd_hostname }}
 AccountingStoragePort={{ slurmdbd_port }}
 AccountingStoragePass={{ munge_socket }}
-# "/var/run/munge/munge.socket.2"
-
 
 # User specified config
 {{custom_config}}

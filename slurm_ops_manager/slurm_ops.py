@@ -3,6 +3,7 @@
 import logging
 import os
 import subprocess
+import tarfile
 from base64 import b64decode, b64encode
 from pathlib import Path
 from time import sleep
@@ -13,19 +14,18 @@ from ops.framework import (
     StoredState,
 )
 from ops.model import ModelError
-from slurm_ops_manager.utils import get_inventory, get_hostname
-
+from slurm_ops_manager.utils import get_hostname, get_inventory
 
 logger = logging.getLogger()
 
 
-
 class SlurmOpsManager(Object):
+    """SlurmOpsManager."""
 
     _store = StoredState()
 
-
     def __init__(self, charm, component):
+        """Set the initial attribute values."""
         self._store.set_default(slurm_installed=False)
 
         self._slurm_component = component
@@ -33,9 +33,11 @@ class SlurmOpsManager(Object):
         self._is_tar = tarfile.is_tarfile(self.resource_path)
 
         if self._is_tar:
-            self.slurm_resource_manager = SlurmTarManager(component, self._resource_path)
+            self.slurm_resource_manager = \
+                SlurmTarManager(component, self._resource_path)
         else:
-            self.slurm_resource_manager = SlurmSnapManager(component, self._resource_path)
+            self.slurm_resource_manager = \
+                SlurmSnapManager(component, self._resource_path)
 
     @property
     def inventory(self) -> str:
@@ -48,9 +50,11 @@ class SlurmOpsManager(Object):
         return self._store.slurm_installed
 
     def get_munge_key(self) -> str:
+        """Return the munge key."""
         return self.slurm_resource_manager.get_munge_key()
 
     def prepare_system_for_slurm(self) -> None:
+        """Prepare the system for slurm."""
         self.slurm_resource_manager.setup_system()
         self._state.slurm_installed = True
 
@@ -72,11 +76,13 @@ class SlurmOpsManager(Object):
 
 
 class SlurmOpsManagerBase:
+    """Base class for slurm ops."""
 
     _CHARM_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
     _TEMPLATE_DIR = _CHARM_DIR / 'templates'
 
     def __init__(self, component, resource_path):
+        """Set the initial values for attributes in the base class."""
         self._resource_path = resource_path
 
         port_map = {
@@ -88,14 +94,22 @@ class SlurmOpsManagerBase:
 
         if component in ['slurmd', 'slurmctld', 'slurmrestd']:
             self._slurm_conf_template_name = 'slurm.conf.tmpl'
-            self._slurm_conf = self._SLURM_CONF_DIR / 'slurm.conf'
+            self._slurm_conf = self._slurm_conf_dir / 'slurm.conf'
         elif component == "slurmdbd":
             self._slurm_conf_template_name = 'slurmdbd.conf.tmpl'
-            self._slurm_conf = self._SLURM_CONF_DIR / 'slurmdbd.conf'
+            self._slurm_conf = self._slurm_conf_dir / 'slurmdbd.conf'
         else:
             raise Exception(f'slurm component {component} not supported')
 
         self._slurm_component = component
+
+        self._slurmd_log_file = self._slurm_log_dir / 'slurmd.log'
+        self._slurmctld_log_file = self._slurm_log_dir / 'slurmctld.log'
+        self._slurmdbd_log_file = self._slurm_log_dir / 'slurmdbd.log'
+
+        self._slurmd_log_file = self._slurm_pid_dir / 'slurmd.pid'
+        self._slurmctld_log_file = self._slurm_pid_dir / 'slurmctld.pid'
+        self._slurmdbd_log_file = self._slurm_pid_dir / 'slurmdbd.pid'
 
         self.hostname = get_hostname()
         self.port = port_map[self._slurm_component]
@@ -105,12 +119,21 @@ class SlurmOpsManagerBase:
 
     @property
     def is_active(self) -> bool:
+        """Return True if the slurm component is running."""
         return self._slurm_systemctl("is-active") == 0
 
     def _slurm_systemctl(self, operation) -> int:
         """Start systemd services for slurmd."""
-        if operation not in ["enable", "start", "stop", "restart", "is-active"]:
-            msg = f"Unsupported systemctl command for {self._slurm_systemd_service}"
+        supported_systemctl_cmds = [
+            "enable",
+            "start",
+            "stop",
+            "restart",
+            "is-active",
+        ]
+
+        if operation not in supported_systemctl_cmds:
+            msg = f"Unsupported systemctl command: {operation}"
             raise Exception(msg)
 
         try:
@@ -124,21 +147,45 @@ class SlurmOpsManagerBase:
             return -1
 
     @property
-    def _mail_prog(self) -> str:
+    def _slurm_conf_dir(self) -> Path:
         raise Exception("Inheriting object needs to define this property.")
 
     @property
-    def munge_socket(self):
+    def _slurm_spool_dir(self) -> Path:
+        raise Exception("Inheriting object needs to define this property.")
+
+    @property
+    def _slurm_state_dir(self) -> Path:
+        raise Exception("Inheriting object needs to define this property.")
+
+    @property
+    def _slurm_plugin_dir(self) -> Path:
+        raise Exception("Inheriting object needs to define this property.")
+
+    @property
+    def _slurm_log_dir(self) -> Path:
+        raise Exception("Inheriting object needs to define this property.")
+
+    @property
+    def _slurm_pid_dir(self) -> Path:
+        raise Exception("Inheriting object needs to define this property.")
+
+    @property
+    def _mail_prog(self) -> Path:
+        raise Exception("Inheriting object needs to define this property.")
+
+    @property
+    def _munge_socket(self) -> Path:
         """Return the munge socket."""
         raise Exception("Inheriting object needs to define this property.")
 
     @property
-    def slurm_user(self) -> str:
+    def _slurm_user(self) -> str:
         """Return the slurm user."""
         raise Exception("Inheriting object needs to define this property.")
 
     @property
-    def slurm_group(self) -> str:
+    def _slurm_group(self) -> str:
         """Return the slurm group."""
         raise Exception("Inheriting object needs to define this property.")
 
@@ -154,20 +201,24 @@ class SlurmOpsManagerBase:
     def _munged_systemd_service(self) -> str:
         raise Exception("Inheriting object needs to define this property.")
 
-    @property
-    def _slurm_conf_path(self) -> str:
-        raise Exception("Inheriting object needs to define this property.")
-
     def setup_system(self):
+        """Preform the install and setup operations."""
         raise Exception("Inheriting object needs to define this method.")
 
     def write_slurm_config(self, context) -> None:
-        """Render the context to a template."""
-
+        """Render the context to a template, adding in common configs."""
         common_config = {
-            'log_file_location': self._log_file,
-            'munge_socket': self._munge_socket,
-            'mail_prog': self._mail_prog,
+            'munge_socket': str(self._munge_socket),
+            'mail_prog': str(self._mail_prog),
+            'slurm_state_dir': str(self._slurm_state_dir),
+            'slurm_spool_dir': str(self._slurm_spool_dir),
+            'slurm_plugin_dir': str(self._slurm_plugin_dir),
+            'slurmd_log_file': str(self._slurmd_log_file),
+            'slurmctld_log_file': str(self._slurmctld_log_file),
+            'slurm_user': str(self._slurm_user),
+            'slurmctld_pid': str(self._slurmctld_pid_file),
+            'slurmd_pid': str(self._slurmd_pid_file),
+            'slurmdbd_pid': str(self._slurmdbd_pid_file),
         }
 
         template_name = self._slurm_conf_template_name
@@ -189,16 +240,28 @@ class SlurmOpsManagerBase:
         if target.exists():
             target.unlink()
 
-        target.write_text(rendered_template.render(context))
+        target.write_text(
+            rendered_template.render(
+                {**context, **common_config}
+            )
+        )
 
     def restart_slurm_component(self):
+        """Restart the slurm component."""
         self._slurm_systemctl("restart")
 
     def write_munge_key(self, munge_key):
+        """Write the munge key."""
         key = b64decode(munge_key.encode())
         self._munge_key_path.write_bytes(key)
 
+    def get_munge_key(self) -> str:
+        """Read, encode, decode and return the munge key."""
+        munge_key = self._munge_key_path.read_bytes()
+        return b64encode(munge_key).decode()
+
     def restart_munged(self):
+        """Restart munged."""
         try:
             return subprocess.call([
                 "systemctl",
@@ -211,22 +274,13 @@ class SlurmOpsManagerBase:
 
         raise Exception("Inheriting object needs to define this method.")
 
-    def get_munge_key(self) -> str:
-        """Read, encode, decode and return the munge key."""
-        munge_key = self._munge_key_path.read_bytes()
-        return b64encode(munge_key).decode()
-
 
 class SlurmTarManager(SlurmOpsManagerBase):
+    """Operations for slurm tar resource."""
 
-    _SLURM_CONF_DIR = Path('/etc/slurm')
     _SLURM_PID_DIR = Path('/srv/slurm')
     _SLURM_SBIN_DIR = Path('/usr/local/sbin')
     _SLURM_SYSCONFIG_DIR = Path("/etc/sysconfig")
-    _SLURM_LOG_DIR = Path('/var/log/slurm')
-    _SLURM_SPOOL_DIR = Path("/var/spool/slurmd")
-    _SLURM_STATE_DIR = Path("/var/lib/slurmd")
-    _SLURM_PLUGIN_DIR = Path("/usr/local/lib/slurm")
 
     _SLURM_UID = 995
     _SLURM_GID = 995
@@ -234,19 +288,42 @@ class SlurmTarManager(SlurmOpsManagerBase):
     _SLURM_TMP_RESOURCE = "/tmp/slurm-resource"
 
     def __init__(self, component, resource_path):
+        """Set initial class attribute values."""
         super().__init__(component, resource_path)
         self._source_systemd_template = \
             self._TEMPLATE_DIR / f'{self._slurm_component}.service'
         self._target_systemd_template = \
             Path(f'/etc/systemd/system/{self._slurm_component}.service')
-        self._log_file = self._SLURM_LOG_DIR / f'{self._slurm_component}.log'
         self._environment_file = \
             self._SLURM_SYSCONFIG_DIR / f'{self._slurm_component}'
 
+    @property
+    def _slurm_conf_dir(self) -> Path:
+        return Path("/etc/slurm")
 
     @property
-    def _mail_prog(self) -> str:
-        return "/usr/bin/mail"
+    def _slurm_spool_dir(self) -> Path:
+        return Path("/var/spool/slurmd")
+
+    @property
+    def _slurm_state_dir(self) -> Path:
+        return Path("/var/lib/slurmd")
+
+    @property
+    def _slurm_plugin_dir(self) -> Path:
+        return Path("/usr/local/lib/slurm")
+
+    @property
+    def _slurm_log_dir(self) -> Path:
+        return Path("/var/log/slurm")
+
+    @property
+    def _slurm_pid_dir(self) -> Path:
+        raise Exception("/srv/slurm")
+
+    @property
+    def _mail_prog(self) -> Path:
+        return Path("/usr/bin/mail")
 
     @property
     def _slurm_systemd_service(self) -> str:
@@ -263,11 +340,7 @@ class SlurmTarManager(SlurmOpsManagerBase):
 
     @property
     def _munged_systemd_service(self) -> str:
-        return f"munge"
-
-    @property
-    def _slurm_conf_path(self) -> str:
-        return "/etc/slurm/slurm.conf"
+        return "munge"
 
     @property
     def slurm_user(self) -> str:
@@ -278,10 +351,6 @@ class SlurmTarManager(SlurmOpsManagerBase):
     def slurm_group(self) -> str:
         """Return the slurm group."""
         return "slurm"
-
-    @property
-    def _slurm_conf_path(self) -> str:
-        return "/etc/slurm/slurm.conf"
 
     def setup_system(self) -> None:
         """Prepare the system for slurm.
@@ -323,19 +392,19 @@ class SlurmTarManager(SlurmOpsManagerBase):
                 self.slurm_user,
             ])
         except subprocess.CalledProcessError as e:
-            logger.error(f"Error creating {self._SLURM_GROUP} - {e}")
+            logger.error(f"Error creating {self._slurm_group} - {e}")
 
         try:
             subprocess.call([
                 "useradd",
                 "-r",
                 "-g",
-                self.slurm_group,
+                self._slurm_group,
                 f"--uid={self._SLURM_UID}",
-                self.slurm_user,
+                self._slurm_user,
             ])
         except subprocess.CalledProcessError as e:
-            logger.error(f"Error creating {self._SLURM_USER} - {e}")
+            logger.error(f"Error creating {self._slurm_user} - {e}")
 
     def _prepare_filesystem(self) -> None:
         """Create the needed system directories needed by slurm."""
@@ -372,7 +441,7 @@ class SlurmTarManager(SlurmOpsManagerBase):
             subprocess.call([
                 "chown",
                 "-R",
-                f"{self.slurm_user}:{self.slurm_group}",
+                f"{self._slurm_user}:{self._slurm_group}",
                 slurm_dir,
             ])
         except subprocess.CalledProcessError as e:
@@ -445,28 +514,51 @@ class SlurmTarManager(SlurmOpsManagerBase):
 
 
 class SlurmSnapManager(SlurmOpsManagerBase):
-
-    _SLURM_CONF_DIR = Path("/var/snap/slurm/common/etc/slurm")
-    _SLURM_LOG_DIR = Path('/var/snap/slurm/common/log/slurm')
-    _SLURM_SPOOL_DIR = Path("/var/snap/slurm/common/var/spool/slurm/d")
-    _SLURM_STATE_DIR = Path("var/snap/slurm/common/var/spool/slurm/ctld")
-    _SLURM_PLUGIN_DIR = Path("/snap/slurm/current/lib/slurm")
+    """Snap operations manager."""
 
     def __init__(self, component, resource_path):
+        """Set initial attribute values."""
         super().__init__(component, resource_path)
-        self._log_file = self._SLURM_LOG_DIR / f'{self._slurm_component}.log'
 
     @property
-    def _mail_prog(self) -> str:
-        return "/snap/slurm/current/usr/bin/mail.mailutils"
+    def _slurm_conf_dir(self) -> Path:
+        return Path("/var/snap/slurm/common/etc/slurm")
 
     @property
-    def slurm_user(self) -> str:
+    def _slurm_spool_dir(self) -> Path:
+        return Path("/var/snap/slurm/common/var/spool/slurm/d")
+
+    @property
+    def _slurm_state_dir(self) -> Path:
+        return Path("/var/snap/slurm/common/var/spool/slurm/ctld")
+
+    @property
+    def _slurm_plugin_dir(self) -> Path:
+        return Path("/snap/slurm/current/lib/slurm")
+
+    @property
+    def _slurm_log_dir(self) -> Path:
+        return Path("/var/snap/slurm/common/var/log/slurm")
+
+    @property
+    def _slurm_pid_dir(self) -> Path:
+        return Path("/tmp")
+
+    @property
+    def _mail_prog(self) -> Path:
+        return Path("/snap/slurm/current/usr/bin/mail.mailutils")
+
+    @property
+    def _munge_key_path(self) -> Path:
+        return Path("/var/snap/slurm/common/etc/munge/munge.key")
+
+    @property
+    def _slurm_user(self) -> str:
         """Return the slurm user."""
         return "root"
 
     @property
-    def slurm_group(self) -> str:
+    def _slurm_group(self) -> str:
         """Return the slurm group."""
         return "root"
 
@@ -475,21 +567,33 @@ class SlurmSnapManager(SlurmOpsManagerBase):
         return f"snap.slurm.{self._slurm_component}"
 
     @property
-    def _munge_key_path(self) -> str:
-        return Path("/var/snap/slurm/common/etc/munge/munge.key")
-
-    @property
-    def munge_socket(self) -> Path:
+    def _munge_socket(self) -> Path:
         """Return the munge socket."""
         return Path("/tmp/munged.socket.2")
 
     @property
     def _munged_systemd_service(self) -> str:
-        return f"snap.slurm.munged"
-
-    @property
-    def _slurm_conf_path(self) -> str:
-        return "/var/snap/slurm/common/etc/slurm/slurm.conf"
+        return "snap.slurm.munged"
 
     def setup_system(self) -> None:
-        self._provision_slurm_snap()
+        """Install the slurm snap and set the snap.mode."""
+        try:
+            subprocess.call([
+                "snap",
+                "install",
+                self._resource_path,
+                "--dangerous",
+                "--classic",
+            ])
+        except subprocess.CalledProcessError as e:
+            print(f"Error installing slurm snap - {e}")
+
+        try:
+            subprocess.call([
+                "snap",
+                "set",
+                "slurm",
+                "snap.mode={self._slurm_component}",
+            ])
+        except subprocess.CalledProcessError as e:
+            print(f"Error setting snap.mode - {e}")
