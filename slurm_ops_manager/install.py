@@ -1,4 +1,4 @@
-class SlurmInstall:
+class SlurmTarInstall:
     """Slurm installation of lifecycle ops."""
 
     _CHARM_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
@@ -20,7 +20,7 @@ class SlurmInstall:
     _SLURM_TMP_RESOURCE = "/tmp/slurm-resource"
     _MUNGE_KEY_PATH = Path("/etc/munge/munge.key")
 
-    def __init__(self, charm, component):
+    def __init__(self, component, res_path):
         """Determine values based on slurm component."""
         super().__init__(charm, component)
 
@@ -39,7 +39,8 @@ class SlurmInstall:
             self._slurm_conf = self._SLURM_CONF_DIR / 'slurmdbd.conf'
         else:
             raise Exception(f'slurm component {component} not supported')
-
+        
+        self._res_path = res_path
         self._slurm_component = component
 
         self.hostname = socket.gethostname().split(".")[0]
@@ -178,7 +179,7 @@ class SlurmInstall:
     def _provision_slurm_resource(self) -> None:
         """Provision the slurm resource."""
         try:
-            resource_path = self.model.resources.fetch('slurm')
+            resource_path = self._res_path 
         except ModelError as e:
             logger.error(
                 f"Resource could not be found when executing: {e}",
