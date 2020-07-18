@@ -278,7 +278,6 @@ class SlurmOpsManagerBase:
 class SlurmTarManager(SlurmOpsManagerBase):
     """Operations for slurm tar resource."""
 
-    _SLURM_PID_DIR = Path('/srv/slurm')
     _SLURM_SBIN_DIR = Path('/usr/local/sbin')
     _SLURM_SYSCONFIG_DIR = Path("/etc/sysconfig")
 
@@ -409,12 +408,12 @@ class SlurmTarManager(SlurmOpsManagerBase):
     def _prepare_filesystem(self) -> None:
         """Create the needed system directories needed by slurm."""
         slurm_dirs = [
-            self._SLURM_CONF_DIR,
-            self._SLURM_LOG_DIR,
-            self._SLURM_PID_DIR,
+            self._slurm_conf_dir,
+            self._slurm_log_dir,
+            self._slurm_pid_dir,
+            self._slurm_spool_dir,
+            self._slurm_state_dir,
             self._SLURM_SYSCONFIG_DIR,
-            self._SLURM_SPOOL_DIR,
-            self._SLURM_STATE_DIR,
         ]
         for slurm_dir in slurm_dirs:
             slurm_dir.mkdir(parents=True, exist_ok=True)
