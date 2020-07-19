@@ -21,8 +21,15 @@ class SlurmOpsManager(Object):
     def __init__(self, charm, component):
         self._slurm_component = component
         self._stored.set_default(slurm_installed=False)
+        port_map = {
+            'slurmdbd': 6819,
+            'slurmd': 6818,
+            'slurmctld': 6817,
+            'slurmrestd': 6820,
+        }
         self._resource_path = self.model.resources.fetch('slurm')
-        self._is_tar = tarfile.is_tarfile(self.resource_path)
+        sself.hostname = socket.gethostname().split(".")[0]
+        self.port = port_map[component]elf._is_tar = tarfile.is_tarfile(self.resource_path)
         if self._is_tar:
             self.slurm_resource = SlurmTarManager(component, self._resource_path)
         else:
@@ -101,4 +108,3 @@ class SlurmOpsManager(Object):
         path = self.slurm_resource.get_munge_key_path()
         munge_key = path.read_bytes()
         return b64encode(munge_key).decode()
-

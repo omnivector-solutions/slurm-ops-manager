@@ -77,8 +77,8 @@ class SlurmSnapManager:
             except subprocess.CalledProcessError as e:
                 logger.error(
                     f"Could not connect snap interface: {e}"
-
                 )
+
     def _set_snap_mode(self):
         """Set the snap mode, thorw an exception if it fails.
         """
