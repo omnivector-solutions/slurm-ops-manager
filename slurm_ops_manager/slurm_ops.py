@@ -407,10 +407,11 @@ class SlurmTarManager(SlurmOpsManagerBase):
     @property
     def slurm_version(self) -> str:
         """Return slurm verion."""
+        os.environ['SLURM_CONF'] = str(self._slurm_conf_path)
         try:
             return subprocess.check_output(
                 [self._slurm_component, "-V"]
-            ).decode().strip()
+            ).decode().strip().split()[1]
         except subprocess.CalledProcessError as e:
             print(f"Cannot get slurm version - {e}")
             sys.exit(-1)
