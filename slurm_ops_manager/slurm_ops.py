@@ -36,11 +36,18 @@ class SlurmOpsManager(Object):
         self._is_tar = tarfile.is_tarfile(self._resource_path)
 
         if self._is_tar:
-            self.slurm_resource_manager = \
+            self._slurm_resource_manager = \
                 SlurmTarManager(component, self._resource_path)
         else:
-            self.slurm_resource_manager = \
+            self._slurm_resource_manager = \
                 SlurmSnapManager(component, self._resource_path)
+    @property
+    def hostname(self):
+        return self._slurm_resource_manager.hostname
+
+    @property
+    def port(self):
+        return self._slurm_resource_manager.port
 
     @property
     def inventory(self) -> str:
@@ -54,11 +61,11 @@ class SlurmOpsManager(Object):
 
     def get_munge_key(self) -> str:
         """Return the munge key."""
-        return self.slurm_resource_manager.get_munge_key()
+        return self._slurm_resource_manager.get_munge_key()
 
     def prepare_system_for_slurm(self) -> None:
         """Prepare the system for slurm."""
-        self.slurm_resource_manager.setup_system()
+        self._slurm_resource_manager.setup_system()
         self._state.slurm_installed = True
 
     def render_config_and_restart(self, slurm_config) -> None:
@@ -67,19 +74,19 @@ class SlurmOpsManager(Object):
             raise TypeError("Incorrect type for config.")
 
         # Write slurm.conf and restart the slurm component.
-        self.slurm_resource_manager.write_slurm_config(slurm_config)
-        self.slurm_resource_manager.restart_slurm_component()
+        self._slurm_resource_manager.write_slurm_config(slurm_config)
+        self._slurm_resource_manager.restart_slurm_component()
 
         # Write munge.key and restart munged.
-        self.slurm_resource_manager.write_munge_key(slurm_config['munge_key'])
-        self.slurm_resource_manager.restart_munged()
+        self._slurm_resource_manager.write_munge_key(slurm_config['munge_key'])
+        self._slurm_resource_manager.restart_munged()
 
-        if not self.slurm_resource_manager.slurm_is_active:
+        if not self._slurm_resource_manager.slurm_is_active:
             raise Exception(f"SLURM {self._slurm_component}: not starting")
         else:
             if not self._state.slurm_version_set:
                 self._charm.unit.set_workload_version(
-                    self.slurm_resource_manager.slurm_version
+                    self._slurm_resource_manager.slurm_version
                 )
                 self._state.slurm_version_set = True
 
@@ -140,11 +147,19 @@ class SlurmOpsManagerBase:
         self._slurmctld_log_file = self._slurm_pid_dir / 'slurmctld.pid'
         self._slurmdbd_log_file = self._slurm_pid_dir / 'slurmdbd.pid'
 
-        self.hostname = get_hostname()
-        self.port = port_map[self._slurm_component]
+        self._hostname = get_hostname()
+        self._port = port_map[self._slurm_component]
 
         self._slurm_conf_template_location = \
             self._TEMPLATE_DIR / self._slurm_conf_template_name
+
+    @property
+    def hostname(self):
+        return self._hostname
+
+    @property
+    def port(self):
+        return self._port
 
     @property
     def slurm_is_active(self) -> bool:
