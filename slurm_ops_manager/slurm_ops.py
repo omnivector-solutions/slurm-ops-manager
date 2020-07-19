@@ -217,6 +217,14 @@ class SlurmOpsManagerBase:
         raise Exception("Inheriting object needs to define this property.")
 
     @property
+    def _slurm_plugstack_conf(self) -> Path:
+        raise Exception("Inheriting object needs to define this property.")
+
+    @property
+    def _slurm_plugstack_dir(self) -> Path:
+        raise Exception("Inheriting object needs to define this property.")
+
+    @property
     def _slurm_pid_dir(self) -> Path:
         raise Exception("Inheriting object needs to define this property.")
 
@@ -274,6 +282,7 @@ class SlurmOpsManagerBase:
             'slurmdbd_pid_file': str(self._slurmdbd_pid_file),
             'slurmd_pid_file': str(self._slurmd_pid_file),
             'slurmctld_pid_file': str(self._slurmctld_pid_file),
+            'slurm_plugstack_conf': str(self._slurm_plugstack_conf),
             'slurm_user': str(self._slurm_user),
         }
 
@@ -375,6 +384,14 @@ class SlurmTarManager(SlurmOpsManagerBase):
         return Path("/srv/slurm")
 
     @property
+    def _slurm_plugstack_dir(self) -> Path:
+        return Path("/etc/slurm/plugstack.d")
+
+    @property
+    def _slurm_plugstack_conf(self) -> Path:
+        return Path("/etc/slurm/plugstack.d/plugstack.conf")
+
+    @property
     def _mail_prog(self) -> Path:
         return Path("/usr/bin/mail")
 
@@ -474,6 +491,7 @@ class SlurmTarManager(SlurmOpsManagerBase):
     def _prepare_filesystem(self) -> None:
         """Create the needed system directories needed by slurm."""
         slurm_dirs = [
+            self._slurm_plugstack_dir, 
             self._slurm_conf_dir,
             self._slurm_log_dir,
             self._slurm_pid_dir,
@@ -608,6 +626,14 @@ class SlurmSnapManager(SlurmOpsManagerBase):
     @property
     def _munge_key_path(self) -> Path:
         return Path("/var/snap/slurm/common/etc/munge/munge.key")
+
+    @property
+    def _slurm_plugstack_dir(self) -> Path:
+        return Path("/etc/slurm/plugstack.d")
+
+    @property
+    def _slurm_plugstack_conf(self) -> Path:
+        return "/var/snap/slurm/common/etc/slurm/plugstack.d/plugstack.conf"
 
     @property
     def _slurm_user(self) -> str:
