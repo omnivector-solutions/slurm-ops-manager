@@ -268,12 +268,13 @@ class SlurmOpsManagerBase:
             'slurm_state_dir': str(self._slurm_state_dir),
             'slurm_spool_dir': str(self._slurm_spool_dir),
             'slurm_plugin_dir': str(self._slurm_plugin_dir),
+            'slurmdbd_log_file': str(self._slurmdbd_log_file),
             'slurmd_log_file': str(self._slurmd_log_file),
             'slurmctld_log_file': str(self._slurmctld_log_file),
+            'slurmdbd_pid_file': str(self._slurmdbd_pid_file),
+            'slurmd_pid_file': str(self._slurmd_pid_file),
+            'slurmctld_pid_file': str(self._slurmctld_pid_file),
             'slurm_user': str(self._slurm_user),
-            'slurmctld_pid': str(self._slurmctld_pid_file),
-            'slurmd_pid': str(self._slurmd_pid_file),
-            'slurmdbd_pid': str(self._slurmdbd_pid_file),
         }
 
         template_name = self._slurm_conf_template_name
@@ -475,7 +476,6 @@ class SlurmTarManager(SlurmOpsManagerBase):
         slurm_dirs = [
             self._slurm_conf_dir,
             self._slurm_log_dir,
-            self._slurm_pid_dir,
             self._slurm_spool_dir,
             self._slurm_state_dir,
             self._SLURM_SYSCONFIG_DIR,
