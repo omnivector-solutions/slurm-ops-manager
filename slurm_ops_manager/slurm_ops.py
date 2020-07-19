@@ -80,7 +80,7 @@ class SlurmOpsManager(Object):
                 self._charm.unit.set_workload_version(
                     self.slurm_resource_manager.slurm_version
                 )
-                self._state.slurm_version_set=True
+                self._state.slurm_version_set = True
 
 
 class SlurmOpsManagerBase:
@@ -644,4 +644,4 @@ class SlurmSnapManager(SlurmOpsManagerBase):
                     cmd,
                 ])
             except subprocess.CalledProcessError as e:
-                print(f"Cannot create snap alias for: {cmd}")
+                print(f"Cannot create snap alias for: {cmd} - {e}")
