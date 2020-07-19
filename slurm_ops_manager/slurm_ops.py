@@ -143,9 +143,9 @@ class SlurmOpsManagerBase:
         self._slurmctld_log_file = self._slurm_log_dir / 'slurmctld.log'
         self._slurmdbd_log_file = self._slurm_log_dir / 'slurmdbd.log'
 
-        self._slurmd_log_file = self._slurm_pid_dir / 'slurmd.pid'
-        self._slurmctld_log_file = self._slurm_pid_dir / 'slurmctld.pid'
-        self._slurmdbd_log_file = self._slurm_pid_dir / 'slurmdbd.pid'
+        self._slurmd_pid_file = self._slurm_pid_dir / 'slurmd.pid'
+        self._slurmctld_pid_file = self._slurm_pid_dir / 'slurmctld.pid'
+        self._slurmdbd_pid_file = self._slurm_pid_dir / 'slurmdbd.pid'
 
         self._hostname = get_hostname()
         self._port = port_map[self._slurm_component]
