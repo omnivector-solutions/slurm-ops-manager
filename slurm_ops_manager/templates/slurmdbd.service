@@ -1,6 +1,6 @@
 [Unit]
 Description=Slurm DBD accounting daemon
-After=network.target snap.munge.munged.service
+After=network.target munge.service
 ConditionPathExists=/etc/slurm/slurmdbd.conf
 
 [Service]
@@ -8,8 +8,6 @@ User=slurm
 Group=slurm
 Type=simple
 EnvironmentFile=-/etc/sysconfig/slurmdbd
-ExecStartPre=mkdir -p /srv/slurm
-ExecStartPre=chown -R slurm:slurm /srv/slurm
 ExecStart=/usr/local/sbin/slurmdbd -Dvvvvv
 ExecReload=/bin/kill -HUP $MAINPID
 PIDFile=/srv/slurm/slurmdbd.pid

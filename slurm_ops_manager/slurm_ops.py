@@ -476,6 +476,7 @@ class SlurmTarManager(SlurmOpsManagerBase):
         slurm_dirs = [
             self._slurm_conf_dir,
             self._slurm_log_dir,
+            self._slurm_pid_dir,
             self._slurm_spool_dir,
             self._slurm_state_dir,
             self._SLURM_SYSCONFIG_DIR,
