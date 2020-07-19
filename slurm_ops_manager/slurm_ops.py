@@ -85,10 +85,11 @@ class SlurmOpsManager(Object):
             raise Exception(f"SLURM {self._slurm_component}: not starting")
         else:
             if not self._state.slurm_version_set:
-                self._charm.unit.set_workload_version(
-                    self._slurm_resource_manager.slurm_version
-                )
-                self._state.slurm_version_set = True
+                if self._slurm_resource_manager.slurm_conf_path.exists():
+                    self._charm.unit.set_workload_version(
+                        self._slurm_resource_manager.slurm_version
+                    )
+                    self._state.slurm_version_set = True
 
 
 class SlurmOpsManagerBase:
@@ -154,12 +155,16 @@ class SlurmOpsManagerBase:
             self._TEMPLATE_DIR / self._slurm_conf_template_name
 
     @property
-    def hostname(self):
+    def hostname(self) -> str:
         return self._hostname
 
     @property
-    def port(self):
+    def port(self) -> str:
         return self._port
+
+    @property
+    def slurm_conf_path(self) -> Path:
+        return self._slurm_conf_path
 
     @property
     def slurm_is_active(self) -> bool:
