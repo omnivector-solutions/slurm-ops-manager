@@ -25,7 +25,7 @@ class SlurmOpsManager(Object):
     _store = StoredState()
 
     def __init__(self, charm, component):
-        super.__init__(self, charm, component)
+        super().__init__(charm, component)
         """Set the initial attribute values."""
         self._store.set_default(slurm_installed=False)
         self._state.set_default(slurm_version_set=False)
