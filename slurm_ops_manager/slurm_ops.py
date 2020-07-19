@@ -384,7 +384,7 @@ class SlurmTarManager(SlurmOpsManagerBase):
         return Path("/etc/munge/munge.key")
 
     @property
-    def munge_socket(self) -> Path:
+    def _munge_socket(self) -> Path:
         """Return the munge socket."""
         return Path("/var/run/munge/munge.socket.2")
 
