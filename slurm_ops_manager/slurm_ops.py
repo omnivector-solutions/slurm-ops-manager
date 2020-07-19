@@ -22,7 +22,7 @@ logger = logging.getLogger()
 class SlurmOpsManager(Object):
     """SlurmOpsManager."""
 
-    _store = StoredState()
+    _state = StoredState()
 
     def __init__(self, charm, component):
         super().__init__(charm, component)
