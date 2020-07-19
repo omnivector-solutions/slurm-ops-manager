@@ -3,6 +3,7 @@
 import logging
 import os
 import subprocess
+import sys
 import tarfile
 from base64 import b64decode, b64encode
 from pathlib import Path
@@ -255,13 +256,9 @@ class SlurmOpsManagerBase:
         raise Exception("Inheriting object needs to define this method.")
 
     @property
-    def slurm_version(self):
+    def slurm_version(self) -> str:
         """Return slurm verion."""
-        try:
-            slurm_version = subprocess.check_output(["sinfo", "-V"])
-        except subprocess.CalledProcessError as e:
-            print(f"Cannot get slurm version - {e}")
-        return slurm_version.decode().strip()
+        raise Exception("Inheriting object needs to define this property.")
 
     def write_slurm_config(self, context) -> None:
         """Render the context to a template, adding in common configs."""
@@ -406,6 +403,17 @@ class SlurmTarManager(SlurmOpsManagerBase):
     def _slurm_group(self) -> str:
         """Return the slurm group."""
         return "slurm"
+
+    @property
+    def slurm_version(self) -> str:
+        """Return slurm verion."""
+        try:
+            return subprocess.check_output(
+                [self._slurm_component, "-V"]
+            ).decode().strip()
+        except subprocess.CalledProcessError as e:
+            print(f"Cannot get slurm version - {e}")
+            sys.exit(-1)
 
     def setup_system(self) -> None:
         """Prepare the system for slurm.
@@ -621,6 +629,15 @@ class SlurmSnapManager(SlurmOpsManagerBase):
     @property
     def _munged_systemd_service(self) -> str:
         return "snap.slurm.munged"
+
+    @property
+    def slurm_version(self) -> str:
+        """Return slurm verion."""
+        try:
+            return subprocess.check_output(['slurm.version']).decode().strip()
+        except subprocess.CalledProcessError as e:
+            print(f"Cannot get slurm version - {e}")
+            sys.exit(-1)
 
     def setup_system(self) -> None:
         """Install the slurm snap, set the snap.mode, create the aliases."""
