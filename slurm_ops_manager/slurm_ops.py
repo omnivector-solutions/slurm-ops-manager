@@ -389,7 +389,7 @@ class SlurmTarManager(SlurmOpsManagerBase):
 
     @property
     def _slurm_plugstack_conf(self) -> Path:
-        return Path("/etc/slurm/plugstack.d/plugstack.conf")
+        return self._slurm_plugstack_dir / 'plugstack.conf'
 
     @property
     def _mail_prog(self) -> Path:
@@ -629,11 +629,11 @@ class SlurmSnapManager(SlurmOpsManagerBase):
 
     @property
     def _slurm_plugstack_dir(self) -> Path:
-        return Path("/etc/slurm/plugstack.d")
+        return Path("/var/snap/slurm/common/etc/slurm/plugstack.d")
 
     @property
     def _slurm_plugstack_conf(self) -> Path:
-        return "/var/snap/slurm/common/etc/slurm/plugstack.d/plugstack.conf"
+        return self._slurm_plugstack_dir / 'plugstack.conf'
 
     @property
     def _slurm_user(self) -> str:
