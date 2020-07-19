@@ -661,7 +661,7 @@ class SlurmSnapManager(SlurmOpsManagerBase):
                 "snap",
                 "set",
                 "slurm",
-                "snap.mode={self._slurm_component}",
+                f"snap.mode={self._slurm_component}",
             ])
         except subprocess.CalledProcessError as e:
             print(f"Error setting snap.mode - {e}")
