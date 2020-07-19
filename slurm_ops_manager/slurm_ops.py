@@ -27,13 +27,13 @@ class SlurmOpsManager(Object):
     def __init__(self, charm, component):
         super().__init__(charm, component)
         """Set the initial attribute values."""
-        self._store.set_default(slurm_installed=False)
+        self._state.set_default(slurm_installed=False)
         self._state.set_default(slurm_version_set=False)
 
         self._slurm_component = component
         self._charm = charm
         self._resource_path = self.model.resources.fetch('slurm')
-        self._is_tar = tarfile.is_tarfile(self.resource_path)
+        self._is_tar = tarfile.is_tarfile(self._resource_path)
 
         if self._is_tar:
             self.slurm_resource_manager = \
@@ -50,7 +50,7 @@ class SlurmOpsManager(Object):
     @property
     def slurm_installed(self) -> bool:
         """Return the bool from the underlying _state."""
-        return self._store.slurm_installed
+        return self._state.slurm_installed
 
     def get_munge_key(self) -> str:
         """Return the munge key."""
@@ -123,10 +123,10 @@ class SlurmOpsManagerBase:
 
         if component in ['slurmd', 'slurmctld', 'slurmrestd']:
             self._slurm_conf_template_name = 'slurm.conf.tmpl'
-            self._slurm_conf = self._slurm_conf_dir / 'slurm.conf'
+            self._slurm_conf_path = self._slurm_conf_dir / 'slurm.conf'
         elif component == "slurmdbd":
             self._slurm_conf_template_name = 'slurmdbd.conf.tmpl'
-            self._slurm_conf = self._slurm_conf_dir / 'slurmdbd.conf'
+            self._slurm_conf_path = self._slurm_conf_dir / 'slurmdbd.conf'
         else:
             raise Exception(f'slurm component {component} not supported')
 
@@ -354,7 +354,7 @@ class SlurmTarManager(SlurmOpsManagerBase):
 
     @property
     def _slurm_pid_dir(self) -> Path:
-        raise Exception("/srv/slurm")
+        return Path("/srv/slurm")
 
     @property
     def _mail_prog(self) -> Path:
@@ -378,12 +378,12 @@ class SlurmTarManager(SlurmOpsManagerBase):
         return "munge"
 
     @property
-    def slurm_user(self) -> str:
+    def _slurm_user(self) -> str:
         """Return the slurm user."""
         return "slurm"
 
     @property
-    def slurm_group(self) -> str:
+    def _slurm_group(self) -> str:
         """Return the slurm group."""
         return "slurm"
 
@@ -424,7 +424,7 @@ class SlurmTarManager(SlurmOpsManagerBase):
                 "groupadd",
                 "-r",
                 f"--gid={self._SLURM_GID}",
-                self.slurm_user,
+                self._slurm_user,
             ])
         except subprocess.CalledProcessError as e:
             logger.error(f"Error creating {self._slurm_group} - {e}")
@@ -491,18 +491,10 @@ class SlurmTarManager(SlurmOpsManagerBase):
     def _provision_slurm_resource(self) -> None:
         """Provision the slurm resource."""
         try:
-            resource_path = self.model.resources.fetch('slurm')
-        except ModelError as e:
-            logger.error(
-                f"Resource could not be found when executing: {e}",
-                exc_info=True,
-            )
-
-        try:
             subprocess.call([
                 "tar",
                 "-xzvf",
-                resource_path,
+                self._resource_path,
                 f"--one-top-level={self._SLURM_TMP_RESOURCE}",
             ])
         except subprocess.CalledProcessError as e:
