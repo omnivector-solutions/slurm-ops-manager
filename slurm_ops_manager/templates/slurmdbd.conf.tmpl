@@ -5,15 +5,15 @@ DbdAddr={{ slurmdbd_hostname }}
 DbdPort={{ slurmdbd_port }}
 
 AuthType=auth/munge
-AuthInfo=socket=/var/run/munge/munge.socket.2
+AuthInfo=socket={{ munge_socket }}
 
-SlurmUser=slurm
+SlurmUser={{ slurm_user }}
 
-PluginDir=/usr/local/lib/slurm
+PluginDir={{ slurm_plugin_dir }}
 
-PidFile=/srv/slurm/slurmdbd.pid
+PidFile={{ slurmdbd_pid_file }}
 
-LogFile=/var/log/slurm/slurmdbd.log
+LogFile={{ slurmdbd_log_file }}
 
 StorageType=accounting_storage/mysql
 StorageHost={{ db_hostname }}

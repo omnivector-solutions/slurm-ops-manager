@@ -1,13 +1,12 @@
 [Unit]
 Description=Slurm node daemon
+After=network.target munge.service
 ConditionPathExists=/etc/slurm/slurm.conf
 
 [Service]
 Type=simple
 User=slurm
 Group=slurm
-ExecStartPre=mkdir -p /srv/slurm
-ExecStartPre=chown -R slurm:slurm /srv/slurm
 EnvironmentFile=-/etc/sysconfig/slurmd
 ExecStart=/usr/local/sbin/slurmd -d /usr/local/sbin/slurmstepd -f /etc/slurm/slurm.conf -L /var/log/slurm/slurmd.log -cDvvvvv
 ExecReload=/bin/kill -HUP $MAINPID
