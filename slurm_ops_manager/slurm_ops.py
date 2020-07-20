@@ -14,7 +14,6 @@ from ops.framework import (
     Object,
     StoredState,
 )
-from ops.model import ModelError
 from slurm_ops_manager.utils import get_hostname, get_inventory
 
 logger = logging.getLogger()
@@ -486,7 +485,7 @@ class SlurmTarManager(SlurmOpsManagerBase):
     def _prepare_filesystem(self) -> None:
         """Create the needed system directories needed by slurm."""
         slurm_dirs = [
-            self._slurm_plugstack_dir, 
+            self._slurm_plugstack_dir,
             self._slurm_conf_dir,
             self._slurm_log_dir,
             self._slurm_pid_dir,
@@ -657,7 +656,9 @@ class SlurmSnapManager(SlurmOpsManagerBase):
     def slurm_version(self) -> str:
         """Return slurm verion."""
         try:
-            return subprocess.check_output(['slurm.version']).decode().strip()
+            return subprocess.check_output([
+                '/snap/bin/slurm.version'
+            ]).decode().strip()
         except subprocess.CalledProcessError as e:
             print(f"Cannot get slurm version - {e}")
             sys.exit(-1)
