@@ -82,15 +82,11 @@ class SlurmOpsManager(Object):
         self._slurm_resource_manager.write_munge_key(slurm_config['munge_key'])
         self._slurm_resource_manager.restart_munged()
 
-        if not self._slurm_resource_manager.slurm_is_active:
-            raise Exception(f"SLURM {self._slurm_component}: not starting")
-        else:
-            if not self._state.slurm_version_set:
-                if self._slurm_resource_manager.slurm_conf_path.exists():
-                    self._charm.unit.set_workload_version(
-                        self._slurm_resource_manager.slurm_version
-                    )
-                    self._state.slurm_version_set = True
+        if not self._state.slurm_version_set:
+            self._charm.unit.set_workload_version(
+                self._slurm_resource_manager.slurm_version
+            )
+            self._state.slurm_version_set = True
 
 
 class SlurmOpsManagerBase:
@@ -187,14 +183,13 @@ class SlurmOpsManagerBase:
             raise Exception(msg)
 
         try:
-            return subprocess.call([
+            subprocess.call([
                 "systemctl",
                 operation,
                 self._slurm_systemd_service,
             ])
         except subprocess.CalledProcessError as e:
-            logger.error(f"Error copying systemd - {e}")
-            return -1
+            logger.error(f"Error running {operation} - {e}")
 
     @property
     def _slurm_conf_dir(self) -> Path:
