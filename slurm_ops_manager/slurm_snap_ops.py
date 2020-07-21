@@ -45,7 +45,6 @@ class SlurmSnapManager:
                 "slurm_plugstack_conf": 
                 "/var/snap/slurm/common/etc/slurm/plugstack.d/plugstack.conf",
                 "munge_socket": "/tmp/munged.socket.2",
-                "custom_config": "a very custom config",
                 "slurmdbd_pid_file": "/tmp/slurmdbd.pid",
                 "slurmdbd_log_file": "/var/snap/slurm/common/var/log/slurm/slurmdbd.log",
         }
