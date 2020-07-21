@@ -47,19 +47,19 @@ class SlurmSnapManager:
     def get_systemd_name(self):
         return "snap.slurm." + self._slurm_component
 
-    def get_munge_key_path():
+    def get_munge_key_path(self):
         return self._MUNGE_KEY_PATH
 
-    def get_template():
+    def get_template(self):
         return self._source
     
-    def get_target():
+    def get_target(self):
         return self._target
 
-    def get_tmpl_name():
+    def get_tmpl_name(self):
         return self._template_name
 
-    def install():
+    def install(self):
         self._install_snap()
         self._snap_connect()
         self._set_snap_mode()
