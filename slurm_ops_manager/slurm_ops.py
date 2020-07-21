@@ -86,9 +86,7 @@ class SlurmOpsManager(Object):
                 "The slurm config template cannot be found."
             )
 
-        rendered_template = Environment(
-            loader=FileSystemLoader(str(self._TEMPLATE_DIR))
-        ).get_template(template_name)
+        rendered_template = Environment(loader=FileSystemLoader(source))
 
         if target.exists():
             target.unlink()

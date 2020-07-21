@@ -63,7 +63,7 @@ class SlurmSnapManager:
     def get_template(self):
         logger.debug(self._source)
         return self._source
-    
+
     def get_target(self):
         return self._target
 
