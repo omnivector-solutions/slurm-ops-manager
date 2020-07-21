@@ -21,7 +21,8 @@ from pathlib import Path
 class SlurmOpsManager(Object):
 
     _TEMPLATE_DIR = Path(f"{os.getcwd()}/templates")
-    
+    _stored = StoredState()
+
     def __init__(self, charm, component):
         self._slurm_component = component
         self._stored.set_default(slurm_installed=False)
