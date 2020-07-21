@@ -13,6 +13,8 @@ from ops.model import (
 from jinja2 import Environment, FileSystemLoader
 
 class SlurmSnapManager:
+    _CHARM_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
+    _TEMPLATE_DIR = _CHARM_DIR / 'templates'
     def __init__(self, component, res_path):
         self._slurm_component =  component
         self._resource = res_path
@@ -23,7 +25,7 @@ class SlurmSnapManager:
             self._template_name = 'slurm.conf.tmpl'
             self._target = Path("var/snap/slurm/common/slurm-configurator/slurm.conf")
         
-        self._source = Path("templates/" + self._template_name)
+        self._source = self._TEMPLATE_DIR / self._template_name
         self._systemd_service = "snap.slurm." + self._slurm_component
         self._MUNGE_KEY_PATH = Path("/var/snap/slurm/common/etc/munge/munge.key")
         self.config_values = { 
