@@ -13,7 +13,10 @@ from base64 import (
     b64decode,
 )
 
+from slurm_snap_ops import SlurmSnapManager 
+from slurm_tar_ops import SlurmTarManager 
 from pathlib import Path
+
 class SlurmOpsManager(Object):
 
     _TEMPLATE_DIR = Path(f"{os.getcwd()}/templates")
@@ -21,12 +24,6 @@ class SlurmOpsManager(Object):
     def __init__(self, charm, component):
         self._slurm_component = component
         self._stored.set_default(slurm_installed=False)
-        port_map = {
-            'slurmdbd': 6819,
-            'slurmd': 6818,
-            'slurmctld': 6817,
-            'slurmrestd': 6820,
-        }
         self._resource_path = self.model.resources.fetch('slurm')
         self.hostname = socket.gethostname().split(".")[0]
         self.port = port_map[component]
