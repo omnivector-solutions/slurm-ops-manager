@@ -28,8 +28,10 @@ class SlurmOpsManager(Object):
             'slurmrestd': 6820,
         }
         self._resource_path = self.model.resources.fetch('slurm')
-        sself.hostname = socket.gethostname().split(".")[0]
-        self.port = port_map[component]elf._is_tar = tarfile.is_tarfile(self.resource_path)
+        self.hostname = socket.gethostname().split(".")[0]
+        self.port = port_map[component]
+        self._is_tar = tarfile.is_tarfile(self.resource_path)
+        
         if self._is_tar:
             self.slurm_resource = SlurmTarManager(component, self._resource_path)
         else:
@@ -77,6 +79,7 @@ class SlurmOpsManager(Object):
         source = self.slurm_resource.get_template()
         target = self.slurm_resource.get_target()
 
+        ctxt = { **context, **self.slurm_resource.config}
         if not type(context) == dict:
             raise TypeError("Incorrect type for config.")
 
@@ -92,7 +95,7 @@ class SlurmOpsManager(Object):
         if target.exists():
             target.unlink()
 
-        target.write_text(rendered_template.render(context))
+        target.write_text(rendered_template.render(ctxt))
 
     def _write_munge_key_and_restart(self, munge_key) -> None:
         key = b64decode(munge_key.encode())
