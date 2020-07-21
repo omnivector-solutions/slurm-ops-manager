@@ -38,7 +38,8 @@ class SlurmSnapManager:
                 "slurm_spool_dir": "/var/snap/slurm/common/var/spool/slurm/d",
                 "slurm_state_dir": "/var/snap/slurm/common/var/spool/slurm/ctld",
                 "slurm_plugin_dir": "/snap/slurm/current/lib/slurm",
-                "slurm_plugstack_conf": "/var/snap/slurm/common/etc/slurm/plugstack.d/plugstack.conf",
+                "slurm_plugstack_conf": 
+                "/var/snap/slurm/common/etc/slurm/plugstack.d/plugstack.conf",
                 "munge_socket": "/tmp/munged.socket.2",
                 "custom_config": "a very custom config",
                 "slurmdbd_pid_file": "/tmp/slurmdbd.pid",

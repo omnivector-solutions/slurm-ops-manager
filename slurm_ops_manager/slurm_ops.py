@@ -73,7 +73,7 @@ class SlurmOpsManager(Object):
 
     def _write_config(self, context) -> None:
         """Render the context to a template."""
-        template_name = self._slurm_resoure.get_tmpl_name()
+        template_name = self.slurm_resoure.get_tmpl_name()
         source = self.slurm_resource.get_template()
         target = self.slurm_resource.get_target()
 
