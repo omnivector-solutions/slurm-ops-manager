@@ -73,7 +73,7 @@ class SlurmSnapManager:
         snap_install_cmd = ["snap", "install"]
         resource_path = None
         try:
-            resource_path = self._res_path
+            resource_path = self._resource
         except ModelError as e:
             logger.error(
                 f"Resource could not be found when executing: {e}",
