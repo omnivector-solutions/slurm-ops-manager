@@ -3,6 +3,7 @@ from ops.framework import (
     Object,
     StoredState,
 )
+from pathlib import Path
 import logging
 import os
 import socket
