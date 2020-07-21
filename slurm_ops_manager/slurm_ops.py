@@ -18,8 +18,8 @@ from slurm_ops_manager.utils import get_hostname, get_inventory
 
 class SlurmOpsManager(Object):
 
-    _TEMPLATE_DIR = Path(f"{os.getcwd()}/templates")
-
+    _CHARM_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
+    _TEMPLATE_DIR = _CHARM_DIR / 'templates'
     def __init__(self, charm, component):
         super().__init__(charm, component)
         self._slurm_component = component
@@ -86,8 +86,9 @@ class SlurmOpsManager(Object):
                 "The slurm config template cannot be found."
             )
 
-        rendered_template = Environment(loader=FileSystemLoader(source))
-
+        rendered_template = Environment(
+            loader=FileSystemLoader(str(self._TEMPLATE_DIR))
+        ).get_template(template_name)
         if target.exists():
             target.unlink()
 
