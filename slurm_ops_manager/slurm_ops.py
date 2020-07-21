@@ -29,7 +29,7 @@ class SlurmOpsManager(Object):
         self._stored.set_default(slurm_installed=False)
         self._resource_path = None
         try:
-            self.model.resources.fetch('slurm')
+            self._resource_path = self.model.resources.fetch('slurm')
         except:
             raise Exception("no resource was given")
 
