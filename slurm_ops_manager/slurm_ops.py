@@ -29,7 +29,6 @@ class SlurmOpsManager(Object):
         self._stored.set_default(slurm_installed=False)
         self._resource_path = self.model.resources.fetch('slurm')
         self.hostname = socket.gethostname().split(".")[0]
-        self.port = port_map[component]
         self._is_tar = tarfile.is_tarfile(self.resource_path)
         
         if self._is_tar:
