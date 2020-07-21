@@ -12,6 +12,8 @@ from ops.model import (
 )
 from jinja2 import Environment, FileSystemLoader
 
+logger = logging.getLogger()
+
 class SlurmSnapManager:
     _CHARM_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
     _TEMPLATE_DIR = _CHARM_DIR / 'templates'
@@ -59,6 +61,7 @@ class SlurmSnapManager:
         return self._MUNGE_KEY_PATH
 
     def get_template(self):
+        logger.debug(self._source)
         return self._source
     
     def get_target(self):
