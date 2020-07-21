@@ -8,7 +8,7 @@ import logging
 import os
 import socket
 import subprocess
-
+import tarfile
 from base64 import (
     b64encode,
     b64decode,
