@@ -48,13 +48,22 @@ class SlurmOpsManager(Object):
 
         self._write_config(slurm_config)
         self._write_munge_key_and_restart(slurm_config['munge_key'])
+        is_active = None
+        try:
+            is_active = subprocess.call([
+                "systemctl",
+                "is-active",
+                self.slurm_resource.get_systemd_name(),
+            ]) == 0
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error running restarting slurm daemon - {e}")
 
-        if self.is_active:
+        if is_active:
             self._slurm_systemctl("restart")
         else:
             self._slurm_systemctl("start")
 
-        if not self.is_active:
+        if not is_active:
             raise Exception(f"SLURM {self._slurm_component}: not starting")
 
     def _slurm_systemctl(self, operation) -> None:
