@@ -27,7 +27,12 @@ class SlurmOpsManager(Object):
         super().__init__(charm, component)
         self._slurm_component = component
         self._stored.set_default(slurm_installed=False)
-        self._resource_path = self.model.resources.fetch('slurm')
+        self._resource_path = None
+        try:
+            self.model.resources.fetch('slurm')
+        except:
+            raise Exception("no resource was given")
+
         self.hostname = socket.gethostname().split(".")[0]
         self._is_tar = tarfile.is_tarfile(self._resource_path)
         

@@ -15,6 +15,7 @@ from jinja2 import Environment, FileSystemLoader
 class SlurmSnapManager:
     def __init__(self, component, res_path):
         self._slurm_component =  component
+        self._resource = res_path
         if component == "slurmdbd":
             self._template_name = 'slurmbd.conf.tmpl'
             self._target = "var/snap/slurm/common/slurm-configurator/slurmbd.conf"
@@ -72,7 +73,7 @@ class SlurmSnapManager:
         snap_install_cmd = ["snap", "install"]
         resource_path = None
         try:
-            resource_path = self.model.resources.fetch('slurm')
+            resource_path = self._res_path
         except ModelError as e:
             logger.error(
                 f"Resource could not be found when executing: {e}",
