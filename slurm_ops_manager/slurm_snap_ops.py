@@ -11,7 +11,7 @@ from jinja2 import Environment, FileSystemLoader
 class SlurmSnapManager:
     def __init__(self, component, res_path):
         self._slurm_component =  component
-        if component is "slurmdbd":
+        if component == "slurmdbd":
             self._template_name = 'slurmbd.conf.tmpl'
             self._target = "var/snap/slurm/common/slurm-configurator/slurmbd.conf"
         else:
@@ -28,14 +28,14 @@ class SlurmSnapManager:
                 slurm_user: "root",
                 slurmctld_pid_file: "/tmp/slurmctld.pid",
                 slurmd_pid_file: "/tmp/slurmd.pid",
-                slurmctld_log_file: "/var/snap/slurm/common/var/log/slurm/slurmctld.log"
-                slurmd_log_file "/var/snap/slurm/common/var/log/slurm/slurmd.log",
+                slurmctld_log_file: "/var/snap/slurm/common/var/log/slurm/slurmctld.log",
+                slurmd_log_file: "/var/snap/slurm/common/var/log/slurm/slurmd.log",
                 slurm_spool_dir: "/var/snap/slurm/common/var/spool/slurm/d",
                 slurm_state_dir: "/var/snap/slurm/common/var/spool/slurm/ctld",
                 slurm_plugin_dir: "/snap/slurm/current/lib/slurm",
                 slurm_plugstack_conf: "/var/snap/slurm/common/etc/slurm/plugstack.d/plugstack.conf",
                 munge_socket: "/tmp/munged.socket.2",
-                custom_config: "a very custom config"
+                custom_config: "a very custom config",
                 slurmdbd_pid_file: "/tmp/slurmdbd.pid",
                 slurmdbd_log_file: "/var/snap/slurm/common/var/log/slurm/slurmdbd.log",
         }
