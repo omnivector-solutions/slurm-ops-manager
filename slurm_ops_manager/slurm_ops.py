@@ -1,8 +1,5 @@
 import os
-from ops.framework import (
-    Object,
-    StoredState,
-)
+from ops.framework import Object
 from pathlib import Path
 import logging
 import os
@@ -21,12 +18,10 @@ from slurm_ops_manager.utils import get_hostname, get_inventory
 class SlurmOpsManager(Object):
 
     _TEMPLATE_DIR = Path(f"{os.getcwd()}/templates")
-    _stored = StoredState()
 
     def __init__(self, charm, component):
         super().__init__(charm, component)
         self._slurm_component = component
-        self._stored.set_default(slurm_installed=False)
         self._resource_path = None
         try:
             self._resource_path = self.model.resources.fetch('slurm')
@@ -43,7 +38,6 @@ class SlurmOpsManager(Object):
 
     def install(self):
         self.slurm_resource.install()
-        self._stored.slurm_installed = True
     
 
     def render_config_and_restart(self, slurm_config) -> None:
