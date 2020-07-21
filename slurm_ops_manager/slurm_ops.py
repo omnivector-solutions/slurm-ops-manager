@@ -29,7 +29,7 @@ class SlurmOpsManager(Object):
         self._stored.set_default(slurm_installed=False)
         self._resource_path = self.model.resources.fetch('slurm')
         self.hostname = socket.gethostname().split(".")[0]
-        self._is_tar = tarfile.is_tarfile(self.resource_path)
+        self._is_tar = tarfile.is_tarfile(self._resource_path)
         
         if self._is_tar:
             self.slurm_resource = SlurmTarManager(component, self._resource_path)
