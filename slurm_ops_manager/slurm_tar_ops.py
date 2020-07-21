@@ -12,13 +12,13 @@ from install import SlurmTarInstall
 
 
 class SlurmTarManager:
-    _SLURM_CONF_DIR = Path('/etc/slurm')
-    _MUNGE_KEY_PATH = Path("/etc/munge/munge.key")
 
     def __init__(self, component, res_path):
         """Determine values based on slurm component."""
         super().__init__(charm, component)
         self._slurm_installer = SlurmTarInstall(component, res_path)
+        self._SLURM_CONF_DIR = Path('/etc/slurm')
+        self._MUNGE_KEY_PATH = Path("/etc/munge/munge.key")
 
         if component in ['slurmd', 'slurmctld', 'slurmrestd']:
             self._slurm_conf_template_name = 'slurm.conf.tmpl'
