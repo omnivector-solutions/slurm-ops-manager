@@ -22,7 +22,7 @@ class SlurmSnapManager:
         self._resource = res_path
         if component == "slurmdbd":
             self._template_name = "slurmbd.conf.tmpl"
-            self._target = Path("/var/snap/slurm/common/etc/slurm/slurmbd.conf")
+            self._target = Path("/var/snap/slurm/common/etc/slurm/slurmdbd.conf")
         else:
             self._template_name = "slurm.conf.tmpl"
             self._target = Path("var/snap/slurm/common/etc/slurm/slurm.conf")
