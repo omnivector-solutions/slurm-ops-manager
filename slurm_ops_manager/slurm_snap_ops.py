@@ -6,6 +6,10 @@ from base64 import b64decode, b64encode
 from pathlib import Path
 from time import sleep
 
+
+from ops.model import (
+    ModelError,
+)
 from jinja2 import Environment, FileSystemLoader
 
 class SlurmSnapManager:
