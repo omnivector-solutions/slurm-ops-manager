@@ -18,7 +18,7 @@ class SlurmSnapManager:
             self._template_name = 'slurm.conf.tmpl'
             self._target = "var/snap/slurm/common/slurm-configurator/slurm.conf"
         
-        self._source = "templates/" + self.template_name
+        self._source = "templates/" + self._template_name
         self._systemd_service = "snap.slurm." + self._slurm_component
         self._MUNGE_KEY_PATH = Path("/var/snap/slurm/common/etc/munge/munge.key")
         self.config_values = { 
