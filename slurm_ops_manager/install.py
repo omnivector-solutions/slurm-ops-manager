@@ -8,7 +8,7 @@ import sys
 import subprocess
 import logging
 import os
-from Pathlib import path
+from pathlib import Path
 
 logger = logging.getLogger()
 
