@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+
 import os
 import logging
 import socket
@@ -5,12 +7,11 @@ import subprocess
 from base64 import b64decode, b64encode
 from pathlib import Path
 from time import sleep
-
 from jinja2 import Environment, FileSystemLoader
-from .install import SlurmTarinstall
+from install import SlurmTarInstall
+
 
 class SlurmTarManager:
-      """Slurm installation of lifecycle ops."""
     _SLURM_CONF_DIR = Path('/etc/slurm')
     _MUNGE_KEY_PATH = Path("/etc/munge/munge.key")
 
