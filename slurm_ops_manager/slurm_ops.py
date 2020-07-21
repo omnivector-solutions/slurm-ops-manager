@@ -10,6 +10,7 @@ from base64 import (
     b64encode,
     b64decode,
 )
+from jinja2 import Environment, FileSystemLoader
 
 from slurm_ops_manager.slurm_snap_ops import SlurmSnapManager 
 from slurm_ops_manager.slurm_tar_ops import SlurmTarManager 
