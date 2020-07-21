@@ -76,7 +76,6 @@ class SlurmOpsManager(Object):
         template_name = self.slurm_resource.get_tmpl_name()
         source = self.slurm_resource.get_template()
         target = self.slurm_resource.get_target()
-        logger.debug(source)
         ctxt = { **context, **self.slurm_resource.config}
         if not type(context) == dict:
             raise TypeError("Incorrect type for config.")
