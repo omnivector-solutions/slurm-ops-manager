@@ -13,8 +13,9 @@ from base64 import (
     b64decode,
 )
 
-from slurm_snap_ops import SlurmSnapManager 
-from slurm_tar_ops import SlurmTarManager 
+from slurm_ops_manager.slurm_snap_ops import SlurmSnapManager 
+from slurm_ops_manager.slurm_tar_ops import SlurmTarManager 
+from slurm_ops_manager.utils import get_hostname, get_inventory
 from pathlib import Path
 
 class SlurmOpsManager(Object):
