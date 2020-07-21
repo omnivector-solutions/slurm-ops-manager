@@ -16,7 +16,6 @@ from base64 import (
 from slurm_ops_manager.slurm_snap_ops import SlurmSnapManager 
 from slurm_ops_manager.slurm_tar_ops import SlurmTarManager 
 from slurm_ops_manager.utils import get_hostname, get_inventory
-from pathlib import Path
 
 class SlurmOpsManager(Object):
 
@@ -24,6 +23,7 @@ class SlurmOpsManager(Object):
     _stored = StoredState()
 
     def __init__(self, charm, component):
+        super().__init__(charm, component)
         self._slurm_component = component
         self._stored.set_default(slurm_installed=False)
         self._resource_path = self.model.resources.fetch('slurm')
