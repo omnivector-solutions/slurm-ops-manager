@@ -8,8 +8,7 @@ from base64 import b64decode, b64encode
 from pathlib import Path
 from time import sleep
 from jinja2 import Environment, FileSystemLoader
-from install import SlurmTarInstall
-
+from install import SlurmInstall
 
 class SlurmTarManager:
 
