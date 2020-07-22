@@ -63,8 +63,6 @@ class SlurmOpsManager(Object):
         else:
             self._slurm_systemctl("start")
 
-        if not is_active:
-            raise Exception(f"SLURM {self._slurm_component}: not starting")
 
     def _slurm_systemctl(self, operation) -> None:
         """Start systemd services for slurmd."""
