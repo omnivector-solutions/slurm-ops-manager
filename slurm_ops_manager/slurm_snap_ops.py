@@ -62,8 +62,9 @@ class SlurmSnapManager:
         return self._template_name
     
     @property
-    def get_munge_sysd(self):
+    def munge_sysd(self):
         return "snap.slurm.munged"
+    
     def install(self):
         self._install_snap()
         self._snap_connect()
