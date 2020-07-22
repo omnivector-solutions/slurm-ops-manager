@@ -14,7 +14,6 @@ from jinja2 import Environment, FileSystemLoader
 
 from slurm_ops_manager.slurm_snap_ops import SlurmSnapManager 
 from slurm_ops_manager.slurm_tar_ops import SlurmTarManager 
-from slurm_ops_manager.utils import get_hostname, get_inventory
 
 class SlurmOpsManager(Object):
 
@@ -29,7 +28,6 @@ class SlurmOpsManager(Object):
         except:
             raise Exception("no resource was given")
 
-        self.hostname = socket.gethostname().split(".")[0]
         self._is_tar = tarfile.is_tarfile(self._resource_path)
         
         if self._is_tar:
