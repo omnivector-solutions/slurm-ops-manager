@@ -27,14 +27,18 @@ class SlurmTarManager:
     def get_systemd_name(self):
         return self._slurm_component
 
-    def get_tmpl_name():
+    def get_tmpl_name(self):
         return self._template_name
 
-    def get_template():
+    def get_template(self):
         return self._template
 
-    def get_target():
+    def get_target(self):
         return self._target
+
+    @property
+    def munge_sysd(self):
+        return "munge"
 
     def get_munge_key_path():
         return self._munge_key_path

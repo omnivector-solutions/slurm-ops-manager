@@ -93,6 +93,10 @@ class SlurmOpsManager(Object):
         self.slurm_resource.get_munge_key_path().write_bytes(key)
 
         try:
-            subprocess.call(["service", "munge", "restart"])
+            subprocess.call([
+                "service",
+                self.slurm_resource.munge_sysd,
+                "restart"
+            ])
         except subprocess.CalledProcessError as e:
             logger.debug(e)
