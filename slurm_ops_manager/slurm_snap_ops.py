@@ -22,14 +22,14 @@ class SlurmSnapManager:
         self._resource = res_path
         if component == "slurmdbd":
             self._template_name = "slurmdbd.conf.tmpl"
-            self._target = Path("/var/snap/slurm/common/etc/slurm/slurmdbd.conf")
+            self._target = "/var/snap/slurm/common/etc/slurm/slurmdbd.conf"
         else:
             self._template_name = "slurm.conf.tmpl"
-            self._target = Path("/var/snap/slurm/common/etc/slurm/slurm.conf")
+            self._target = "/var/snap/slurm/common/etc/slurm/slurm.conf"
         
         self._source = Path(self._TEMPLATE_DIR / self._template_name)
         self._systemd_service = "snap.slurm." + self._slurm_component
-        self._MUNGE_KEY_PATH = Path("/var/snap/slurm/common/etc/munge/munge.key")
+        self._munge_key_path = Path("/var/snap/slurm/common/etc/munge/munge.key")
         self.config_values = { 
                 "clustername": "slurm",
                 "munge_socket": "/tmp/munged.socket.2",
@@ -57,10 +57,9 @@ class SlurmSnapManager:
         return "snap.slurm." + self._slurm_component
 
     def get_munge_key_path(self):
-        return self._MUNGE_KEY_PATH
+        return self._munge_key_path
 
     def get_template(self):
-        logger.debug(self._source)
         return self._source
 
     def get_target(self):

@@ -43,9 +43,6 @@ class SlurmOpsManager(Object):
 
     def render_config_and_restart(self, slurm_config) -> None:
         """Render the slurm.conf and munge key, restart slurm and munge."""
-        if not type(slurm_config) == dict:
-            raise TypeError("Incorrect type for config.")
-
         self._write_config(slurm_config)
         self._write_munge_key_and_restart(slurm_config['munge_key'])
         is_active = None
@@ -66,10 +63,6 @@ class SlurmOpsManager(Object):
 
     def _slurm_systemctl(self, operation) -> None:
         """Start systemd services for slurmd."""
-        if operation not in ["enable", "start", "stop", "restart"]:
-            msg = f"Unsupported systemctl command for {self._slurm_component}"
-            raise Exception(msg)
-
         try:
             subprocess.call([
                 "systemctl",
@@ -85,20 +78,11 @@ class SlurmOpsManager(Object):
         source = self.slurm_resource.get_template()
         target = self.slurm_resource.get_target()
         ctxt = { **context, **self.slurm_resource.config}
-        if not type(context) == dict:
-            raise TypeError("Incorrect type for config.")
-
-        if not source.exists():
-            raise FileNotFoundError(
-                "The slurm config template cannot be found."
-            )
-
+        
         rendered_template = Environment(
             loader=FileSystemLoader(str(self._TEMPLATE_DIR))
         ).get_template(template_name)
-        if target.exists():
-            target.unlink()
-
+        
         target.write_text(rendered_template.render(ctxt))
 
     def _write_munge_key_and_restart(self, munge_key) -> None:
