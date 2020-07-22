@@ -1,18 +1,9 @@
 import os
-import logging
-import socket
-import subprocess
-from base64 import b64decode, b64encode
 from pathlib import Path
-from time import sleep
-
 
 from ops.model import (
     ModelError,
 )
-from jinja2 import Environment, FileSystemLoader
-
-logger = logging.getLogger()
 
 class SlurmSnapManager:
     _CHARM_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
@@ -88,9 +79,10 @@ class SlurmSnapManager:
             snap_install_cmd.append("--dangerous")
             snap_install_cmd.append("--classic")
         else:
-            snap_store_channel = self.fw_adapter.get_config("snap-store-channel")
+            snap_store_channel = self.framework.get_config("snap-store-channel")
             snap_install_cmd.append("slurm")
             snap_install_cmd.append(f"--{snap_store_channel}")
+            snap_install_cmd.append("--classic")
         try:
             subprocess.call(snap_install_cmd)
         except subprocess.CalledProcessError as e:

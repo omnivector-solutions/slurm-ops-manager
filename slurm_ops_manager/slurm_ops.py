@@ -73,7 +73,11 @@ class SlurmOpsManager(Object):
             logger.error(f"Error copying systemd - {e}")
 
     def _write_config(self, context) -> None:
-        """Render the context to a template."""
+        """Render the context to a template.
+        target: /var/snap/slurm/common/etc/slurm/slurm.conf
+        source: /templates/slurm.conf.tmpl
+        file name can also be slurmdbdb.conf
+        """
         template_name = self.slurm_resource.get_tmpl_name()
         source = self.slurm_resource.get_template()
         target = self.slurm_resource.get_target()
@@ -93,9 +97,3 @@ class SlurmOpsManager(Object):
             subprocess.call(["service", "munge", "restart"])
         except subprocess.CalledProcessError as e:
             logger.debug(e)
-
-    def get_munge_key(self) -> str:
-        """Read, encode, decode and return the munge key as a string."""
-        path = self.slurm_resource.get_munge_key_path()
-        munge_key = path.read_bytes()
-        return b64encode(munge_key).decode()
