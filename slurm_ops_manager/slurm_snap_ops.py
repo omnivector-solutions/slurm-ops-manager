@@ -14,10 +14,11 @@ class SlurmSnapManager:
         self._resource = res_path
         if component == "slurmdbd":
             self._template_name = "slurmdbd.conf.tmpl"
-            self._target = "/var/snap/slurm/common/etc/slurm/slurmdbd.conf"
+            self._target = Path(
+                    "/var/snap/slurm/common/etc/slurm/slurmdbd.conf")
         else:
             self._template_name = "slurm.conf.tmpl"
-            self._target = "/var/snap/slurm/common/etc/slurm/slurm.conf"
+            self._target = Path("/var/snap/slurm/common/etc/slurm/slurm.conf")
         
         self._source = Path(self._TEMPLATE_DIR / self._template_name)
         self._systemd_service = "snap.slurm." + self._slurm_component
