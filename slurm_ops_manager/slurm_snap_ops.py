@@ -100,7 +100,7 @@ class SlurmSnapManager:
             subprocess.call([
                 "snap",
                 "install",
-                self._resource_path,
+                self._resource,
                 "--dangerous",
                 "--classic",
             ])
