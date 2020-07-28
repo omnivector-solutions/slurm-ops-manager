@@ -22,6 +22,7 @@ class SlurmOpsManager(Object):
     _TEMPLATE_DIR = _CHARM_DIR / 'templates'
     def __init__(self, charm, component):
         super().__init__(charm, component)
+        self.charm = charm
         self._slurm_component = component
         self._resource_path = None
         try:
@@ -38,7 +39,11 @@ class SlurmOpsManager(Object):
 
     def install(self):
         self.slurm_resource.install()
-    
+        self.slurm_resource.set_version()
+
+    def set_version(self):
+        version = self.slurm_resource.get_version()
+        self.charm.unit.set_workload_version(version)
 
     def render_config_and_restart(self, slurm_config) -> None:
         """Render the slurm.conf and munge key, restart slurm and munge."""

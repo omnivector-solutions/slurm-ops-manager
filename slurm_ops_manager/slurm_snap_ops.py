@@ -46,6 +46,14 @@ class SlurmSnapManager:
     def config(self):
         return self.config_values
 
+    def get_version(self):
+        cp = subprocess.run(
+            ["slurm.version"],
+            universal_newlines=True,
+            stdout=subprocess.PIPE,
+        )
+        return cp.stdout[0:-1]
+    
     def get_systemd_name(self):
         return "snap.slurm." + self._slurm_component
 
