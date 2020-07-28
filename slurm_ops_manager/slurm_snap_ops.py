@@ -24,24 +24,43 @@ class SlurmSnapManager:
         self._systemd_service = "snap.slurm." + self._slurm_component
         self._munge_key_path = Path("/var/snap/slurm/common/etc/munge/munge.key")
         self.config_values = {
-                "clustername": "slurm-snap-local",
-                "munge_socket": "/tmp/munged.socket.2",
-                "mail_prog": "/snap/slurm/current/usr/bin/mail.mailutils",
-                "slurm_user": "root",
-                "slurmctld_pid_file": "/tmp/slurmctld.pid",
-                "slurmd_pid_file": "/tmp/slurmd.pid",
-                "slurmctld_log_file": "/var/snap/slurm/common/var/log/slurm/slurmctld.log",
-                "slurmd_log_file": "/var/snap/slurm/common/var/log/slurm/slurmd.log",
-                "slurm_spool_dir": "/var/snap/slurm/common/var/spool/slurm/d",
-                "slurm_state_dir": "/var/snap/slurm/common/var/spool/slurm/ctld",
-                "slurm_plugin_dir": "/snap/slurm/current/lib/slurm",
-                "slurm_plugstack_conf": 
-                "/var/snap/slurm/common/etc/slurm/plugstack.d/plugstack.conf",
-                "munge_socket": "/tmp/munged.socket.2",
-                "slurmdbd_pid_file": "/tmp/slurmdbd.pid",
-                "slurmdbd_log_file": "/var/snap/slurm/common/var/log/slurm/slurmdbd.log",
+            "clustername": "slurm-snap-local",
+            "munge_socket": "/tmp/munged.socket.2",
+            "mail_prog": "/snap/slurm/current/usr/bin/mail.mailutils",
+            "slurm_user": "root",
+            "slurmctld_pid_file": "/tmp/slurmctld.pid",
+            "slurmd_pid_file": "/tmp/slurmd.pid",
+            "slurmctld_log_file": "/var/snap/slurm/common/var/log/slurm/slurmctld.log",
+            "slurmd_log_file": "/var/snap/slurm/common/var/log/slurm/slurmd.log",
+            "slurm_spool_dir": "/var/snap/slurm/common/var/spool/slurm/d",
+            "slurm_state_dir": "/var/snap/slurm/common/var/spool/slurm/ctld",
+            "slurm_plugin_dir": "/snap/slurm/current/lib/slurm",
+            "slurm_plugstack_conf": 
+            "/var/snap/slurm/common/etc/slurm/plugstack.d/plugstack.conf",
+            "munge_socket": "/tmp/munged.socket.2",
+            "slurmdbd_pid_file": "/tmp/slurmdbd.pid",
+            "slurmdbd_log_file": "/var/snap/slurm/common/var/log/slurm/slurmdbd.log",
         }
-    
+        self._slurm_cmds = [
+            "sacct",
+            "sacctmgr",
+            "salloc",
+            "sattach",
+            "sbatch",
+            "sbcast",
+            "scancel",
+            "scontrol",
+            "sdiag",
+            "sinfo",
+            "sprio",
+            "squeue",
+            "sreport",
+            "srun",
+            "sshare",
+            "sstat",
+            "strigger",
+        ]
+
     @property
     def config(self):
         return self.config_values
@@ -75,55 +94,20 @@ class SlurmSnapManager:
     
     def install(self):
         self._install_snap()
-        self._snap_connect()
-        self._set_snap_mode()
 
     def _install_snap(self):
-        snap_install_cmd = ["snap", "install"]
-        resource_path = None
         try:
-            resource_path = self._resource
-        except ModelError as e:
-            logger.error(
-                f"Resource could not be found when executing: {e}",
-                exc_info=True,
-            )
-        if resource_path:
-            snap_install_cmd.append(resource_path)
-            snap_install_cmd.append("--dangerous")
-            snap_install_cmd.append("--classic")
-        else:
-            snap_store_channel = self.framework.get_config("snap-store-channel")
-            snap_install_cmd.append("slurm")
-            snap_install_cmd.append(f"--{snap_store_channel}")
-            snap_install_cmd.append("--classic")
-        try:
-            subprocess.call(snap_install_cmd)
+            subprocess.call([
+                "snap",
+                "install",
+                self._resource_path,
+                "--dangerous",
+                "--classic",
+            ])
         except subprocess.CalledProcessError as e:
-            logger.error(
-                f"Could not install the slurm snap using the command: {e}"
-            )
-    
-    def _snap_connect(self, slot=None):
-        connect_commands = [
-            ["snap", "connect", "slurm:network-control"],
-            ["snap", "connect", "slurm:system-observe"],
-            ["snap", "connect", "slurm:hardware-observe"],
-        ]
+            print(f"Error installing slurm snap - {e}")
 
-        for connect_command in connect_commands:
-            if slot:
-                connect_command.append(slot)
-            try:
-                subprocess.call(connect_command)
-            except subprocess.CalledProcessError as e:
-                logger.error(
-                    f"Could not connect snap interface: {e}"
-                )
-
-    def _set_snap_mode(self):
-        """Set the snap mode, thorw an exception if it fails.
-        """
+        # Set the snap.mode
         try:
             subprocess.call([
                 "snap",
@@ -132,6 +116,17 @@ class SlurmSnapManager:
                 f"snap.mode={self._slurm_component}",
             ])
         except subprocess.CalledProcessError as e:
-            logger.error(
-               f"Setting the snap.mode failed. snap.mode={self._slurm_component} - {e}"
-            )
+            print(f"Error setting snap.mode - {e}")
+
+        # Create the aliases for the slurm cmds
+        for cmd in self._slurm_cmds:
+            try:
+                subprocess.call([
+                    "snap",
+                    "alias",
+                    f"slurm.{cmd}",
+                    cmd,
+                ])
+            except subprocess.CalledProcessError as e:
+                print(f"Cannot create snap alias for: {cmd} - {e}")
+
