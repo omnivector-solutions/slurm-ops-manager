@@ -23,11 +23,14 @@ class SlurmCharm(CharmBase):
     def _on_install(self, event):
 	self.slurm_ops.install()
 
-
-
 ```
 
-# render_config_and_restart(self, slurm_config)
+## Writing config and restarting the daemons
+
+```python
+self.slurm_ops.render_config_and_restart(slum_config)
+```
+
 This function accomplishes 4 main tasks
 
 * writes the slurm.conf
@@ -41,6 +44,8 @@ This function accomplishes 4 main tasks
 to use this function correctly the user needs to supply a dictionary full of the correct key value pairs to be loaded into the template found in the templates folder of this repository. Either slurmbd.conf.tmpl if you're configuring the slurmdbd component or slurm.conf.tmppl for all other components of slurm. In that same dictionary the munge key value should be provided as a dict item with the key being "munge_key" and the value being a string representation of the munge key.
 
 ## values to be supplied to slurm.conf.tmpl
+
+more info on these values can be found here https://slurm.schedmd.com/slurm.conf.html
 
 * clustername
 * active_controller_hostname
@@ -63,10 +68,10 @@ to use this function correctly the user needs to supply a dictionary full of the
 * munge_socket 
 
 
-# COMPUTE NODES 
-{% for node in nodes %}
-{{node.inventory}}
-{%- endfor -%}
+The inventory of the nodes should also be supplied in this format:
+
+{"nodes": {"inventory": "n_0"}, {"inventory": "n_1"},...{"inventory":"n_n-1} }
+
 {% for partition, values in partitions.items() %}
 PartitionName={{ partition }} Nodes={{ values.hosts|join(',') }} Default={{ 'YES' if values.default else 'NO' }} State=UP
 {% endfor %}
