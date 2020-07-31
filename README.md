@@ -66,11 +66,14 @@ more info on these values can be found here https://slurm.schedmd.com/slurm.conf
 * slurmdbd_hostname 
 * slurmdbd_port 
 * munge_socket 
-
+* nodes
+* partitions
 
 The inventory of the nodes should also be supplied in this format:
-
+```python
 {"nodes": {"inventory": "n_0"}, {"inventory": "n_1"},...{"inventory":"n_n-1} }
+```
+
 
 {% for partition, values in partitions.items() %}
 PartitionName={{ partition }} Nodes={{ values.hosts|join(',') }} Default={{ 'YES' if values.default else 'NO' }} State=UP
