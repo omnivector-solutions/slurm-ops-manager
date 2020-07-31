@@ -26,12 +26,15 @@ class SlurmOpsManager(Object):
         self.charm = charm
         self._slurm_component = component
         self._resource_path = None
+        self._is_tar = None
         try:
             self._resource_path = self.model.resources.fetch('slurm')
         except:
             self.charm.unit.status = BlockedStatus("need to attach a resource")
-
-        self._is_tar = tarfile.is_tarfile(self._resource_path)
+        try:
+            self._is_tar = tarfile.is_tarfile(self._resource_path)
+        except:
+            logger.debug("no resource path")
         
         if self._is_tar:
             self.slurm_resource = SlurmTarManager(component, self._resource_path)
