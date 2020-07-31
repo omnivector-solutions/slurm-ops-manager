@@ -28,7 +28,7 @@ class SlurmOpsManager(Object):
         try:
             self._resource_path = self.model.resources.fetch('slurm')
         except:
-            raise Exception("no resource was given")
+            self.charm.unit.status = BlockedStatus("need to attach a resource")
 
         self._is_tar = tarfile.is_tarfile(self._resource_path)
         
