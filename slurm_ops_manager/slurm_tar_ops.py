@@ -42,6 +42,11 @@ class SlurmTarManager:
             "slurmdbd_pid_file": "/srv/slurmdbd.pid",
             "slurmdbd_log_file": "/var/log/slurm/slurmdbd.log",
         }
+
+    @property
+    def config(self):
+        return self.config_values
+
     def get_systemd_name(self):
         return "slurm." + self._slurm_component
 
