@@ -10,6 +10,7 @@ from base64 import (
     b64encode,
     b64decode,
 )
+from ops.model import BlockedStatus
 from jinja2 import Environment, FileSystemLoader
 from slurm_ops_manager.slurm_snap_ops import SlurmSnapManager 
 from slurm_ops_manager.slurm_tar_ops import SlurmTarManager 
@@ -22,14 +23,18 @@ class SlurmOpsManager(Object):
     _TEMPLATE_DIR = _CHARM_DIR / 'templates'
     def __init__(self, charm, component):
         super().__init__(charm, component)
+        self.charm = charm
         self._slurm_component = component
         self._resource_path = None
+        self._is_tar = None
         try:
             self._resource_path = self.model.resources.fetch('slurm')
         except:
-            raise Exception("no resource was given")
-
-        self._is_tar = tarfile.is_tarfile(self._resource_path)
+            self.charm.unit.status = BlockedStatus("need to attach a resource")
+        try:
+            self._is_tar = tarfile.is_tarfile(self._resource_path)
+        except:
+            logger.debug("no resource path")
         
         if self._is_tar:
             self.slurm_resource = SlurmTarManager(component, self._resource_path)
@@ -38,7 +43,8 @@ class SlurmOpsManager(Object):
 
     def install(self):
         self.slurm_resource.install()
-    
+        version = self.slurm_resource.get_version()
+        self.charm.unit.set_workload_version(version)
 
     def render_config_and_restart(self, slurm_config) -> None:
         """Render the slurm.conf and munge key, restart slurm and munge."""
