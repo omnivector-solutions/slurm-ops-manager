@@ -37,16 +37,13 @@ class TarInstall:
 
     def __init__(self, component, res_path):
         """Determine values based on slurm component."""
-        super().__init__(charm, component)
-
         port_map = {
             'slurmdbd': 6819,
             'slurmd': 6818,
             'slurmctld': 6817,
             'slurmrestd': 6820,
         }
-
-        if component in ['slurmd', 'slurmctld', 'slurmrestd']:
+        if component in ['slurmd', 'slurmctld', 'slurmrestd', 'none', 'login']:
             self._slurm_conf_template_name = 'slurm.conf.tmpl'
             self._slurm_conf = self._SLURM_CONF_DIR / 'slurm.conf'
         elif component == "slurmdbd":
