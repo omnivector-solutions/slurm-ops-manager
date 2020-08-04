@@ -80,11 +80,11 @@ class TarInstall:
         self._create_slurm_user_and_group()
         self._prepare_filesystem()
         self._create_environment_files()
-
         self._install_munge()
         self._provision_slurm_resource()
-
         self._set_ld_library_path()
+        self._setup_systemd()
+
 
     def _install_os_deps(self) -> None:
         try:
@@ -103,19 +103,6 @@ class TarInstall:
             subprocess.call(["apt", "install", "munge", "-y"])
         except subprocess.CalledProcessError as e:
             logger.debug(e)
-
-    def _write_munge_key_and_restart(self, munge_key) -> None:
-        key = b64decode(munge_key.encode())
-        self._MUNGE_KEY_PATH.write_bytes(key)
-        try:
-            subprocess.call(["service", "munge", "restart"])
-        except subprocess.CalledProcessError as e:
-            logger.debug(e)
-
-    def get_munge_key(self) -> str:
-        """Read, encode, decode and return the munge key."""
-        munge_key = self._MUNGE_KEY_PATH.read_bytes()
-        return b64encode(munge_key).decode()
 
     def _create_environment_files(self) -> None:
         slurm_conf = f"\nSLURM_CONF={str(self._slurm_conf)}\n"

@@ -45,8 +45,6 @@ class SlurmOpsManager(Object):
 
     def install(self):
         self.slurm_resource.install()
-        #version = self.slurm_resource.get_version()
-        #self.charm.unit.set_workload_version(version)
 
     def render_config_and_restart(self, slurm_config) -> None:
         """Render the slurm.conf and munge key, restart slurm and munge."""
@@ -66,6 +64,8 @@ class SlurmOpsManager(Object):
             self._slurm_systemctl("restart")
         else:
             self._slurm_systemctl("start")
+        version = self.slurm_resource.get_version()
+        self.charm.unit.set_workload_version(version)
 
 
     def _slurm_systemctl(self, operation) -> None:
