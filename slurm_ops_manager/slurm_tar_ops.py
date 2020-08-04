@@ -10,7 +10,6 @@ class SlurmTarManager:
 
     def __init__(self, component, res_path):
         """Determine values based on slurm component."""    
-        super().__init__(charm, component)
         self._slurm_component =  component
         self._resource = res_path
         if component == "slurmdbd":
