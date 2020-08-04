@@ -66,7 +66,7 @@ class SlurmSnapManager:
 
     def get_version(self):
         cp = subprocess.run(
-            ["slurm.version"],
+            ["/snap/bin/slurm.version"],
             universal_newlines=True,
             stdout=subprocess.PIPE,
         )
