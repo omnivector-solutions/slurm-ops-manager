@@ -53,7 +53,7 @@ class SlurmTarManager:
         return self._template_name
 
     def get_template(self):
-        return self._template
+        return self._source
 
     def get_target(self):
         return self._target
