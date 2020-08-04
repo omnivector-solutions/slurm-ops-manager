@@ -39,6 +39,8 @@ class SlurmOpsManager(Object):
         if self._is_tar:
             self.slurm_resource = SlurmTarManager(component, self._resource_path)
         else:
+            logger.debug("going to slurm snap manager")
+            logger.debug(self._resouce_path)
             self.slurm_resource = SlurmSnapManager(component, self._resource_path)
 
     def install(self):

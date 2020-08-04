@@ -96,19 +96,16 @@ class SlurmSnapManager:
         self._install_snap()
 
     def _install_snap(self):
+        cmd = ["snap", "install"]
         if self._resource:
-            cmd = self._resource
+            cmd.append(self._resource)
+            cmd.append("--dangerous")
+            cmd.append("--classic")
         else:
-            cmd = "slurm"
-
+            cmd.append("slurm")
+            cmd.append("--classic")
         try:
-            subprocess.call([
-                "snap",
-                "install",
-                cmd,
-                "--dangerous",
-                "--classic",
-            ])
+            subprocess.call(cmd)
         except subprocess.CalledProcessError as e:
             print(f"Error installing slurm snap - {e}")
 
