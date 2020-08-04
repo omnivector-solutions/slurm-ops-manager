@@ -64,8 +64,8 @@ class SlurmOpsManager(Object):
             self._slurm_systemctl("restart")
         else:
             self._slurm_systemctl("start")
-        version = self.slurm_resource.get_version()
-        self.charm.unit.set_workload_version(version)
+        #version = self.slurm_resource.get_version()
+        #self.charm.unit.set_workload_version(version)
 
 
     def _slurm_systemctl(self, operation) -> None:
