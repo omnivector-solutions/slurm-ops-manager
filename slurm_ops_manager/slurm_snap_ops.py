@@ -24,7 +24,6 @@ class SlurmSnapManager:
         self._systemd_service = "snap.slurm." + self._slurm_component
         self._munge_key_path = Path("/var/snap/slurm/common/etc/munge/munge.key")
         self.config_values = {
-            "clustername": "slurm-snap-local",
             "munge_socket": "/tmp/munged.socket.2",
             "mail_prog": "/snap/slurm/current/usr/bin/mail.mailutils",
             "slurm_user": "root",
