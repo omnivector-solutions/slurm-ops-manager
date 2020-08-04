@@ -234,3 +234,18 @@ class TarInstall:
         except subprocess.CalledProcessError as e:
             logger.error(f"Error setting up systemd - {e}")
 
+    def _slurm_systemctl(self, operation):
+        """Start systemd services for slurmd."""
+
+        if operation not in ["enable", "start", "stop", "restart"]:
+            msg = f"Unsupported systemctl command for {self._slurm_component}"
+            raise Exception(msg)
+
+        try:
+            subprocess.call([
+                "systemctl",
+                operation,
+                self._slurm_component,
+            ])
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error copying systemd - {e}")
