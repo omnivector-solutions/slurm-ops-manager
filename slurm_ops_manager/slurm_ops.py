@@ -43,7 +43,7 @@ class SlurmOpsManager(Object):
 
     def install(self):
         self.slurm_resource.install()
-        version = self.slurm_resource.get_version()
+        #version = self.slurm_resource.get_version()
         self.charm.unit.set_workload_version(version)
 
     def render_config_and_restart(self, slurm_config) -> None:
