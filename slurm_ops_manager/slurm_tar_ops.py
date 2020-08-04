@@ -62,8 +62,8 @@ class SlurmTarManager:
     def munge_sysd(self):
         return "munge"
 
-    def get_munge_key_path():
+    def get_munge_key_path(self):
         return self._munge_key_path
 
-    def install():
+    def install(self):
        self._slurm_installer.prepare_system_for_slurm()
