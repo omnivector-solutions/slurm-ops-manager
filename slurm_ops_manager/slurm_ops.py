@@ -30,7 +30,7 @@ class SlurmOpsManager(Object):
         try:
             self._resource_path = self.model.resources.fetch('slurm')
         except:
-            self.charm.unit.status = BlockedStatus("need to attach a resource")
+            logger.debug("no resource was supplied installing from snap store")
         try:
             self._is_tar = tarfile.is_tarfile(self._resource_path)
         except:

@@ -96,11 +96,16 @@ class SlurmSnapManager:
         self._install_snap()
 
     def _install_snap(self):
+        if self.resource:
+            cmd = self._resource
+        else:
+            cmd = "slurm"
+
         try:
             subprocess.call([
                 "snap",
                 "install",
-                self._resource,
+                cmd,
                 "--dangerous",
                 "--classic",
             ])
