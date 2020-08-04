@@ -1,5 +1,5 @@
 #! /usr/bin/env python3
-/import os
+import os
 from pathlib import Path
 from slurm_ops_manager.install import TarInstall
 
