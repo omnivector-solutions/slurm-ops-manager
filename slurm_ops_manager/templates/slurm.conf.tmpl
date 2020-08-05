@@ -68,5 +68,5 @@ GresTypes=gpu
 {{node.inventory}}
 {%- endfor -%}
 {% for partition_name, values in partitions.items() %}
-PartitionName={{ partition_name }} Nodes={{ values.hosts|join(',') }} Default={{ 'YES' if values.partition_default else 'NO' }} State=UP {{ values.partition_config }}
+PartitionName={{ partition_name }} Nodes={{ values.hosts|join(',') }} Default={{ 'YES' if values.partition_default else 'NO' }} State=UP {{ values.partition_config if values.partition_config else "" }}
 {% endfor %}
