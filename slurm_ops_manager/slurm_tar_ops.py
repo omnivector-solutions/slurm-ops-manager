@@ -27,7 +27,7 @@ class SlurmTarManager:
             "clustername": "cluster1",
             "munge_socket": "/var/run/munge/munge.socket.2",
             "mail_prog": "/usr/bin/mail",
-            "slurm_user": "slurm",
+            "slurm_user": "root",
             "slurmctld_pid_file": "/srv/slurmctld.pid",
             "slurmd_pid_file": "/srv/slurmd.pid",
             "slurmctld_log_file": "/var/log/slurm/slurmctld.log",
