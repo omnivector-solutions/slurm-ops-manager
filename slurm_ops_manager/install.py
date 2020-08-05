@@ -24,7 +24,7 @@ class TarInstall:
     _SLURM_LOG_DIR = Path('/var/log/slurm')
     _SLURM_SBIN_DIR = Path('/usr/local/sbin')
     _SLURM_SYSCONFIG_DIR = Path("/etc/sysconfig")
-    _SLURM_SPOOL_DIR = Path("/var/spool/slurmd")
+    _SLURM_SPOOL_DIR = Path("/var/spool/slurm")
     _SLURM_STATE_DIR = Path("/var/lib/slurmd")
     _SLURM_PLUGIN_DIR = Path("/usr/local/lib/slurm")
 
