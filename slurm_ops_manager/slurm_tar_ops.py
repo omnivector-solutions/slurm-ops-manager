@@ -28,8 +28,8 @@ class SlurmTarManager:
             "munge_socket": "/var/run/munge/munge.socket.2",
             "mail_prog": "/usr/bin/mail",
             "slurm_user": "slurm",
-            "slurmctld_pid_file": "/srv/slurmctld.pid",
-            "slurmd_pid_file": "/srv/slurmd.pid",
+            "slurmctld_pid_file": "/srv/slurm/slurmctld.pid",
+            "slurmd_pid_file": "/srv/slurm/slurmd.pid",
             "slurmctld_log_file": "/var/log/slurm/slurmctld.log",
             "slurmd_log_file": "/var/log/slurm/slurmd.log",
             "slurm_spool_dir": "/var/spool/slurm/d",
@@ -38,7 +38,7 @@ class SlurmTarManager:
             "slurm_plugstack_conf":
             "/etc/slurm/plugstack.d/plugstack.conf",
             "munge_socket": "/var/run/munge/munge.socket.2",
-            "slurmdbd_pid_file": "/srv/slurmdbd.pid",
+            "slurmdbd_pid_file": "/srv/slurm/slurmdbd.pid",
             "slurmdbd_log_file": "/var/log/slurm/slurmdbd.log",
         }
 
