@@ -48,7 +48,7 @@ class SlurmTarManager:
     def get_version(self):
         """Get slurm version."""
         cp = subprocess.run(
-            [self._slurm_componet, "-V"],
+            [self._slurm_component, "-V"],
             universal_newlines=True,
             stdout=subprocess.PIPE,
         )
