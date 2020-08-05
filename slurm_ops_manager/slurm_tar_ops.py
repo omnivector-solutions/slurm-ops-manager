@@ -63,15 +63,15 @@ class SlurmTarManager:
         """Get systemd name."""
         return self._slurm_component
 
-    def _get_tmpl_name(self):
+    def get_tmpl_name(self):
         """Get template name."""
         return self._template_name
 
-    def _get_template(self):
+    def get_template(self):
         """Get template location."""
         return self._source
 
-    def _get_target(self):
+    def get_target(self):
         """Get target path."""
         return self._target
 
