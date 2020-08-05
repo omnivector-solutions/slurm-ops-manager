@@ -47,7 +47,7 @@ class SlurmTarManager:
         return self.config_values
 
     def get_systemd_name(self):
-        return "slurm." + self._slurm_component
+        return self._slurm_component
 
     def get_tmpl_name(self):
         return self._template_name
