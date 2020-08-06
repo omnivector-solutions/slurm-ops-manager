@@ -126,6 +126,7 @@ class SlurmSnapManager:
             cmd.append("--classic")
         try:
             subprocess.call(cmd)
+
         except subprocess.CalledProcessError as e:
             print(f"Error installing slurm snap - {e}")
 

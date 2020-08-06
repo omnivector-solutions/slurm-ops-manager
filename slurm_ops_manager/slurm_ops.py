@@ -15,6 +15,7 @@ from ops.model import ModelError
 from slurm_ops_manager.slurm_snap_ops import SlurmSnapManager
 from slurm_ops_manager.slurm_tar_ops import SlurmTarManager
 
+
 logger = logging.getLogger()
 
 
