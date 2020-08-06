@@ -3,7 +3,7 @@ import logging
 import os
 import subprocess
 import tarfile
-from base64 import b64decode
+from base64 import b64decode, b64encode
 from pathlib import Path
 
 from jinja2 import (

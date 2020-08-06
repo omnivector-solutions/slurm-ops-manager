@@ -47,6 +47,7 @@ class SlurmTarManager:
 
     @property
     def munge_key_path(self):
+        """Return the munge key path."""
         return self._munge_key_path
 
     def get_version(self):
