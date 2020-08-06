@@ -45,6 +45,10 @@ class SlurmTarManager:
             "slurmdbd_log_file": "/var/log/slurm/slurmdbd.log",
         }
 
+    @property
+    def munge_key_path(self):
+        return self._munge_key_path
+
     def get_version(self):
         """Get slurm version."""
         cp = subprocess.run(

@@ -47,15 +47,16 @@ PlugStackConfig={{ slurm_plugstack_conf }}
 
 ProctrackType= {{ proctrack_type }}
 
+# User specified config
+{{custom_config}}
+
+
 # SLURMDBD CONFIGURED ON {{ slurmdbd_hostname }}
 AccountingStorageType=accounting_storage/slurmdbd
 JobAcctGatherType=jobacct_gather/linux
 AccountingStorageHost={{ slurmdbd_hostname }}
 AccountingStoragePort={{ slurmdbd_port }}
 AccountingStoragePass={{ munge_socket }}
-
-# User specified config
-{{custom_config}}
 
 # INCLUDE CLUSTER SPECIFIC CONFIGURATION OVERRIDE
 #include /etc/slurm/slurm-%c.conf

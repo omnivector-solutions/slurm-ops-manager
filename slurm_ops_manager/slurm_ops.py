@@ -58,6 +58,11 @@ class SlurmOpsManager(Object):
         """Install Slurm."""
         self.slurm_resource.install()
 
+    def get_munge_key(self) -> str:
+        """Read, encode, decode and return the munge key."""
+        munge_key = self.slurm_resource.munge_key_path.read_bytes()
+        return b64encode(munge_key).decode()
+
     def render_config_and_restart(self, slurm_config) -> None:
         """Render the slurm.conf and munge key, restart slurm and munge."""
         self._write_config(slurm_config)
