@@ -1,27 +1,32 @@
-import os
-from ops.framework import Object
-from pathlib import Path
+"""Charm class to install slurm via snap or tar resource."""
 import logging
 import os
-import socket
 import subprocess
 import tarfile
-from base64 import (
-    b64encode,
-    b64decode,
+from base64 import b64decode, b64encode
+from pathlib import Path
+
+from jinja2 import (
+    Environment,
+    FileSystemLoader,
 )
-from ops.model import BlockedStatus
-from jinja2 import Environment, FileSystemLoader
-from slurm_ops_manager.slurm_snap_ops import SlurmSnapManager 
-from slurm_ops_manager.slurm_tar_ops import SlurmTarManager 
+from ops.framework import Object
+from ops.model import ModelError
+from slurm_ops_manager.slurm_snap_ops import SlurmSnapManager
+from slurm_ops_manager.slurm_tar_ops import SlurmTarManager
+
 
 logger = logging.getLogger()
 
+
 class SlurmOpsManager(Object):
+    """Config values to install slurm."""
 
     _CHARM_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
     _TEMPLATE_DIR = _CHARM_DIR / 'templates'
+
     def __init__(self, charm, component):
+        """Determine values based on resource type."""
         super().__init__(charm, component)
         self.charm = charm
         self._slurm_component = component
@@ -29,22 +34,35 @@ class SlurmOpsManager(Object):
         self._is_tar = None
         try:
             self._resource_path = self.model.resources.fetch('slurm')
-        except:
-            self.charm.unit.status = BlockedStatus("need to attach a resource")
+        except ModelError as e:
+            logger.debug(
+                f"no resource was supplied installing from snap store: {e}")
         try:
             self._is_tar = tarfile.is_tarfile(self._resource_path)
-        except:
-            logger.debug("no resource path")
-        
+        except FileExistsError as e:
+            logger.debug(f"no resource path: {e}")
+
         if self._is_tar:
-            self.slurm_resource = SlurmTarManager(component, self._resource_path)
+            self.slurm_resource = SlurmTarManager(
+                component,
+                self._resource_path
+            )
         else:
-            self.slurm_resource = SlurmSnapManager(component, self._resource_path)
+            logger.debug("going to slurm snap manager")
+            logger.debug(self._resource_path)
+            self.slurm_resource = SlurmSnapManager(
+                component,
+                self._resource_path
+            )
 
     def install(self):
+        """Install Slurm."""
         self.slurm_resource.install()
-        version = self.slurm_resource.get_version()
-        self.charm.unit.set_workload_version(version)
+
+    def get_munge_key(self) -> str:
+        """Read, encode, decode and return the munge key."""
+        munge_key = self.slurm_resource.munge_key_path.read_bytes()
+        return b64encode(munge_key).decode()
 
     def render_config_and_restart(self, slurm_config) -> None:
         """Render the slurm.conf and munge key, restart slurm and munge."""
@@ -64,7 +82,8 @@ class SlurmOpsManager(Object):
             self._slurm_systemctl("restart")
         else:
             self._slurm_systemctl("start")
-
+        version = self.slurm_resource.get_version()
+        self.charm.unit.set_workload_version(version)
 
     def _slurm_systemctl(self, operation) -> None:
         """Start systemd services for slurmd."""
@@ -79,19 +98,19 @@ class SlurmOpsManager(Object):
 
     def _write_config(self, context) -> None:
         """Render the context to a template.
+
         target: /var/snap/slurm/common/etc/slurm/slurm.conf
         source: /templates/slurm.conf.tmpl
         file name can also be slurmdbdb.conf
         """
         template_name = self.slurm_resource.get_tmpl_name()
-        source = self.slurm_resource.get_template()
         target = self.slurm_resource.get_target()
-        ctxt = { **context, **self.slurm_resource.config}
-        
+        ctxt = {**context, **self.slurm_resource.config}
+
         rendered_template = Environment(
             loader=FileSystemLoader(str(self._TEMPLATE_DIR))
         ).get_template(template_name)
-        
+
         target.write_text(rendered_template.render(ctxt))
 
     def _write_munge_key_and_restart(self, munge_key) -> None:

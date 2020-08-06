@@ -1,14 +1,11 @@
-from time import sleep
-from jinja2 import Environment, FileSystemLoader
-import sys
-import tarfile
-from base64 import b64decode, b64encode
-import socket
-import sys
-import subprocess
+"""Install slurm munge and prepare file system."""
 import logging
 import os
+import socket
+import subprocess
+
 from pathlib import Path
+from time import sleep
 
 logger = logging.getLogger()
 
@@ -18,16 +15,14 @@ class TarInstall:
 
     _CHARM_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
     _TEMPLATE_DIR = _CHARM_DIR / 'templates'
-
     _SLURM_CONF_DIR = Path('/etc/slurm')
     _SLURM_PID_DIR = Path('/srv/slurm')
     _SLURM_LOG_DIR = Path('/var/log/slurm')
     _SLURM_SBIN_DIR = Path('/usr/local/sbin')
     _SLURM_SYSCONFIG_DIR = Path("/etc/sysconfig")
-    _SLURM_SPOOL_DIR = Path("/var/spool/slurmd")
+    _SLURM_SPOOL_DIR = Path("/var/spool/slurm")
     _SLURM_STATE_DIR = Path("/var/lib/slurmd")
     _SLURM_PLUGIN_DIR = Path("/usr/local/lib/slurm")
-
     _SLURM_USER = "slurm"
     _SLURM_UID = 995
     _SLURM_GROUP = "slurm"
@@ -37,16 +32,13 @@ class TarInstall:
 
     def __init__(self, component, res_path):
         """Determine values based on slurm component."""
-        super().__init__(charm, component)
-
         port_map = {
             'slurmdbd': 6819,
             'slurmd': 6818,
             'slurmctld': 6817,
             'slurmrestd': 6820,
         }
-
-        if component in ['slurmd', 'slurmctld', 'slurmrestd']:
+        if component in ['slurmd', 'slurmctld', 'slurmrestd', 'none', 'login']:
             self._slurm_conf_template_name = 'slurm.conf.tmpl'
             self._slurm_conf = self._SLURM_CONF_DIR / 'slurm.conf'
         elif component == "slurmdbd":
@@ -54,27 +46,24 @@ class TarInstall:
             self._slurm_conf = self._SLURM_CONF_DIR / 'slurmdbd.conf'
         else:
             raise Exception(f'slurm component {component} not supported')
-        
         self._res_path = res_path
         self._slurm_component = component
-
         self.hostname = socket.gethostname().split(".")[0]
         self.port = port_map[component]
-
         self._slurm_conf_template_location = \
             self._TEMPLATE_DIR / self._slurm_conf_template_name
         self._source_systemd_template = \
             self._TEMPLATE_DIR / f'{self._slurm_component}.service'
         self._target_systemd_template = \
             Path(f'/etc/systemd/system/{self._slurm_component}.service')
-
         self._log_file = self._SLURM_LOG_DIR / f'{self._slurm_component}.log'
         self._daemon = self._SLURM_SBIN_DIR / f'{self._slurm_component}'
         self._environment_file = \
             self._SLURM_SYSCONFIG_DIR / f'{self._slurm_component}'
-    
+
     def prepare_system_for_slurm(self) -> None:
         """Prepare the system for slurm.
+
         * create slurm user/group
         * create filesystem for slurm
         * provision slurm resource
@@ -83,11 +72,10 @@ class TarInstall:
         self._create_slurm_user_and_group()
         self._prepare_filesystem()
         self._create_environment_files()
-
         self._install_munge()
         self._provision_slurm_resource()
-
         self._set_ld_library_path()
+        self._setup_systemd()
 
     def _install_os_deps(self) -> None:
         try:
@@ -106,19 +94,6 @@ class TarInstall:
             subprocess.call(["apt", "install", "munge", "-y"])
         except subprocess.CalledProcessError as e:
             logger.debug(e)
-
-    def _write_munge_key_and_restart(self, munge_key) -> None:
-        key = b64decode(munge_key.encode())
-        self._MUNGE_KEY_PATH.write_bytes(key)
-        try:
-            subprocess.call(["service", "munge", "restart"])
-        except subprocess.CalledProcessError as e:
-            logger.debug(e)
-
-    def get_munge_key(self) -> str:
-        """Read, encode, decode and return the munge key."""
-        munge_key = self._MUNGE_KEY_PATH.read_bytes()
-        return b64encode(munge_key).decode()
 
     def _create_environment_files(self) -> None:
         slurm_conf = f"\nSLURM_CONF={str(self._slurm_conf)}\n"
@@ -149,7 +124,6 @@ class TarInstall:
             ])
         except subprocess.CalledProcessError as e:
             logger.error(f"Error creating {self._SLURM_GROUP} - {e}")
-
         try:
             subprocess.call([
                 "useradd",
@@ -194,18 +168,10 @@ class TarInstall:
     def _provision_slurm_resource(self) -> None:
         """Provision the slurm resource."""
         try:
-            resource_path = self._res_path 
-        except ModelError as e:
-            logger.error(
-                f"Resource could not be found when executing: {e}",
-                exc_info=True,
-            )
-
-        try:
             subprocess.call([
                 "tar",
                 "-xzvf",
-                resource_path,
+                self._res_path,
                 f"--one-top-level={self._SLURM_TMP_RESOURCE}",
             ])
         except subprocess.CalledProcessError as e:
@@ -250,3 +216,17 @@ class TarInstall:
         except subprocess.CalledProcessError as e:
             logger.error(f"Error setting up systemd - {e}")
 
+    def _slurm_systemctl(self, operation):
+        """Start systemd services for slurmd."""
+        if operation not in ["enable", "start", "stop", "restart"]:
+            msg = f"Unsupported systemctl command for {self._slurm_component}"
+            raise Exception(msg)
+
+        try:
+            subprocess.call([
+                "systemctl",
+                operation,
+                self._slurm_component,
+            ])
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error copying systemd - {e}")
