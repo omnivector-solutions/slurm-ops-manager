@@ -50,6 +50,14 @@ ProctrackType= {{ proctrack_type }}
 # User specified config
 {{custom_config}}
 
+# elasticsearch configuration
+
+{% if elasticsearch_address  %}
+JobCompType=jobcomp/elasticsearch
+JobCompLoc={{elasticsearch_address}}
+JobCompParams=timeout=5
+{% endif %}
+
 
 # SLURMDBD CONFIGURED ON {{ slurmdbd_hostname }}
 AccountingStorageType=accounting_storage/slurmdbd
