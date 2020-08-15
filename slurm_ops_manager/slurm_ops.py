@@ -22,8 +22,7 @@ logger = logging.getLogger()
 class SlurmOpsManager(Object):
     """Config values to install slurm."""
 
-    _CHARM_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
-    _TEMPLATE_DIR = _CHARM_DIR / 'templates'
+    _TEMPLATE_DIR = f"{os.environ['JUJU_CHARM_DIR']}/templates"
 
     def __init__(self, charm, component):
         """Determine values based on resource type."""
@@ -108,7 +107,7 @@ class SlurmOpsManager(Object):
         ctxt = {**context, **self.slurm_resource.config}
 
         rendered_template = Environment(
-            loader=FileSystemLoader(str(self._TEMPLATE_DIR))
+            loader=FileSystemLoader(self._TEMPLATE_DIR)
         ).get_template(template_name)
 
         target.write_text(rendered_template.render(ctxt))
