@@ -68,8 +68,8 @@ class SlurmOpsManager(Object):
         """Install Slurm."""
         self.slurm_resource.install()
 
-        if self._slurm_component == "slurmctld" and
-           self._prometheus_slurm_exporter_resoruce_path is not None:
+        if (self._slurm_component == "slurmctld" and
+           self._prometheus_slurm_exporter_resoruce_path is not None):
             SlurmPrometheusExporterManager().install(
                 self._prometheus_slurm_exporter_resoruce_path
             )
