@@ -14,6 +14,9 @@ from ops.framework import Object
 from ops.model import ModelError
 from slurm_ops_manager.slurm_snap_ops import SlurmSnapManager
 from slurm_ops_manager.slurm_tar_ops import SlurmTarManager
+from slurm_ops_manager.prometheus_slurm_exporter import (
+    PrometheusSlurmExporterManager
+)
 
 
 logger = logging.getLogger()
@@ -54,9 +57,21 @@ class SlurmOpsManager(Object):
                 self._resource_path
             )
 
+        try:
+            self._prometheus_slurm_exporter_resource_path = \
+                self.model.resources.fetch('slurm')
+        except RuntimeError as e:
+            self._prometheus_slurm_exporter_resoruce_path = None
+
     def install(self):
         """Install Slurm."""
         self.slurm_resource.install()
+
+        if self._slurm_component == "slurmctld" and
+           self._prometheus_slurm_exporter_resoruce_path is not None:
+            SlurmPrometheusExporterManager.install(
+                self._prometheus_slurm_exporter_resoruce_path
+            )
 
     def get_munge_key(self) -> str:
         """Read, encode, decode and return the munge key."""
