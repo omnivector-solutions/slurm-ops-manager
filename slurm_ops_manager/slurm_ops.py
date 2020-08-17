@@ -51,8 +51,6 @@ class SlurmOpsManager(Object):
                 self._resource_path
             )
         else:
-            logger.debug("going to slurm snap manager")
-            logger.debug(self._resource_path)
             self.slurm_resource = SlurmSnapManager(
                 component,
                 self._resource_path
@@ -61,7 +59,7 @@ class SlurmOpsManager(Object):
         try:
             self._prometheus_slurm_exporter_resource_path = \
                 self.model.resources.fetch('prometheus-slurm-exporter')
-        except Exception as e:
+        except ModelError as e:
             self._prometheus_slurm_exporter_resource_path = None
 
     def install(self):
