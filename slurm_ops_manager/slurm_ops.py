@@ -70,7 +70,7 @@ class SlurmOpsManager(Object):
 
         if (self._slurm_component == "slurmctld" and
            self._prometheus_slurm_exporter_resource_path is not None):
-            SlurmPrometheusExporterManager().install(
+            PrometheusSlurmExporterManager().install(
                 self._prometheus_slurm_exporter_resource_path
             )
 
