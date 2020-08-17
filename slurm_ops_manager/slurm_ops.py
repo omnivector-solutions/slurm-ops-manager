@@ -61,7 +61,7 @@ class SlurmOpsManager(Object):
         try:
             self._prometheus_slurm_exporter_resource_path = \
                 self.model.resources.fetch('prometheus-slurm-exporter')
-        except RuntimeError as e:
+        except Exception as e:
             self._prometheus_slurm_exporter_resource_path = None
 
     def install(self):
