@@ -60,18 +60,18 @@ class SlurmOpsManager(Object):
 
         try:
             self._prometheus_slurm_exporter_resource_path = \
-                self.model.resources.fetch('slurm')
+                self.model.resources.fetch('prometheus-slurm-exporter')
         except RuntimeError as e:
-            self._prometheus_slurm_exporter_resoruce_path = None
+            self._prometheus_slurm_exporter_resource_path = None
 
     def install(self):
         """Install Slurm."""
         self.slurm_resource.install()
 
         if (self._slurm_component == "slurmctld" and
-           self._prometheus_slurm_exporter_resoruce_path is not None):
+           self._prometheus_slurm_exporter_resource_path is not None):
             SlurmPrometheusExporterManager().install(
-                self._prometheus_slurm_exporter_resoruce_path
+                self._prometheus_slurm_exporter_resource_path
             )
 
     def get_munge_key(self) -> str:
