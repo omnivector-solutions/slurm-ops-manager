@@ -14,9 +14,6 @@ from ops.framework import Object
 from ops.model import ModelError
 from slurm_ops_manager.slurm_snap_ops import SlurmSnapManager
 from slurm_ops_manager.slurm_tar_ops import SlurmTarManager
-from slurm_ops_manager.prometheus_slurm_exporter import (
-    PrometheusSlurmExporterManager
-)
 
 
 logger = logging.getLogger()
@@ -25,8 +22,11 @@ logger = logging.getLogger()
 class SlurmOpsManager(Object):
     """Config values to install slurm."""
 
-    _CHARM_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
-    _TEMPLATE_DIR = _CHARM_DIR / 'templates'
+    _TEMPLATE_DIR = Path(
+        os.path.dirname(
+            os.path.abspath(__file__)
+        )
+    ) / 'templates'
 
     def __init__(self, charm, component):
         """Determine values based on resource type."""
@@ -56,21 +56,9 @@ class SlurmOpsManager(Object):
                 self._resource_path
             )
 
-        try:
-            self._prometheus_slurm_exporter_resource_path = \
-                self.model.resources.fetch('prometheus-slurm-exporter')
-        except ModelError as e:
-            self._prometheus_slurm_exporter_resource_path = None
-
     def install(self):
         """Install Slurm."""
         self.slurm_resource.install()
-
-        if (self._slurm_component == "slurmctld" and
-           self._prometheus_slurm_exporter_resource_path is not None):
-            PrometheusSlurmExporterManager().install(
-                self._prometheus_slurm_exporter_resource_path
-            )
 
     def get_munge_key(self) -> str:
         """Read, encode, decode and return the munge key."""
