@@ -50,6 +50,7 @@ jobs:
           name: "prepare repo"
           command: |
             rm ./slurm-charms/charm-slurmdbd/requirements.txt
+            ls -la
             echo  "ops" > ./slurm-charms/charm-slurmdbd/requirements.txt
             echo  "git+https://github.com/omnivector-solutions/interface-mysql.git@master" > ./slurm-charms/charm-slurmdbd/requirements.txt
             cat ./slurm-charms/charm-slurmdbd/requirements.txt
