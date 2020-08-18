@@ -34,6 +34,17 @@ jobs:
       - checkout
 
       - run:
+          name: "prepare repo"
+          command: |
+            rm ./slurm-charms/charm-slurmdbd/requirements.txt
+            ls -la
+            echo -e "ops \ngit+https://github.com/omnivector-solutions/interface-mysql.git@master" > ./slurm-charms/charm-slurmdbd/requirements.txt
+            cat ./slurm-charms/charm-slurmdbd/requirements.txt
+            cp -r slurm_ops_manager/* slurm-charms/charm-slurmdbd/src
+            pwd
+            ls -la slurm-charms
+            ./slurm-charms/make charms
+      - run:
           name: "Install snapd"
           command: |
             sudo apt-get update
@@ -46,15 +57,6 @@ jobs:
           name: "clone charms"
           command: |
             git clone git@github.com:omnivector-solutions/slurm-charms.git
-      - run:
-          name: "prepare repo"
-          command: |
-            rm ./slurm-charms/charm-slurmdbd/requirements.txt
-            ls -la
-            echo -e "ops \ngit+https://github.com/omnivector-solutions/interface-mysql.git@master" > ./slurm-charms/charm-slurmdbd/requirements.txt
-            cat ./slurm-charms/charm-slurmdbd/requirements.txt
-            cp -r slurm_ops_manager/* slurm-charms/charm-slurmdbd/src
-            slurm-charms/make charms
       - run:
           name: "Install LXD"
           command: |
