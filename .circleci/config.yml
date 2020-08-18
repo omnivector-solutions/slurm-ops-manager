@@ -65,6 +65,7 @@ jobs:
             rm ./slurm-charms/charm-slurmdbd/requirements.txt
             echo -e "ops \ngit+https://github.com/omnivector-solutions/interface-mysql.git@master" > ./slurm-charms/charm-slurmdbd/requirements.txt
             cp -r slurm_ops_manager/* slurm-charms/charm-slurmdbd/src
+            ls -la slurm-charms/charm-slurmdbd/src
             mv slurm-charms/* .
             make charms
       - run:
