@@ -47,7 +47,7 @@ jobs:
             cp -r slurm_ops_manager/* slurm-charms/charm-slurmdbd/src
             pwd
             ls -la slurm-charms
-            ./slurm-charms/make charms
+            /home/circlieci/project/slurm-charms/make charms
       - run:
           name: "Install snapd"
           command: |
