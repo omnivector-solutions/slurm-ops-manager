@@ -43,9 +43,9 @@ jobs:
           command: |
             sudo snap install charmcraft --beta
       - run:
-          name: "Build charms"
+          name: "clone charms"
           command: |
-            make charms
+            git clone git@github.com:omnivector-solutions/slurm-charms.git
       - run:
           name: "Install LXD"
           command: |
