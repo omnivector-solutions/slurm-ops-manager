@@ -45,9 +45,9 @@ jobs:
             echo -e "ops \ngit+https://github.com/omnivector-solutions/interface-mysql.git@master" > ./slurm-charms/charm-slurmdbd/requirements.txt
             cat ./slurm-charms/charm-slurmdbd/requirements.txt
             cp -r slurm_ops_manager/* slurm-charms/charm-slurmdbd/src
+            mv slurm-charms/* .
             pwd
-            ls -la slurm-charms
-            /home/circlieci/project/slurm-charms/make charms
+            make charms
       - run:
           name: "Install snapd"
           command: |
