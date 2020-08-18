@@ -1,11 +1,21 @@
 version: 2.1
+
+orbs:
+  aws-cli: circleci/aws-cli@1.2.1
+  slack: circleci/slack@3.4.2
+
 workflows:
   lint:
     jobs:
-      - flake8
+      - lint:
+          context: aws
+      - build-and-deploy-charms-on-lxd:
+          context: aws
+          requires:
+            - lint
 
 jobs:
-  flake8:
+  lint:
     docker:
       - image: circleci/python:3.6
     steps:
@@ -16,3 +26,50 @@ jobs:
           name: Run Lint
           command: |
             make lint
+
+  build-and-deploy-charms-on-lxd:
+    machine:
+      image: ubuntu-1604:202004-01
+    steps:
+      - checkout
+
+      - run:
+          name: "Install snapd"
+          command: |
+            sudo apt-get update
+            sudo apt-get install --only-upgrade -y snapd
+      - run:
+          name: "Install charmcraft"
+          command: |
+            sudo snap install charmcraft --beta
+      - run:
+          name: "Build charms"
+          command: |
+            make charms
+      - run:
+          name: "Install LXD"
+          command: |
+            sudo apt-get purge lxd lxd-client lxcfs
+            sudo snap install lxd
+            sudo lxd init --auto
+            sleep 5
+            sudo /snap/bin/lxd.lxc network set lxdbr0 ipv6.address none
+      - run:
+          name: "Install Juju"
+          command: |
+            sudo apt-get purge juju
+            sudo snap install juju --classic
+      - run:
+          name: "Install juju-wait"
+          command: |
+            sudo snap install juju-wait --classic
+      - run:
+          name: "Install jq"
+          command: |
+            sudo snap install jq
+      - run:
+          name: "Bootstrap Juju"
+          command: |
+            /snap/bin/juju bootstrap localhost
+            /snap/bin/juju model-config logging-config="<root>=DEBUG;<unit>=DEBUG"
+
