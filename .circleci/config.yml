@@ -64,7 +64,7 @@ jobs:
           command: |
             aws s3 cp s3://omnivector-cicd/juju-local/juju-local.tar.gz .
             tar zxvf juju-local.tar.gz
-            echo "rats" | juju status
+            echo "rats" | /snap/bin/juju status
             
             #- run:
             #name: "prepare repo"
