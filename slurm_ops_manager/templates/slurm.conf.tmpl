@@ -50,14 +50,18 @@ ProctrackType= {{ proctrack_type }}
 # User specified config
 {{custom_config}}
 
-# elasticsearch configuration
-
 {% if elasticsearch_address  %}
+# Job completion elasticsearch configuration
 JobCompType=jobcomp/elasticsearch
 JobCompLoc={{elasticsearch_address}}
 JobCompParams=timeout=5
 {% endif %}
 
+{% if nhc %}
+HealthCheckProgram={{nhc.nhc_bin}}
+HealthCheckInterval={{nhc.health_check_interval}}
+HealthCheckNodeState={{nhc.health_check_node_state}}
+{% endif %}
 
 # SLURMDBD CONFIGURED ON {{ slurmdbd_hostname }}
 AccountingStorageType=accounting_storage/slurmdbd

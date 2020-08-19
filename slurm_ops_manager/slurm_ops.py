@@ -22,8 +22,11 @@ logger = logging.getLogger()
 class SlurmOpsManager(Object):
     """Config values to install slurm."""
 
-    _CHARM_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
-    _TEMPLATE_DIR = _CHARM_DIR / 'templates'
+    _TEMPLATE_DIR = Path(
+        os.path.dirname(
+            os.path.abspath(__file__)
+        )
+    ) / 'templates'
 
     def __init__(self, charm, component):
         """Determine values based on resource type."""
@@ -48,8 +51,6 @@ class SlurmOpsManager(Object):
                 self._resource_path
             )
         else:
-            logger.debug("going to slurm snap manager")
-            logger.debug(self._resource_path)
             self.slurm_resource = SlurmSnapManager(
                 component,
                 self._resource_path
