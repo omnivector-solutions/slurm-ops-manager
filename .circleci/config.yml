@@ -63,9 +63,9 @@ jobs:
           name: "pull credentials from s3"
           command: |
             aws s3 cp s3://omnivector-cicd/juju-local/mycreds.yaml .
-            juju add-credential aws -f mycreds.yaml
-            juju bootstrap aws/us-west-2 --credential jesse  --to subnet=subnet-0a7b904695e55d8ed
-            juju status 
+            /snap/bin/juju add-credential aws -f mycreds.yaml
+            /snap/bin/juju bootstrap aws/us-west-2 --credential jesse  --to subnet=subnet-0a7b904695e55d8ed
+            /snap/bin/juju status 
             #- run:
             #name: "prepare repo"
             #command: |
