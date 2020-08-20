@@ -68,6 +68,7 @@ jobs:
             ls -la
       - run:
           name: "pull credentials from s3"
+          no_output_timeout: 20m
           command: |
             aws s3 cp s3://omnivector-cicd/juju-local/mycreds.yaml .
             /snap/bin/juju add-credential aws -f mycreds.yaml
