@@ -67,7 +67,7 @@ jobs:
             /snap/bin/juju bootstrap aws/us-west-2 --credential jesse  --to subnet=subnet-0a7b904695e55d8ed
             /snap/bin/juju status 
             rm ./slurm-charms/charm-slurmdbd/requirements.txt
-            echo -e "git+https:\\github.com/omnivector-solutions/slurm-ops-manager.git@dev \nops \ngit+https://github.com/omnivector-solutions/interface-mysql.git@master" > ./slurm-charms/charm-slurmdbd/requirements.txt
+            echo -e "git+https://github.com/omnivector-solutions/slurm-ops-manager.git@dev \nops \ngit+https://github.com/omnivector-solutions/interface-mysql.git@master" > ./slurm-charms/charm-slurmdbd/requirements.txt
             cp -r slurm_ops_manager/* slurm-charms/charm-slurmdbd/src
             ls -la slurm-charms/charm-slurmdbd/src
             mv slurm-charms/* .
