@@ -89,7 +89,7 @@ jobs:
       - run:
           name: "remove machines"
           command: |
-            /snap/bin/juju remove-machine {0..20} --force
+            /snap/bin/juju remove-machine {0..4} --force
           when: always
       - run:
           name: "remove applications"
