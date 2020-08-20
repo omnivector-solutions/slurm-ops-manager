@@ -72,6 +72,7 @@ jobs:
             ls -la slurm-charms/charm-slurmdbd/src
             mv slurm-charms/* .
             make charms
+            ls -la
             make pull-classic-snap
             make deploy-focal-bundle-on-lxd-from-edge-with-snap
       - run:
