@@ -83,6 +83,7 @@ jobs:
 
       - run:
           name: "remove machines"
+          command: |
             /snap/bin/juju remove-machine {0..200} --force
             /snap/bin/juju remove-application charm-slurmdbd charm-slurmctld charm-slurmd charm-slurmrestd percona-cluster
           when: always
