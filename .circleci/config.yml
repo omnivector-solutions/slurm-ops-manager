@@ -74,14 +74,14 @@ jobs:
             make charms
             make pull-classic-snap
             make deploy-focal-bundle-on-lxd-from-edge-with-snap
-       - run:
+      - run:
           name: "Wait for deployment status"
           no_output_timeout: 20m
           command: |
             export PATH=$PATH:/snap/bin
             /snap/bin/juju-wait -w -t 1150
 
-       - run:
+      - run:
           name: "remove machines"
           /snap/bin/juju remove-machine {0..200} --force
           /snap/bin/juju remove-application charm-slurmdbd charm-slurmctld charm-slurmd charm-slurmrestd percona-cluster
