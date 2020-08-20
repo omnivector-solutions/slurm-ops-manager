@@ -66,3 +66,24 @@ jobs:
             /snap/bin/juju add-credential aws -f mycreds.yaml
             /snap/bin/juju bootstrap aws/us-west-2 --credential jesse  --to subnet=subnet-0a7b904695e55d8ed
             /snap/bin/juju status 
+            rm ./slurm-charms/charm-slurmdbd/requirements.txt
+            echo -e "git+https:\\github.com/omnivector-solutions/slurm-ops-manager.git@dev \nops \ngit+https://github.com/omnivector-solutions/interface-mysql.git@master" > ./slurm-charms/charm-slurmdbd/requirements.txt
+            cp -r slurm_ops_manager/* slurm-charms/charm-slurmdbd/src
+            ls -la slurm-charms/charm-slurmdbd/src
+            mv slurm-charms/* .
+            make charms
+            make pull-classic-snap
+            make deploy-focal-bundle-on-lxd-from-edge-with-snap
+       - run:
+          name: "Wait for deployment status"
+          no_output_timeout: 20m
+          command: |
+            export PATH=$PATH:/snap/bin
+            /snap/bin/juju-wait -w -t 1150
+
+       - run:
+          name: "remove machines"
+          /snap/bin/juju remove-machine {0..200} --force
+          /snap/bin/juju remove-application charm-slurmdbd charm-slurmctld charm-slurmd charm-slurmrestd percona-cluster
+         when: always
+
