@@ -56,6 +56,10 @@ jobs:
             sudo apt-get purge juju
             sudo snap install juju --classic
       - run:
+          name: "Install Juju wait"
+          command: |
+            sudo snap install juju-wait --classic
+      - run:
           name: "clone charms"
           command: |
             git clone git@github.com:omnivector-solutions/slurm-charms.git
@@ -85,12 +89,18 @@ jobs:
       - run:
           name: "remove machines"
           command: |
-            /snap/bin/juju remove-machine {0..200} --force
-            /snap/bin/juju remove-application charm-slurmdbd charm-slurmctld charm-slurmd charm-slurmrestd percona-cluster
+            /snap/bin/juju remove-machine {0..20} --force
           when: always
+      - run:
+          name: "remove applications"
+          command: |
+            /snap/bin/juju remove-application slurmdbd slurmctld slurmd slurmrestd percona-cluster
+          when: always
+
 
       - run:
           name: "kill controller"
+          no_output_timeout: 20m
           command: |
             /snap/bin/juju kill-controller aws-us-west-2 -y
           when: always
