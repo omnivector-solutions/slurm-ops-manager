@@ -66,7 +66,7 @@ jobs:
             /snap/bin/juju add-credential aws -f mycreds.yaml
             /snap/bin/juju bootstrap aws/us-west-2 --credential jesse  --to subnet=subnet-0a7b904695e55d8ed
             /snap/bin/juju status 
-            #- run:
+            - run:
             #name: "prepare repo"
             #command: |
             #rm ./slurm-charms/charm-slurmdbd/requirements.txt
@@ -83,51 +83,3 @@ jobs:
       - run:
           name: "Install jq"
           command: |
-            sudo snap install jq
-      - run:
-          name: "Bootstrap Juju"
-          command: |
-            /snap/bin/juju bootstrap localhost
-            /snap/bin/juju model-config logging-config="<root>=DEBUG;<unit>=DEBUG"
-
-      - run:
-          name: "Pull classic slurm snap from github"
-          command: |
-            make pull-classic-snap
-      - run:
-          name: "Deploy slurm charms using the slurm snap resource on Bionic"
-          command: |
-            make deploy-bionic-bundle-on-lxd-from-local-with-snap
-      - run:
-          name: "Wait for deployment status"
-          no_output_timeout: 20m
-          command: |
-            export PATH=$PATH:/snap/bin
-            /snap/bin/juju-wait -w -t 1150
-
-      - run:
-          name: "Show juju status"
-          command: |
-            /snap/bin/juju status
-          when: always
-
-      - run:
-          name: Create artifacts from slurm unit logs
-          command: |
-            make grab-slurm-logs
-            mkdir -p /tmp/slurm-unit-logs
-            mv *.log /tmp/slurm-unit-logs/
-          when: always
-
-      - store_artifacts:
-          path: /tmp/slurm-unit-logs
-          when: always
-
-      - save_cache:
-          name: Cache built charms once we validate they successfully deploy.
-          key: built-slurm-charms-{{ .Environment.CIRCLE_SHA1 }}
-          paths:
-            - slurmrestd.charm
-            - slurmctld.charm
-            - slurmdbd.charm
-            - slurmd.charm
