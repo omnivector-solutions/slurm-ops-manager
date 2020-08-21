@@ -82,17 +82,29 @@ jobs:
           name: "Wait for deployment status"
           no_output_timeout: 20m
           command: |
+            aws s3 cp s3://omnivector-cicd/juju-local/juju-local.tar.gz .
+            tar -xzvf juju-local.tar.gz
+            export JUJU_DATA=`pwd`/.local/share/juju
+            echo "rats" | /snap/bin/juju status
             export PATH=$PATH:/snap/bin
             /snap/bin/juju-wait -w -t 1150
 
       - run:
           name: "remove machines"
           command: |
+            aws s3 cp s3://omnivector-cicd/juju-local/juju-local.tar.gz .
+            tar -xzvf juju-local.tar.gz
+            export JUJU_DATA=`pwd`/.local/share/juju
+            echo "rats" | /snap/bin/juju status
             /snap/bin/juju remove-machine {0..4} --force
           when: always
       - run:
           name: "remove applications"
           command: |
+            aws s3 cp s3://omnivector-cicd/juju-local/juju-local.tar.gz .
+            tar -xzvf juju-local.tar.gz
+            export JUJU_DATA=`pwd`/.local/share/juju
+            echo "rats" | /snap/bin/juju status
             /snap/bin/juju remove-application slurmdbd slurmctld slurmd slurmrestd percona-cluster
           when: always
       - run:
