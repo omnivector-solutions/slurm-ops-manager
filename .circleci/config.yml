@@ -90,6 +90,14 @@ jobs:
             /snap/bin/juju switch circleci
             /snap/bin/juju status
             /snap/bin/juju-wait -w -t 1150
+      - run:
+          name: "show juju status"
+          command: |
+            export JUJU_DATA=`pwd`/.local/share/juju
+            echo "rats" | /snap/bin/juju status
+            /snap/bin/juju switch circleci
+            /snap/bin/juju status
+          when: always
 
       - run:
           name: "remove machines"
