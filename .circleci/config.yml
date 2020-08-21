@@ -102,5 +102,5 @@ jobs:
             tar -xzvf juju-local.tar.gz
             export JUJU_DATA=`pwd`/.local/share/juju
             echo "rats" | /snap/bin/juju status
-            /snap/bin/juju destroy-model circleci
+            /snap/bin/juju destroy-model circleci -y
           when: always
