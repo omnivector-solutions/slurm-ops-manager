@@ -66,19 +66,17 @@ jobs:
             rm ./slurm-charms/charm-slurmdbd/requirements.txt
             echo -e "git+https://github.com/omnivector-solutions/slurm-ops-manager.git@dev \nops \ngit+https://github.com/omnivector-solutions/interface-mysql.git@master" > ./slurm-charms/charm-slurmdbd/requirements.txt
             cp -r slurm_ops_manager/* slurm-charms/charm-slurmdbd/src
-            ls -la slurm-charms/charm-slurmdbd/src
             mv slurm-charms/* .
             make charms
-            ls -la
       - run:
           name: "pull credentials from s3"
           no_output_timeout: 20m
           command: |
-            aws s3 cp s3://omnivector-cicd/juju-local/mycreds.yaml .
-            /snap/bin/juju add-credential aws -f mycreds.yaml
-            /snap/bin/juju bootstrap aws/us-west-2 --credential jesse  --to subnet=subnet-0a7b904695e55d8ed
-            /snap/bin/juju status
-            make deploy-bionic-bundle-on-lxd-from-local-with-snap  
+            aws s3 cp s3://omnivector-cicd/juju-local/juju-local-tar.gz .
+            tar -xzvf juju-local.tar.gz
+            export JUJU_DATA=`pwd`/.local/share/juju
+            echo "rats" | /snap/bin/juju status
+            #make deploy-bionic-bundle-on-lxd-from-local-with-snap  
       - run:
           name: "Wait for deployment status"
           no_output_timeout: 20m
@@ -96,12 +94,3 @@ jobs:
           command: |
             /snap/bin/juju remove-application slurmdbd slurmctld slurmd slurmrestd percona-cluster
           when: always
-
-
-      - run:
-          name: "kill controller"
-          no_output_timeout: 20m
-          command: |
-            /snap/bin/juju kill-controller aws-us-west-2 -y
-          when: always
-
