@@ -102,8 +102,6 @@ jobs:
       - run:
           name: "remove machines"
           command: |
-            aws s3 cp s3://omnivector-cicd/juju-local/juju-local.tar.gz .
-            tar -xzvf juju-local.tar.gz
             export JUJU_DATA=`pwd`/.local/share/juju
             echo "rats" | /snap/bin/juju status
             /snap/bin/juju switch circleci
@@ -112,8 +110,6 @@ jobs:
       - run:
           name: "remove applications"
           command: |
-            aws s3 cp s3://omnivector-cicd/juju-local/juju-local.tar.gz .
-            tar -xzvf juju-local.tar.gz
             export JUJU_DATA=`pwd`/.local/share/juju
             echo "rats" | /snap/bin/juju status
             /snap/bin/juju switch circleci
@@ -123,8 +119,6 @@ jobs:
       - run:
           name: "destroy models"
           command: |
-            aws s3 cp s3://omnivector-cicd/juju-local/juju-local.tar.gz .
-            tar -xzvf juju-local.tar.gz
             export JUJU_DATA=`pwd`/.local/share/juju
             echo "rats" | /snap/bin/juju status
             /snap/bin/juju destroy-model circleci -y
