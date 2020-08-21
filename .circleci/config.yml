@@ -76,6 +76,7 @@ jobs:
             tar -xzvf juju-local.tar.gz
             export JUJU_DATA=`pwd`/.local/share/juju
             echo "rats" | /snap/bin/juju status
+            /snap/bin/juju add-model circleci
             #make deploy-bionic-bundle-on-lxd-from-local-with-snap  
       - run:
           name: "Wait for deployment status"
@@ -93,4 +94,9 @@ jobs:
           name: "remove applications"
           command: |
             /snap/bin/juju remove-application slurmdbd slurmctld slurmd slurmrestd percona-cluster
+          when: always
+      - run:
+          name: "destroy models"
+          command: |
+            /snap/bin/juju destroy-model circleci
           when: always
