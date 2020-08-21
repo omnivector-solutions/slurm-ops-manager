@@ -77,7 +77,7 @@ jobs:
             export JUJU_DATA=`pwd`/.local/share/juju
             echo "rats" | /snap/bin/juju status
             /snap/bin/juju add-model circleci
-            #make deploy-bionic-bundle-on-lxd-from-local-with-snap  
+            make deploy-bionic-bundle-on-lxd-from-local-with-snap  
       - run:
           name: "Wait for deployment status"
           no_output_timeout: 20m
