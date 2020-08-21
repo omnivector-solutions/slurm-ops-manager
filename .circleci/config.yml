@@ -87,6 +87,7 @@ jobs:
             export JUJU_DATA=`pwd`/.local/share/juju
             echo "rats" | /snap/bin/juju status
             export PATH=$PATH:/snap/bin
+            /snap/bin/juju switch circleci
             /snap/bin/juju-wait -w -t 1150
 
       - run:
@@ -96,6 +97,7 @@ jobs:
             tar -xzvf juju-local.tar.gz
             export JUJU_DATA=`pwd`/.local/share/juju
             echo "rats" | /snap/bin/juju status
+            /snap/bin/juju switch circleci
             /snap/bin/juju remove-machine {0..4} --force
           when: always
       - run:
@@ -105,6 +107,7 @@ jobs:
             tar -xzvf juju-local.tar.gz
             export JUJU_DATA=`pwd`/.local/share/juju
             echo "rats" | /snap/bin/juju status
+            /snap/bin/juju switch circleci
             /snap/bin/juju remove-application slurmdbd slurmctld slurmd slurmrestd percona-cluster
           when: always
       - run:
