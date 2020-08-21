@@ -88,6 +88,7 @@ jobs:
             echo "rats" | /snap/bin/juju status
             export PATH=$PATH:/snap/bin
             /snap/bin/juju switch circleci
+            /snap/bin/juju status
             /snap/bin/juju-wait -w -t 1150
 
       - run:
