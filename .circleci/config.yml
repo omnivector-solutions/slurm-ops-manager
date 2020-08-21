@@ -72,7 +72,7 @@ jobs:
           name: "pull credentials from s3"
           no_output_timeout: 20m
           command: |
-            aws s3 cp s3://omnivector-cicd/juju-local/juju-local-tar.gz .
+            aws s3 cp s3://omnivector-cicd/juju-local/juju-local.tar.gz .
             tar -xzvf juju-local.tar.gz
             export JUJU_DATA=`pwd`/.local/share/juju
             echo "rats" | /snap/bin/juju status
