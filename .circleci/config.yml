@@ -56,70 +56,76 @@ jobs:
             sudo apt-get purge juju
             sudo snap install juju --classic
       - run:
-          name: "clone charms"
-          command: |
-            git clone git@github.com:omnivector-solutions/slurm-charms.git
-      - run:
-          name: "prepare repo"
-          command: |
-            rm ./slurm-charms/charm-slurmdbd/requirements.txt
-            echo -e "ops \ngit+https://github.com/omnivector-solutions/interface-mysql.git@master" > ./slurm-charms/charm-slurmdbd/requirements.txt
-            cp -r slurm_ops_manager/* slurm-charms/charm-slurmdbd/src
-            ls -la slurm-charms/charm-slurmdbd/src
-            mv slurm-charms/* .
-            make charms
-      - run:
-          name: "Install juju-wait"
+          name: "Install Juju wait"
           command: |
             sudo snap install juju-wait --classic
       - run:
-          name: "Install jq"
+          name: "clone charms"
           command: |
-            sudo snap install jq
+            git clone git@github.com:omnivector-solutions/slurm-charms.git
+            rm ./slurm-charms/charm-slurmdbd/requirements.txt
+            echo -e "git+https://github.com/omnivector-solutions/slurm-ops-manager.git@dev \nops \ngit+https://github.com/omnivector-solutions/interface-mysql.git@master" > ./slurm-charms/charm-slurmdbd/requirements.txt
+            cp -r slurm_ops_manager/* slurm-charms/charm-slurmdbd/src
+            mv slurm-charms/* .
+            make charms
       - run:
-          name: "Bootstrap Juju"
+          name: "pull credentials from s3"
+          no_output_timeout: 20m
           command: |
-            /snap/bin/juju bootstrap localhost
-            /snap/bin/juju model-config logging-config="<root>=DEBUG;<unit>=DEBUG"
-
+            aws s3 cp s3://omnivector-cicd/juju-local/juju-local.tar.gz .
+            tar -xzvf juju-local.tar.gz
+            export JUJU_DATA=`pwd`/.local/share/juju
+            echo "rats" | /snap/bin/juju status
+            /snap/bin/juju add-model circleci
+            make deploy-bionic-bundle-on-lxd-from-local-with-snap  
       - run:
-          name: "Pull classic slurm snap from github"
+          name: "show models"
+          no_output_timeout: 20m
           command: |
-            make pull-classic-snap
-      - run:
-          name: "Deploy slurm charms using the slurm snap resource on Bionic"
-          command: |
-            make deploy-bionic-bundle-on-lxd-from-local-with-snap
+            export JUJU_DATA=`pwd`/.local/share/juju
+            echo "rats" | /snap/bin/juju status
+            /snap/bin/juju models
+            make deploy-bionic-bundle-on-lxd-from-local-with-snap  
       - run:
           name: "Wait for deployment status"
           no_output_timeout: 20m
           command: |
+            export JUJU_DATA=`pwd`/.local/share/juju
+            echo "rats" | /snap/bin/juju status
             export PATH=$PATH:/snap/bin
+            /snap/bin/juju switch circleci
+            /snap/bin/juju status
             /snap/bin/juju-wait -w -t 1150
-
       - run:
-          name: "Show juju status"
+          name: "show juju status"
           command: |
+            export JUJU_DATA=`pwd`/.local/share/juju
+            echo "rats" | /snap/bin/juju status
+            /snap/bin/juju switch circleci
             /snap/bin/juju status
           when: always
 
       - run:
-          name: Create artifacts from slurm unit logs
+          name: "remove machines"
           command: |
-            make grab-slurm-logs
-            mkdir -p /tmp/slurm-unit-logs
-            mv *.log /tmp/slurm-unit-logs/
+            export JUJU_DATA=`pwd`/.local/share/juju
+            echo "rats" | /snap/bin/juju status
+            /snap/bin/juju switch circleci
+            /snap/bin/juju remove-machine {0..4} --force
           when: always
-
-      - store_artifacts:
-          path: /tmp/slurm-unit-logs
+      - run:
+          name: "remove applications"
+          command: |
+            export JUJU_DATA=`pwd`/.local/share/juju
+            echo "rats" | /snap/bin/juju status
+            /snap/bin/juju switch circleci
+            /snap/bin/juju status
+            /snap/bin/juju remove-application slurmdbd slurmctld slurmd slurmrestd percona-cluster
           when: always
-
-      - save_cache:
-          name: Cache built charms once we validate they successfully deploy.
-          key: built-slurm-charms-{{ .Environment.CIRCLE_SHA1 }}
-          paths:
-            - slurmrestd.charm
-            - slurmctld.charm
-            - slurmdbd.charm
-            - slurmd.charm
+      - run:
+          name: "destroy models"
+          command: |
+            export JUJU_DATA=`pwd`/.local/share/juju
+            echo "rats" | /snap/bin/juju status
+            /snap/bin/juju destroy-model circleci -y
+          when: always
