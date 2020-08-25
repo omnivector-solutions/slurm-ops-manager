@@ -30,6 +30,11 @@ jobs:
   build-and-deploy-charms-on-lxd:
     machine:
       image: ubuntu-1604:202004-01
+
+    environment:
+      PATH: $PATH:/snap/bin 
+      JUJU_DATA_DIR: /home/circleci/project/.local/share/juju
+
     steps:
       - checkout
 
@@ -38,10 +43,12 @@ jobs:
           command: |
             sudo apt-get update
             sudo apt-get install --only-upgrade -y snapd
+
       - run:
           name: "Install charmcraft"
           command: |
             sudo snap install charmcraft --beta
+
       - run:
           name: "Install LXD"
           command: |
@@ -50,85 +57,72 @@ jobs:
             sudo lxd init --auto
             sleep 5
             sudo /snap/bin/lxd.lxc network set lxdbr0 ipv6.address none
+
       - run:
           name: "Install Juju"
           command: |
             sudo apt-get purge juju
             sudo snap install juju --classic
+
       - run:
           name: "Install Juju wait"
           command: |
             sudo snap install juju-wait --classic
+
       - run:
           name: "clone charms"
           command: |
             git clone git@github.com:omnivector-solutions/slurm-charms.git
-            rm ./slurm-charms/charm-slurmdbd/requirements.txt
-            echo -e "git+https://github.com/omnivector-solutions/slurm-ops-manager.git@dev \nops \ngit+https://github.com/omnivector-solutions/interface-mysql.git@master" > ./slurm-charms/charm-slurmdbd/requirements.txt
-            cp -r slurm_ops_manager/* slurm-charms/charm-slurmdbd/src
-            mv slurm-charms/* .
-            make charms
+            for charm in slurmdbd slurmd slurmctld slurmrestd; do
+                rm ./slurm-charms/charm-$charm/requirements.txt
+                if [[ $charm == "slurmdbd" ]];
+                    echo -e "git+https://github.com/omnivector-solutions/slurm-ops-manager.git@$CIRCLE_SHA1 \nops \ngit+https://github.com/omnivector-solutions/interface-mysql.git@master" > ./slurm-charms/charm-$charm/requirements.txt
+                else
+                    echo -e "git+https://github.com/omnivector-solutions/slurm-ops-manager.git@$CIRCLE_SHA1 \nops" > ./slurm-charms/charm-$charm/requirements.txt
+                fi
+            done
+            cd slurm-charms/ && \
+                make charms && \
+                cd ../
+
       - run:
-          name: "pull credentials from s3"
+          name: "pull credentials from s3 and add model and deploy bundle"
           no_output_timeout: 20m
           command: |
             aws s3 cp s3://omnivector-cicd/juju-local/juju-local.tar.gz .
             tar -xzvf juju-local.tar.gz
-            export JUJU_DATA=`pwd`/.local/share/juju
-            echo "rats" | /snap/bin/juju status
-            /snap/bin/juju add-model circleci
-            make deploy-bionic-bundle-on-lxd-from-local-with-snap  
+            echo "rats" | juju status
+            juju add-model circleci-$CIRCLE_SHA1
+            juju add-space -m circleci-$CIRCLE_SHA1 nat 172.31.90.0/24 172.31.91.0/24 172.31.92.0/24 172.31.93.0/24
+            juju deploy -m circleci-$CIRCLE_SHA1 ./bundles/slurm-core-bionic-aws/bundle.yaml
 
-      - run:
-          name: "show models"
-          no_output_timeout: 20m
-          command: |
-            export JUJU_DATA=`pwd`/.local/share/juju
-            echo "rats" | /snap/bin/juju status
-            /snap/bin/juju models
-            make deploy-bionic-bundle-on-lxd-from-local-with-snap
       - run:
           name: "Wait for deployment status"
           no_output_timeout: 20m
           command: |
-            aws s3 cp s3://omnivector-cicd/juju-local/juju-local.tar.gz .
-            tar -xzvf juju-local.tar.gz
-            export JUJU_DATA=`pwd`/.local/share/juju
-            echo "rats" | /snap/bin/juju status
-            export PATH=$PATH:/snap/bin
-            /snap/bin/juju switch circleci
-            /snap/bin/juju status
-            /snap/bin/juju-wait -w -t 1150
+            echo "rats" | juju status -m circleci-$CIRCLE_SHA1 
+            juju-wait -w -t 1150
+
       - run:
-          name: "show juju status"
+          name: "Juju Status"
           command: |
-            export JUJU_DATA=`pwd`/.local/share/juju
-            echo "rats" | /snap/bin/juju status
-            /snap/bin/juju switch circleci
-            /snap/bin/juju status
+            echo "rats" | juju status -m circleci-$CIRCLE_SHA1 
           when: always
 
       - run:
-          name: "remove machines"
+          name: "Destroy Model"
           command: |
-            export JUJU_DATA=`pwd`/.local/share/juju
-            echo "rats" | /snap/bin/juju status
-            /snap/bin/juju switch circleci
-            /snap/bin/juju remove-machine {0..4} --force
+            echo "rats" | juju status
+            juju destroy-model circleci-$CIRCLE_SHA1 -y
+            juju-wait -w -t 1150
           when: always
+
       - run:
-          name: "remove applications"
+          name: "Force remove machine if hanging"
           command: |
-            export JUJU_DATA=`pwd`/.local/share/juju
-            echo "rats" | /snap/bin/juju status
-            /snap/bin/juju switch circleci
-            /snap/bin/juju status
-            /snap/bin/juju remove-application slurmdbd slurmctld slurmd slurmrestd percona-cluster
-          when: always
-      - run:
-          name: "destroy models"
-          command: |
-            export JUJU_DATA=`pwd`/.local/share/juju
-            echo "rats" | /snap/bin/juju status
-            /snap/bin/juju destroy-model circleci -y
+            echo "rats" | juju status
+            # Check to see if the model is empty, --force detroy-machines if not
+            if ! [ `juju status 2>&1 | grep -c empty` -gt 0 ]; then
+                juju remove-machine -m circleci-$CIRCLE_SHA1 {0..10} --force
+            fi
           when: always
