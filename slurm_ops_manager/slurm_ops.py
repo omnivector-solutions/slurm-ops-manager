@@ -1,8 +1,9 @@
 """Charm class to install slurm via snap or tar resource."""
 import logging
-import os
+import os.path
 import subprocess
 import tarfile
+from os import path
 from base64 import b64decode, b64encode
 from pathlib import Path
 
@@ -37,10 +38,9 @@ class SlurmOpsManager(Object):
         except ModelError as e:
             logger.debug(
                 f"no resource was supplied installing from snap store: {e}")
-        try:
+
+        if self._resource_path:
             self._is_tar = tarfile.is_tarfile(self._resource_path)
-        except FileExistsError as e:
-            logger.debug(f"no resource path: {e}")
 
         if self._is_tar:
             self.slurm_resource = SlurmTarManager(
