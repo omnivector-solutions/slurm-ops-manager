@@ -1,9 +1,8 @@
 """Charm class to install slurm via snap or tar resource."""
 import logging
-import os.path
+import os
 import subprocess
 import tarfile
-from os import path
 from base64 import b64decode, b64encode
 from pathlib import Path
 
