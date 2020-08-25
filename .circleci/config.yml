@@ -71,7 +71,7 @@ jobs:
             git clone git@github.com:omnivector-solutions/slurm-charms.git
             for charm in slurmdbd slurmd slurmctld slurmrestd; do
                 rm ./slurm-charms/charm-$charm/requirements.txt
-                if [[ $charm == "slurmdbd" ]];
+                if [[ $charm == "slurmdbd" ]]; then
                     echo -e "git+https://github.com/omnivector-solutions/slurm-ops-manager.git@$CIRCLE_SHA1 \nops \ngit+https://github.com/omnivector-solutions/interface-mysql.git@master" > ./slurm-charms/charm-$charm/requirements.txt
                 else
                     echo -e "git+https://github.com/omnivector-solutions/slurm-ops-manager.git@$CIRCLE_SHA1 \nops" > ./slurm-charms/charm-$charm/requirements.txt
