@@ -32,7 +32,7 @@ jobs:
       image: ubuntu-1604:202004-01
 
     environment:
-      JUJU_DATA_DIR: /home/circleci/project/.local/share/juju
+      JUJU_DATA: /home/circleci/project/.local/share/juju
 
     steps:
       - checkout
@@ -77,9 +77,7 @@ jobs:
                     echo -e "git+https://github.com/omnivector-solutions/slurm-ops-manager.git@$CIRCLE_SHA1 \nops" > ./slurm-charms/charm-$charm/requirements.txt
                 fi
             done
-            cd slurm-charms/ && \
-                make charms && \
-                cd ../
+            cd slurm-charms/ && make charms &&  cd ../
 
       - run:
           name: "pull credentials from s3 and add model and deploy bundle"
