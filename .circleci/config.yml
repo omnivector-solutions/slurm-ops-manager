@@ -9,7 +9,7 @@ workflows:
     jobs:
       - lint:
           context: aws
-      - build-and-deploy-charms-on-lxd:
+      - build-and-deploy-charms-on-aws:
           context: aws
           requires:
             - lint
@@ -27,7 +27,7 @@ jobs:
           command: |
             make lint
 
-  build-and-deploy-charms-on-lxd:
+  build-and-deploy-charms-on-aws:
     machine:
       image: ubuntu-1604:202004-01
 
@@ -53,15 +53,6 @@ jobs:
           name: "Install charmcraft"
           command: |
             sudo snap install charmcraft --beta
-
-      - run:
-          name: "Install LXD"
-          command: |
-            sudo apt-get purge lxd lxd-client lxcfs
-            sudo snap install lxd
-            sudo lxd init --auto
-            sleep 5
-            sudo /snap/bin/lxd.lxc network set lxdbr0 ipv6.address none
 
       - run:
           name: "Install Juju"
