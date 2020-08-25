@@ -91,7 +91,8 @@ jobs:
           command: |
             aws s3 cp s3://omnivector-cicd/juju-local/juju-local.tar.gz .
             tar -xzvf juju-local.tar.gz
-            echo "rats" | juju status
+
+            echo $JUJU_CIRCLECI_USER_PASSWORD | juju status
             juju add-model circleci-$CIRCLE_SHA1
             juju add-space -m circleci-$CIRCLE_SHA1 nat 172.31.90.0/24 172.31.91.0/24 172.31.92.0/24 172.31.93.0/24
             juju deploy -m circleci-$CIRCLE_SHA1 ./bundles/slurm-core-bionic-aws/bundle.yaml
@@ -100,19 +101,19 @@ jobs:
           name: "Wait for deployment status"
           no_output_timeout: 20m
           command: |
-            echo "rats" | juju status -m circleci-$CIRCLE_SHA1 
+            echo $JUJU_CIRCLECI_USER_PASSWORD | juju status -m circleci-$CIRCLE_SHA1 
             juju-wait -w -t 1150
 
       - run:
           name: "Juju Status"
           command: |
-            echo "rats" | juju status -m circleci-$CIRCLE_SHA1 
+            echo $JUJU_CIRCLECI_USER_PASSWORD | juju status -m circleci-$CIRCLE_SHA1 
           when: always
 
       - run:
           name: "Destroy Model"
           command: |
-            echo "rats" | juju status
+            echo $JUJU_CIRCLECI_USER_PASSWORD | juju status
             juju destroy-model circleci-$CIRCLE_SHA1 -y
             juju-wait -w -t 1150
           when: always
@@ -120,7 +121,7 @@ jobs:
       - run:
           name: "Force remove machine if hanging"
           command: |
-            echo "rats" | juju status
+            echo $JUJU_CIRCLECI_USER_PASSWORD | juju status
             # Check to see if the model is empty, --force detroy-machines if not
             if ! [ `juju status 2>&1 | grep -c empty` -gt 0 ]; then
                 juju remove-machine -m circleci-$CIRCLE_SHA1 {0..10} --force
