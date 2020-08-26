@@ -40,10 +40,9 @@ class SlurmOpsManager(Object):
         except ModelError as e:
             logger.debug(
                 f"no resource was supplied installing from snap store: {e}")
-        try:
+
+        if self._resource_path:
             self._is_tar = tarfile.is_tarfile(self._resource_path)
-        except FileExistsError as e:
-            logger.debug(f"no resource path: {e}")
 
         if self._is_tar:
             self.slurm_resource = SlurmTarManager(
