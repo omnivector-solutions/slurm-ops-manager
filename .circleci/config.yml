@@ -102,23 +102,25 @@ jobs:
       - run:
           name: "Juju Status"
           command: |
-            echo $JUJU_CIRCLECI_USER_PASSWORD | juju status -m circleci-$CIRCLE_SHA1 
+            echo $JUJU_CIRCLECI_USER_PASSWORD | juju login --user circleci
+            juju status -m circleci-$CIRCLE_SHA1 
           when: always
 
       - run:
-          name: "Destroy Model"
+          name: "Remove applications"
           command: |
-            echo $JUJU_CIRCLECI_USER_PASSWORD | juju status
-            juju destroy-model circleci-$CIRCLE_SHA1 -y
+            echo $JUJU_CIRCLECI_USER_PASSWORD | juju login --user circleci
+            juju remove-application slurmd slurmdbd slurmctld slurmrestd percona-cluster
             juju-wait -w -t 1150
           when: always
 
       - run:
-          name: "Force remove machine if hanging"
+          name: "Force remove machine if hanging and destroy-model"
           command: |
-            echo $JUJU_CIRCLECI_USER_PASSWORD | juju status
+            echo $JUJU_CIRCLECI_USER_PASSWORD | juju login --user circleci
             # Check to see if the model is empty, --force detroy-machines if not
             if ! [ `juju status 2>&1 | grep -c empty` -gt 0 ]; then
                 juju remove-machine -m circleci-$CIRCLE_SHA1 {0..10} --force
             fi
+            juju destroy-model circleci-$CIRCLE_SHA1 -y
           when: always
