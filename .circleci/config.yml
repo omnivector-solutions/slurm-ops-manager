@@ -86,8 +86,7 @@ jobs:
             aws s3 cp s3://omnivector-cicd/juju-local/juju-local.tar.gz .
             tar -xzvf juju-local.tar.gz
 
-            rm .local/share/juju/cookies/osl-aws.json
-            echo $JUJU_CIRCLECI_USER_PASSWORD | juju login --user circleci
+            echo $JUJU_CIRCLECI_USER_PASSWORD | juju status
             juju add-model circleci-$CIRCLE_SHA1
             juju add-space -m circleci-$CIRCLE_SHA1 nat 172.31.90.0/24 172.31.91.0/24 172.31.92.0/24 172.31.93.0/24
             cd slurm-charms/ && make pull-classic-snap && cd ../
