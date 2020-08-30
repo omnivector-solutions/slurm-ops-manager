@@ -36,6 +36,7 @@ class SlurmOpsManager(Object):
         self._resource_path = None
         self._is_tar = None
         try:
+            logger.debug("RESOURCE ACQUISITION HAPPENING ########")
             self._resource_path = self.model.resources.fetch('slurm')
         except ModelError as e:
             logger.debug(
