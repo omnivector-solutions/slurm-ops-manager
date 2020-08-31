@@ -41,7 +41,9 @@ class SlurmOpsManager(Object):
         self._is_tar = None
         try:
             if not self._stored.resource_path:
-                self._stored.resource_path = str(self.model.resources.fetch('slurm'))
+                self._stored.resource_path = str(
+                    self.model.resources.fetch('slurm')
+                )
             self._resource_path = Path(self._stored.resource_path)
 
         except ModelError as e:
