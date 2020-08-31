@@ -10,7 +10,7 @@ from jinja2 import (
     Environment,
     FileSystemLoader,
 )
-from ops.framework import Object
+from ops.framework import Object, StoredState
 from ops.model import ModelError
 from slurm_ops_manager.slurm_snap_ops import SlurmSnapManager
 from slurm_ops_manager.slurm_tar_ops import SlurmTarManager
@@ -22,6 +22,8 @@ logger = logging.getLogger()
 class SlurmOpsManager(Object):
     """Config values to install slurm."""
 
+    _stored = StoredState()
+
     _TEMPLATE_DIR = Path(
         os.path.dirname(
             os.path.abspath(__file__)
@@ -31,12 +33,19 @@ class SlurmOpsManager(Object):
     def __init__(self, charm, component):
         """Determine values based on resource type."""
         super().__init__(charm, component)
+
+        self._stored.set_default(resource_path=None)
+
         self.charm = charm
         self._slurm_component = component
-        self._resource_path = None
         self._is_tar = None
         try:
-            self._resource_path = self.model.resources.fetch('slurm')
+            if not self._stored.resource_path:
+                self._stored.resource_path = str(
+                    self.model.resources.fetch('slurm')
+                )
+            self._resource_path = Path(self._stored.resource_path)
+
         except ModelError as e:
             logger.debug(
                 f"no resource was supplied installing from snap store: {e}")
