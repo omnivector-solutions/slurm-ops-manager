@@ -39,6 +39,7 @@ class SlurmOpsManager(Object):
         self.charm = charm
         self._slurm_component = component
         self._is_tar = None
+        self._resource_path = None
         try:
             if not self._stored.resource_path:
                 self._stored.resource_path = str(
