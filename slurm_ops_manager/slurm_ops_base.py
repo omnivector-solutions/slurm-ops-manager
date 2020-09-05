@@ -95,7 +95,7 @@ class SlurmOpsManagerBase:
         """Return True if the slurm component is running."""
         return self._slurm_systemctl("is-active") == 0
 
-    def _slurm_systemctl(self, operation) -> int:
+    def _slurm_systemctl(self, operation):
         """Start systemd services for slurmd."""
         supported_systemctl_cmds = [
             "enable",

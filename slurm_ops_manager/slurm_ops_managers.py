@@ -362,6 +362,10 @@ class SlurmSnapManager(SlurmOpsManagerBase):
         """Run upgrade operations."""
         self.setup_system()
 
+    def restart_slurm_component(self):
+        """Restart the slurm component."""
+        self._set_snap_mode()
+
     def setup_system(self) -> None:
         """Install the slurm snap, set the snap.mode, create the aliases."""
         # Install the slurm snap from the provided resource
@@ -404,6 +408,3 @@ class SlurmSnapManager(SlurmOpsManagerBase):
                 ])
             except subprocess.CalledProcessError as e:
                 print(f"Error installing slurm snap - {e}")
-
-        # Finally set the snap.mode
-        self._set_snap_mode()
