@@ -3,6 +3,7 @@
 import logging
 import tarfile
 from pathlib import Path
+from time import sleep
 
 from ops.framework import (
     Object,
@@ -93,10 +94,12 @@ class SlurmManager(Object):
         # Write munge.key and restart munged.
         self._slurm_resource_manager.write_munge_key(slurm_config['munge_key'])
         self._slurm_resource_manager.restart_munged()
+        sleep(1)
 
         # Write slurm.conf and restart the slurm component.
         self._slurm_resource_manager.write_slurm_config(slurm_config)
         self._slurm_resource_manager.restart_slurm_component()
+        sleep(1)
 
         if not self._stored.slurm_version_set:
             self._charm.unit.set_workload_version(
