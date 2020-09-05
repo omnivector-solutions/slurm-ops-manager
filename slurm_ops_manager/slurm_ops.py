@@ -49,7 +49,7 @@ class SlurmManager(Object):
                 )
         self._slurm_resource_manager = SlurmSnapManager(
             self._slurm_component,
-            self._resource_path
+            self._stored.resource_path
         )
 
     @property
