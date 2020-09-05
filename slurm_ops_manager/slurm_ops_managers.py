@@ -358,6 +358,18 @@ class SlurmSnapManager(SlurmOpsManagerBase):
         except subprocess.CalledProcessError as e:
             print(f"Error setting snap.mode - {e}")
 
+    def _install_slurm_snap_from_edge(self):
+        try:
+            subprocess.call([
+                "snap",
+                "install",
+                "slurm",
+                "--edge",
+                "--classic",
+            ])
+        except subprocess.CalledProcessError as e:
+            print(f"Error installing slurm snap - {e}")
+
     def upgrade(self):
         """Run upgrade operations."""
         self.setup_system()
@@ -367,41 +379,35 @@ class SlurmSnapManager(SlurmOpsManagerBase):
         # Install the slurm snap from the provided resource
         # if the resource file exists and its size is > 0, otherwise
         # install the snap from the snapstore.
-        resource_size = Path(self._resource_path).stat().st_size
-        if self._resource_path is not None and resource_size > 0:
-            try:
-                subprocess.call([
-                    "snap",
-                    "install",
-                    self._resource_path,
-                    "--dangerous",
-                    "--classic",
-                ])
-            except subprocess.CalledProcessError as e:
-                print(f"Error installing slurm snap - {e}")
-
-            # Create the aliases for the slurm cmds.
-            # We only need to do this if we are installing from
-            # a local resource.
-            for cmd in self._slurm_cmds:
+        if self._resource_path is not None:
+            resource_size = Path(self._resource_path).stat().st_size
+            if resource_size > 0:
                 try:
                     subprocess.call([
                         "snap",
-                        "alias",
-                        f"slurm.{cmd}",
-                        cmd,
+                        "install",
+                        self._resource_path,
+                        "--dangerous",
+                        "--classic",
                     ])
                 except subprocess.CalledProcessError as e:
-                    print(f"Cannot create snap alias for: {cmd} - {e}")
+                    print(f"Error installing slurm snap - {e}")
+
+                # Create the aliases for the slurm cmds.
+                # We only need to do this if we are installing from
+                # a local resource.
+                for cmd in self._slurm_cmds:
+                    try:
+                        subprocess.call([
+                            "snap",
+                            "alias",
+                            f"slurm.{cmd}",
+                            cmd,
+                        ])
+                    except subprocess.CalledProcessError as e:
+                        print(f"Cannot create snap alias for: {cmd} - {e}")
+            else:
+                self._install_slurm_snap_from_edge()
         else:
-            try:
-                subprocess.call([
-                    "snap",
-                    "install",
-                    "slurm",
-                    "--edge",
-                    "--classic",
-                ])
-            except subprocess.CalledProcessError as e:
-                print(f"Error installing slurm snap - {e}")
+            self._install_slurm_snap_from_edge()
         self._set_snap_mode()

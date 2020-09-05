@@ -9,6 +9,7 @@ from ops.framework import (
     Object,
     StoredState,
 )
+from ops.model import ModelError
 from slurm_ops_manager.slurm_ops_managers import (
     SlurmSnapManager,
     SlurmTarManager,
@@ -36,18 +37,22 @@ class SlurmManager(Object):
         self._slurm_component = component
 
         if not self._stored.resource_checked:
-            self._stored.resource_path = str(
-                self.model.resources.fetch('slurm')
-            )
+            try:
+                self._stored.resource_path = str(
+                    self.model.resources.fetch('slurm')
+                )
+            except ModelError as e:
+                logger.debug(e)
             self._stored.resource_checked = True
 
-        resource_size = Path(self._stored.resource_path).stat().st_size
-        if self._stored.resource_path is not None and resource_size > 0:
-            if tarfile.is_tarfile(self._stored.resource_path):
-                self._slurm_resource_manager = SlurmTarManager(
-                    self._slurm_component,
-                    self._stored.resource_path
-                )
+        if self._stored.resource_path is not None:
+            resource_size = Path(self._stored.resource_path).stat().st_size
+            if resource_size > 0:
+                if tarfile.is_tarfile(self._stored.resource_path):
+                    self._slurm_resource_manager = SlurmTarManager(
+                        self._slurm_component,
+                        self._stored.resource_path
+                    )
         self._slurm_resource_manager = SlurmSnapManager(
             self._slurm_component,
             self._stored.resource_path
