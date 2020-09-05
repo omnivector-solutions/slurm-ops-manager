@@ -35,7 +35,7 @@ class SlurmManager(Object):
         self._slurm_component = component
 
         if not self._stored.resource_checked:
-            self.stored.resource_path = self.model.resources.fetch('slurm')
+            self._stored.resource_path = self.model.resources.fetch('slurm')
             self._stored.resource_checked = True
 
         resource_size = Path(self._stored.resource_path).stat().st_size
@@ -67,8 +67,8 @@ class SlurmManager(Object):
 
     @property
     def slurm_installed(self) -> bool:
-        """Return the bool from the underlying _state."""
-        return self._state.slurm_installed
+        """Return the bool from the stored state."""
+        return self._stored.slurm_installed
 
     def get_munge_key(self) -> str:
         """Return the munge key."""
@@ -77,7 +77,7 @@ class SlurmManager(Object):
     def install(self) -> None:
         """Prepare the system for slurm."""
         self._slurm_resource_manager.setup_system()
-        self._state.slurm_installed = True
+        self._stored.slurm_installed = True
 
     def render_config_and_restart(self, slurm_config) -> None:
         """Render the slurm.conf and munge key, restart slurm and munge."""
@@ -92,8 +92,8 @@ class SlurmManager(Object):
         self._slurm_resource_manager.write_slurm_config(slurm_config)
         self._slurm_resource_manager.restart_slurm_component()
 
-        if not self._state.slurm_version_set:
+        if not self._stored.slurm_version_set:
             self._charm.unit.set_workload_version(
                 self._slurm_resource_manager.slurm_version
             )
-            self._state.slurm_version_set = True
+            self._stored.slurm_version_set = True
