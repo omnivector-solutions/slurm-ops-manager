@@ -266,9 +266,9 @@ class SlurmTarManager(SlurmOpsManagerBase):
 class SlurmSnapManager(SlurmOpsManagerBase):
     """Snap operations manager."""
 
-    # def __init__(self, component, resource_path):
-    #     """Set initial attribute values."""
-    #     super().__init__(component, resource_path)
+    def __init__(self, component, resource_path):
+        """Set initial attribute values."""
+        super().__init__(component, resource_path)
 
     @property
     def _slurm_conf_dir(self) -> Path:
