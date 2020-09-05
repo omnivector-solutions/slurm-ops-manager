@@ -35,7 +35,7 @@ class SlurmManager(Object):
         self._slurm_component = component
 
         if not self._stored.resource_checked:
-            self._stored.resource_path = self.model.resources.fetch('slurm')
+            self._stored.resource_path = str(self.model.resources.fetch('slurm'))
             self._stored.resource_checked = True
 
         resource_size = Path(self._stored.resource_path).stat().st_size
