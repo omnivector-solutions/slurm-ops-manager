@@ -109,6 +109,10 @@ class SlurmTarManager(SlurmOpsManagerBase):
             print(f"Cannot get slurm version - {e}")
             sys.exit(-1)
 
+    def upgrade(self):
+        """Run upgrade operations."""
+        self._provision_slurm_resource()
+
     def setup_system(self) -> None:
         """Prepare the system for slurm.
 
@@ -353,6 +357,10 @@ class SlurmSnapManager(SlurmOpsManagerBase):
             ])
         except subprocess.CalledProcessError as e:
             print(f"Error setting snap.mode - {e}")
+
+    def upgrade(self):
+        """Run upgrade operations."""
+        self.setup_system()
 
     def setup_system(self) -> None:
         """Install the slurm snap, set the snap.mode, create the aliases."""

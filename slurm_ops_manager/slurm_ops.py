@@ -81,6 +81,10 @@ class SlurmManager(Object):
         self._slurm_resource_manager.setup_system()
         self._stored.slurm_installed = True
 
+    def upgrade(self) -> None:
+        """Upgrade slurm."""
+        self._slurm_resource_manager.upgrade()
+
     def render_config_and_restart(self, slurm_config) -> None:
         """Render the slurm.conf and munge key, restart slurm and munge."""
         if not type(slurm_config) == dict:

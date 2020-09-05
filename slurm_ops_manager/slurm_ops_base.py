@@ -181,6 +181,10 @@ class SlurmOpsManagerBase:
     def _munged_systemd_service(self) -> str:
         raise Exception("Inheriting object needs to define this property.")
 
+    def upgrade(self):
+        """Preform upgrade-charm operations."""
+        raise Exception("Inheriting object needs to define this method.")
+
     def setup_system(self):
         """Preform the install and setup operations."""
         raise Exception("Inheriting object needs to define this method.")
