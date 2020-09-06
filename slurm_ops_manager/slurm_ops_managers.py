@@ -131,17 +131,29 @@ class SlurmTarManager(SlurmOpsManagerBase):
         self._setup_systemd()
 
     def _install_os_deps(self) -> None:
-        try:
-            subprocess.call([
-                'apt',
-                'install',
-                'libmunge2',
-                'libmysqlclient-dev',
-                'munge',
-                '-y',
-            ])
-        except subprocess.CalledProcessError as e:
-            logger.debug(e)
+        if self.os == 'ubuntu':
+            try:
+                subprocess.call([
+                    'apt',
+                    'install',
+                    'libmunge2',
+                    'libmysqlclient-dev',
+                    'munge',
+                    '-y',
+                ])
+            except subprocess.CalledProcessError as e:
+                logger.debug(e)
+        else:
+            try:
+                subprocess.call([
+                    'yum',
+                    'install',
+                    '-y',
+                    'mariadb-devel',
+                    'munge',
+                ])
+            except subprocess.CalledProcessError as e:
+                logger.debug(e)
 
     def _create_slurm_user_and_group(self) -> None:
         """Create the slurm user and group."""

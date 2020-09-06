@@ -17,6 +17,12 @@ from slurm_ops_manager.slurm_ops_managers import (
 from slurm_ops_manager.utils import get_inventory
 
 
+OS_RELEASE = Path("/etc/os-release").read_text().split("\n")
+OS_RELEASE_CTXT = {
+    k: v.strip("\"")
+    for k, v in [item.split("=") for item in OS_RELEASE if item != '']
+}
+
 logger = logging.getLogger()
 
 
@@ -68,6 +74,11 @@ class SlurmManager(Object):
                 self._slurm_component,
                 self._stored.resource_path
             )
+
+    @property
+    def os(self):
+        """Return what operating system we are running."""
+        return OS_RELEASE_CTXT['ID']
 
     @property
     def hostname(self):
