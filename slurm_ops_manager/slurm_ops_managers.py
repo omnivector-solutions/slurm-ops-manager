@@ -155,6 +155,10 @@ class SlurmTarManager(SlurmOpsManagerBase):
             except subprocess.CalledProcessError as e:
                 logger.debug(e)
 
+        if not self._munge_key_path.exists():
+            self._munge_key_path.write_bytes(os.urandom(1024))
+            self._munge_key_path.chmod(0o400)
+
     def _create_slurm_user_and_group(self) -> None:
         """Create the slurm user and group."""
         try:
