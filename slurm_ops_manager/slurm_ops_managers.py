@@ -396,6 +396,31 @@ class SlurmSnapManager(SlurmOpsManagerBase):
         """Run upgrade operations."""
         self.setup_system()
 
+    def _provision_snap_systemd_service_override_file(self):
+        override_dir = Path(
+            f"/etc/systemd/system/snap.slurm.{self._slurm_component}.service.d"
+        )
+        if not override_dir.exists():
+            override_dir.mkdir(parents=True)
+
+        override_file = override_dir / 'override.conf'
+
+        if override_file.exists():
+            override_file.unlink()
+
+        override_file.write_text(
+            (self._TEMPLATES_DIR / "systemd-override.conf").read_text()
+        )
+
+    def _systemctld_daemon_reload(self) -> None:
+        try:
+            subprocess.call([
+                "systemd",
+                "daemon-reload",
+            ])
+        except subprocess.CalledProcessError as e:
+            print(f"Error running daemon-reload - {e}")
+
     def setup_system(self) -> None:
         """Install the slurm snap, set the snap.mode, create the aliases."""
         # Install the slurm snap from the provided resource
@@ -432,4 +457,7 @@ class SlurmSnapManager(SlurmOpsManagerBase):
                 self._install_slurm_snap_from_edge()
         else:
             self._install_slurm_snap_from_edge()
+
+        self._provision_snap_systemd_service_override_file()
+        self._systemctld_daemon_reload()
         self._set_snap_mode()
