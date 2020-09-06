@@ -22,7 +22,7 @@ class SlurmTarManager(SlurmOpsManagerBase):
     _SLURM_UID = 995
     _SLURM_GID = 995
 
-    _SLURM_TMP_RESOURCE = "/tmp/slurm-resource"
+    _SLURM_TMP_RESOURCE = Path("/tmp/slurm-resource")
 
     def __init__(self, component, resource_path):
         """Set initial class attribute values."""
@@ -229,25 +229,30 @@ class SlurmTarManager(SlurmOpsManagerBase):
 
     def _provision_slurm_resource(self) -> None:
         """Provision the slurm resource."""
+        if not self._SLURM_TMP_RESOURCE.exists():
+            self._SLURM_TMP_RESOURCE.mkdir(parents=True)
+
         try:
             subprocess.call([
                 "tar",
                 "-xzvf",
                 self._resource_path,
-                f"--one-top-level={self._SLURM_TMP_RESOURCE}",
+                "-C",
+                str(self._SLURM_TMP_RESOURCE),
             ])
         except subprocess.CalledProcessError as e:
             logger.error(f"Error untaring slurm bins - {e}")
 
         # Wait on the existence of slurmd bin to verify that the untaring
         # of the slurm.tar.gz resource has completed before moving on.
-        while not Path(f"{self._SLURM_TMP_RESOURCE}/sbin/slurmd").exists():
+        while not Path(
+           f"{str(self._SLURM_TMP_RESOURCE)}/sbin/slurmd").exists():
             sleep(1)
 
         for slurm_resource_dir in ['bin', 'sbin', 'lib', 'include']:
             cmd = (
-                f"cp -R {self._SLURM_TMP_RESOURCE}/{slurm_resource_dir}/* "
-                f"/usr/local/{slurm_resource_dir}/"
+                f"cp -R {str(self._SLURM_TMP_RESOURCE)}/"
+                f"{slurm_resource_dir}/* /usr/local/{slurm_resource_dir}/"
             )
             try:
                 subprocess.call(cmd, shell=True)
