@@ -28,7 +28,7 @@ class SlurmTarManager(SlurmOpsManagerBase):
         """Set initial class attribute values."""
         super().__init__(component, resource_path)
         self._source_systemd_template = \
-            self._TEMPLATE_DIR / f'{self._slurm_component}.service'
+            self._template_dir / f'{self._slurm_component}.service'
         self._target_systemd_template = \
             Path(f'/etc/systemd/system/{self._slurm_component}.service')
         self._environment_file = \
@@ -409,7 +409,7 @@ class SlurmSnapManager(SlurmOpsManagerBase):
             override_file.unlink()
 
         override_file.write_text(
-            (self._TEMPLATES_DIR / "systemd-override.conf").read_text()
+            (self._template_dir / "systemd-override.conf").read_text()
         )
 
     def _systemctld_daemon_reload(self) -> None:

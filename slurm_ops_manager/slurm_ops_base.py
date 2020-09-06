@@ -22,11 +22,13 @@ logger = logging.getLogger()
 class SlurmOpsManagerBase:
     """Base class for slurm ops."""
 
-    _TEMPLATE_DIR = Path(
-        os.path.dirname(os.path.abspath(__file__))) / 'templates'
 
     def __init__(self, component, resource_path):
         """Set the initial values for attributes in the base class."""
+
+        self._template_dir = Path(
+            os.path.dirname(os.path.abspath(__file__))) / 'templates'
+
         self._resource_path = resource_path
 
         port_map = {
@@ -79,7 +81,7 @@ class SlurmOpsManagerBase:
         self._port = port_map[self._slurm_component]
 
         self._slurm_conf_template_location = \
-            self._TEMPLATE_DIR / self._slurm_conf_template_name
+            self._template_dir / self._slurm_conf_template_name
 
     @property
     def os(self):
@@ -236,7 +238,7 @@ class SlurmOpsManagerBase:
             )
 
         rendered_template = Environment(
-            loader=FileSystemLoader(str(self._TEMPLATE_DIR))
+            loader=FileSystemLoader(str(self._template_dir))
         ).get_template(template_name)
 
         if target.exists():
