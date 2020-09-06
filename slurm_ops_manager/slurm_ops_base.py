@@ -10,6 +10,12 @@ from jinja2 import Environment, FileSystemLoader
 from slurm_ops_manager.utils import get_hostname
 
 
+OS_RELEASE = Path("/etc/os-release").read_text().split("\n")
+OS_RELEASE_CTXT = {
+    k: v.strip("\"")
+    for k, v in [item.split("=") for item in OS_RELEASE if item != '']
+}
+
 logger = logging.getLogger()
 
 
@@ -74,6 +80,11 @@ class SlurmOpsManagerBase:
 
         self._slurm_conf_template_location = \
             self._TEMPLATE_DIR / self._slurm_conf_template_name
+
+    @property
+    def os(self):
+        """Return what operating system we are running."""
+        return OS_RELEASE_CTXT['ID']
 
     @property
     def hostname(self) -> str:
