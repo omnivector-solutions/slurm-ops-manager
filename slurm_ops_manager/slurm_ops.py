@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""This module provides the SlurmInstallManager."""
+"""This module provides the SlurmManager."""
 import logging
 import tarfile
 from pathlib import Path
