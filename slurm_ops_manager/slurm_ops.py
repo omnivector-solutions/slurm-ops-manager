@@ -53,10 +53,21 @@ class SlurmManager(Object):
                         self._slurm_component,
                         self._stored.resource_path
                     )
-        self._slurm_resource_manager = SlurmSnapManager(
-            self._slurm_component,
-            self._stored.resource_path
-        )
+                else:
+                    self._slurm_resource_manager = SlurmSnapManager(
+                        self._slurm_component,
+                        self._stored.resource_path
+                    )
+            else:
+                self._slurm_resource_manager = SlurmSnapManager(
+                    self._slurm_component,
+                    self._stored.resource_path
+                )
+        else:
+            self._slurm_resource_manager = SlurmSnapManager(
+                self._slurm_component,
+                self._stored.resource_path
+            )
 
     @property
     def hostname(self):
