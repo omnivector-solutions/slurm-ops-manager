@@ -19,8 +19,8 @@ class SlurmTarManager(SlurmOpsManagerBase):
     _SLURM_SBIN_DIR = Path('/usr/local/sbin')
     _SLURM_SYSCONFIG_DIR = Path("/etc/sysconfig")
 
-    _SLURM_UID = 995
-    _SLURM_GID = 995
+    _SLURM_UID = 990
+    _SLURM_GID = 990
 
     _SLURM_TMP_RESOURCE = Path("/tmp/slurm-resource")
 
