@@ -415,7 +415,7 @@ class SlurmSnapManager(SlurmOpsManagerBase):
     def _systemctld_daemon_reload(self) -> None:
         try:
             subprocess.call([
-                "systemd",
+                "systemctl",
                 "daemon-reload",
             ])
         except subprocess.CalledProcessError as e:
