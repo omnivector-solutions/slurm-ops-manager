@@ -22,10 +22,8 @@ logger = logging.getLogger()
 class SlurmOpsManagerBase:
     """Base class for slurm ops."""
 
-
     def __init__(self, component, resource_path):
         """Set the initial values for attributes in the base class."""
-
         self._template_dir = Path(
             os.path.dirname(os.path.abspath(__file__))) / 'templates'
 
