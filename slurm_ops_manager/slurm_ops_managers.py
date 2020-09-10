@@ -301,11 +301,11 @@ class SlurmSnapManager(SlurmOpsManagerBase):
 
     @property
     def _slurm_spool_dir(self) -> Path:
-        return Path("/var/snap/slurm/common/var/spool/slurm/d")
+        return Path("/var/snap/slurm/common/var/lib/slurmd")
 
     @property
     def _slurm_state_dir(self) -> Path:
-        return Path("/var/snap/slurm/common/var/spool/slurm/ctld")
+        return Path("/var/snap/slurm/common/var/spool/slurmd/")
 
     @property
     def _slurm_plugin_dir(self) -> Path:
