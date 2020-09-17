@@ -39,8 +39,6 @@ jobs:
           command: |
             make lint
 
-      - slack/status:
-          fail_only: false
 
   build-slurm-charms:
     executor: aws-cli/default
