@@ -4,7 +4,7 @@ import logging
 import tarfile
 from pathlib import Path
 from time import sleep
-
+import subprocess
 from ops.framework import (
     Object,
     StoredState,
