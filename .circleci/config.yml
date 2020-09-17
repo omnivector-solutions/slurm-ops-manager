@@ -106,10 +106,6 @@ jobs:
             - .local/
             - venv/
 
-      - slack/status:
-          fail_only: false
-
-
   deploy-bionic:
     docker:
       - image: cimg/python:3.8.5 
@@ -161,8 +157,6 @@ jobs:
             echo $JUJU_CIRCLECI_USER_PASSWORD | juju login --user circleci
             juju destroy-model circleci-$CIRCLE_SHA1-bionic -y
 
-      - slack/status:
-          fail_only: false
 
   deploy-focal:
     docker:
@@ -215,8 +209,6 @@ jobs:
             echo $JUJU_CIRCLECI_USER_PASSWORD | juju login --user circleci
             juju destroy-model circleci-$CIRCLE_SHA1-focal -y
 
-      - slack/status:
-          fail_only: false
 
   deploy-centos7:
     docker:
@@ -267,6 +259,3 @@ jobs:
           command: |
             echo $JUJU_CIRCLECI_USER_PASSWORD | juju login --user circleci
             juju destroy-model circleci-$CIRCLE_SHA1-centos7 -y
-
-      - slack/status:
-          fail_only: false
