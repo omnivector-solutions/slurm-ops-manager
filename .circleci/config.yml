@@ -21,13 +21,6 @@ workflows:
       - deploy-centos7:
           requires:
             - build-slurm-charms
-      - push-charms-to-s3:
-          context: aws
-          requires:
-            - deploy-bionic
-            - deploy-focal
-            - deploy-centos7
-
 jobs:
   lint:
     docker:
