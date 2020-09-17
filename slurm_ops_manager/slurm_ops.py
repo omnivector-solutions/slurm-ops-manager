@@ -95,6 +95,8 @@ class SlurmManager(Object):
 
     def install(self) -> None:
         """Prepare the system for slurm."""
+        while subprocess.check_call(['snap', 'list']) != 0:
+            sleep(1)
         self._slurm_resource_manager.setup_system()
         self._stored.slurm_installed = True
 
