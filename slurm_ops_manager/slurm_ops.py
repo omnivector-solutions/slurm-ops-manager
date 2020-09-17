@@ -93,13 +93,6 @@ class SlurmManager(Object):
         """Return the munge key."""
         return self._slurm_resource_manager.get_munge_key()
 
-    def check_snapd():
-        try:
-            subprocess.check_call(['snap', 'list'], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-            return 0
-        except subprocess.CalledProcessError as e:
-            logger.debug(f"snapd error: {e}")
-            return 1
 
     def install(self) -> None:
         """Prepare the system for slurm."""
@@ -136,3 +129,11 @@ class SlurmManager(Object):
                 self._slurm_resource_manager.slurm_version
             )
             self._stored.slurm_version_set = True
+    
+def check_snapd():
+    try:
+        subprocess.check_call(['snap', 'list'], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        return 0
+    except subprocess.CalledProcessError as e:
+        logger.debug(f"snapd error: {e}")
+        return 1
