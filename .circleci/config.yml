@@ -246,6 +246,11 @@ jobs:
           name: "Deploy charms on centos7"
           command: |
             make deploy-centos7-bundle-on-aws
+      - run:
+          name: "Wait check status"
+          command: |
+            sleep 1m
+            juju status
 
       - run:
           name: "Juju Wait"
