@@ -97,7 +97,9 @@ class SlurmManager(Object):
         """Prepare the system for slurm."""
         while True:
             try:
-                if subprocess.check_call(['snap', 'list'], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT) == 0:
+                ret = subprocess.check_call(['snap', 'list'], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+                logger.debug(ret)
+                if ret == 0:
                     break
             except:
                 sleep(1)
