@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """This module provides the SlurmManager."""
 import logging
+import subprocess
 import tarfile
 from pathlib import Path
 from time import sleep
@@ -95,6 +96,12 @@ class SlurmManager(Object):
 
     def install(self) -> None:
         """Prepare the system for slurm."""
+        while True:
+            check = check_snapd()
+            if check == 0:
+                break
+            sleep(1)
+
         self._slurm_resource_manager.setup_system()
         self._stored.slurm_installed = True
 
@@ -122,3 +129,17 @@ class SlurmManager(Object):
                 self._slurm_resource_manager.slurm_version
             )
             self._stored.slurm_version_set = True
+
+
+def check_snapd():
+    """Check to see if snapd is installed."""
+    try:
+        subprocess.check_call(
+            ['snap', 'list'],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.STDOUT
+        )
+        return 0
+    except subprocess.CalledProcessError as e:
+        logger.debug(f"snapd error: {e}")
+        return 1
