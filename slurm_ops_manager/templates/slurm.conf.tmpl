@@ -78,10 +78,10 @@ AccountingStoragePass={{ munge_socket }}
 # GRES type
 GresTypes=gpu 
 
-# COMPUTE NODES 
-{% for node in nodes %}
-{{node.inventory}}
+# Enumerate nodes and partitions 
+{% for partition in slurmd_info %}
+{% for node in partition.inventory %}
+{{ node }}
 {%- endfor -%}
-{% for partition_name, values in partitions.items() %}
-PartitionName={{ partition_name }} Nodes={{ values.hosts|join(',') }} Default={{ 'YES' if values.partition_default else 'NO' }} State=UP {{ values.partition_config if values.partition_config else "" }}
+{{ partition.partition }}
 {% endfor %}
