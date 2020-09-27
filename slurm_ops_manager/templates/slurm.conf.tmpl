@@ -81,7 +81,8 @@ GresTypes=gpu
 # Enumerate nodes and partitions 
 {% for partition in slurmd_info %}
 {% for node in partition.inventory %}
-{{ node }}
-{%- endfor -%}
-{{ partition.partition }}
+NodeName={{node.node_name}} NodeAddr={{node.node_addr}} State={{node.state}} RealMemory={{node.real_memory}} CPUs={{node.cpus}} ThreadsPerCore={{node.threads_per_core}} CoresPerSocket={{node.cores_per_socket}} SocketsPerBoard={{node.sockets_per_board}} {{ "Gres=%s" % node.gres if node.gres else ""}}
+{%- endfor %}
+
+PartitionName={{partition.partition.name}} Nodes={% for slurmd in partition.inventory %}{{slurmd.node_name}}{{ "," if not loop.last}}{% endfor %} Default={{ 'YES' if partition.partition.default else 'NO' }} State={{partition.partition.state}} {{partition.partition.config if partition.partition.config else ""}}
 {% endfor %}
