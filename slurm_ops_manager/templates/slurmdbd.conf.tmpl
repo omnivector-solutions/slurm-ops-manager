@@ -8,7 +8,7 @@ DbdBackupHost={{ backup_slurmdbd_hostname }}
 {% endif %}
 {% endif %}
 
-DbdPort={{ slurmdbd_port }}
+DbdPort={{ active_slurmdbd_port }}
 
 AuthType=auth/munge
 AuthInfo=socket={{ munge_socket }}
