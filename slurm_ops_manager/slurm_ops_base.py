@@ -30,10 +30,10 @@ class SlurmOpsManagerBase:
         self._resource_path = resource_path
 
         port_map = {
-            'slurmctld': 6817,
-            'slurmd': 6818,
-            'slurmdbd': 6819,
-            'slurmrestd': 6820,
+            'slurmctld': "6817",
+            'slurmd': "6818",
+            'slurmdbd': "6819",
+            'slurmrestd': "6820",
         }
 
         self._slurm_cmds = [
