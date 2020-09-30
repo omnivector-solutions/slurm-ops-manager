@@ -261,6 +261,7 @@ class SlurmOpsManagerBase:
         self._munge_key_path.write_bytes(key)
 
     def write_cgroup_conf(self, content):
+        """Write the cgroup.conf file."""
         self._slurm_cgroup_conf_path.write_text(content)
 
     def get_munge_key(self) -> str:
