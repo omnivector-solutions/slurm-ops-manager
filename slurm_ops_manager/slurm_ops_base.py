@@ -56,9 +56,12 @@ class SlurmOpsManagerBase:
             "strigger",
         ]
 
+        logger.debug(f'__init__(): component={component}')
+
         if component in ['slurmd', 'slurmctld', 'slurmrestd']:
             self._slurm_conf_template_name = 'slurm.conf.tmpl'
             self._slurm_conf_path = self._slurm_conf_dir / 'slurm.conf'
+            self._slurm_cgroup_conf_path = self._slurm_conf_dir / 'cgroup.conf'
         elif component == "slurmdbd":
             self._slurm_conf_template_name = 'slurmdbd.conf.tmpl'
             self._slurm_conf_path = self._slurm_conf_dir / 'slurmdbd.conf'
@@ -256,6 +259,9 @@ class SlurmOpsManagerBase:
         """Write the munge key."""
         key = b64decode(munge_key.encode())
         self._munge_key_path.write_bytes(key)
+
+    def write_cgroup_conf(self, content):
+        self._slurm_cgroup_conf_path.write_text(content)
 
     def get_munge_key(self) -> str:
         """Read, encode, decode and return the munge key."""

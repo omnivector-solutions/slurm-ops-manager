@@ -107,12 +107,18 @@ class SlurmManager(Object):
 
     def upgrade(self) -> None:
         """Upgrade slurm."""
+        logger.debug('upgrade(): entering')
         self._slurm_resource_manager.upgrade()
 
     def render_config_and_restart(self, slurm_config) -> None:
         """Render the slurm.conf and munge key, restart slurm and munge."""
+        logger.debug('render_config_and_restart(): entering')
+        
         if not type(slurm_config) == dict:
             raise TypeError("Incorrect type for config.")
+
+        # write cgroup.conf
+        self._slurm_resource_manager.write_cgroup_conf(slurm_config['cgroup_config'])
 
         # Write munge.key and restart munged.
         self._slurm_resource_manager.write_munge_key(slurm_config['munge_key'])
