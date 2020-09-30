@@ -68,9 +68,12 @@ HealthCheckNodeState={{nhc.health_check_node_state}}
 # SLURMDBD CONFIGURED ON {{ slurmdbd_hostname }}
 AccountingStorageType=accounting_storage/slurmdbd
 JobAcctGatherType=jobacct_gather/linux
-AccountingStorageHost={{ slurmdbd_hostname }}
-AccountingStoragePort={{ slurmdbd_port }}
+AccountingStorageHost={{ active_slurmdbd_hostname }}
+AccountingStoragePort={{ active_slurmdbd_port }}
 AccountingStoragePass={{ munge_socket }}
+{% if backup_slurmdbd_hostname %}
+AccountingStorageBackupHost={{ backup_slurmdbd_hostname }}
+{% endif %}
 
 # INCLUDE CLUSTER SPECIFIC CONFIGURATION OVERRIDE
 #include /etc/slurm/slurm-%c.conf
