@@ -105,14 +105,24 @@ class SlurmManager(Object):
         self._slurm_resource_manager.setup_system()
         self._stored.slurm_installed = True
 
-    def upgrade(self) -> None:
+    def upgrade(self, slurm_config) -> None:
         """Upgrade slurm."""
+        logger.debug('upgrade(): entering')
         self._slurm_resource_manager.upgrade()
+        self.render_config_and_restart(slurm_config)
 
     def render_config_and_restart(self, slurm_config) -> None:
         """Render the slurm.conf and munge key, restart slurm and munge."""
+        logger.debug('render_config_and_restart(): entering')
+
         if not type(slurm_config) == dict:
             raise TypeError("Incorrect type for config.")
+
+        # cgroup_config setting is not there for slurmdbd, will raise error.
+        if 'cgroup_config' in slurm_config:
+            # write cgroup.conf
+            content = slurm_config['cgroup_config']
+            self._slurm_resource_manager.write_cgroup_conf(content)
 
         # Write munge.key and restart munged.
         self._slurm_resource_manager.write_munge_key(slurm_config['munge_key'])
