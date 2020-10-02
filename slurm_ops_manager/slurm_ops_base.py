@@ -61,7 +61,9 @@ class SlurmOpsManagerBase:
         if component in ['slurmd', 'slurmctld', 'slurmrestd']:
             self._slurm_conf_template_name = 'slurm.conf.tmpl'
             self._slurm_conf_path = self._slurm_conf_dir / 'slurm.conf'
-            self._slurm_cgroup_conf_path = self._slurm_conf_dir / 'cgroup.conf'
+
+            self._cgroup_conf_path = self._slurm_conf_dir / 'cgroup.conf'
+
         elif component == "slurmdbd":
             self._slurm_conf_template_name = 'slurmdbd.conf.tmpl'
             self._slurm_conf_path = self._slurm_conf_dir / 'slurmdbd.conf'
@@ -208,6 +210,32 @@ class SlurmOpsManagerBase:
         """Return slurm verion."""
         raise Exception("Inheriting object needs to define this property.")
 
+    def write_acct_gather_conf(self, context) -> None:
+        """Render the acct_gather.conf."""
+
+        template_name = 'acct_gather.conf.tmpl'
+        source = self._template_dir / template_name
+        target = self._slurm_conf_dir / 'acct_gather.conf'
+
+        if not type(context) == dict:
+            raise TypeError("Incorrect type for config.")
+
+        if not source.exists():
+            raise FileNotFoundError(
+                "The acct_gather template cannot be found."
+            )
+
+        rendered_template = Environment(
+            loader=FileSystemLoader(str(self._template_dir))
+        ).get_template(template_name)
+
+        if target.exists():
+            target.unlink()
+
+        target.write_text(
+            rendered_template.render(context)
+        )
+
     def write_slurm_config(self, context) -> None:
         """Render the context to a template, adding in common configs."""
         common_config = {
@@ -262,7 +290,7 @@ class SlurmOpsManagerBase:
 
     def write_cgroup_conf(self, content):
         """Write the cgroup.conf file."""
-        self._slurm_cgroup_conf_path.write_text(content)
+        self._cgroup_conf_path.write_text(content)
 
     def get_munge_key(self) -> str:
         """Read, encode, decode and return the munge key."""

@@ -118,11 +118,19 @@ class SlurmManager(Object):
         if not type(slurm_config) == dict:
             raise TypeError("Incorrect type for config.")
 
-        # cgroup_config setting is not there for slurmdbd, will raise error.
-        if 'cgroup_config' in slurm_config:
-            # write cgroup.conf
-            content = slurm_config['cgroup_config']
-            self._slurm_resource_manager.write_cgroup_conf(content)
+        # cgroup config will not always exist. We need to check for
+        # cgroup_config and only write the cgroup.conf if
+        # cgroup_config exists in the slurm_config object.
+        if slurm_config.get('cgroup_config'):
+            cgroup_config = slurm_config['cgroup_config']
+            self._slurm_resource_manager.write_cgroup_conf(cgroup_config)
+
+        # acct_gather config will not always exist. We need to check for
+        # acct_gather and only write the acct_gather.conf if we have
+        # acct_gather in the slurm_config object.
+        if slurm_config.get('acct_gather'):
+            acct_gather = slurm_config['acct_gather']
+            self._slurm_resource_manager.write_acct_gather_conf(acct_gather)
 
         # Write munge.key and restart munged.
         self._slurm_resource_manager.write_munge_key(slurm_config['munge_key'])
