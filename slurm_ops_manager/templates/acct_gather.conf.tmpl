@@ -1,4 +1,10 @@
 ###
 # Slurm acct_gather configuration file
 ###
-ProfileInfluxDBHost={{ acct_gather.host }}:8083
+ProfileInfluxDBHost={{ acct_gather.host }}:{{ acct_gather.port }}
+ProfileInfluxDBUser={{ acct_gather.user }}
+ProfileInfluxDBPass={{ acct_gather.password }}
+
+{% if custom_acct_gather %}
+{{ custom_acct_gather }}
+{% endif %}
