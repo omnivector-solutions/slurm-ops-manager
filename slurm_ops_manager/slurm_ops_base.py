@@ -61,9 +61,6 @@ class SlurmOpsManagerBase:
         if component in ['slurmd', 'slurmctld', 'slurmrestd']:
             self._slurm_conf_template_name = 'slurm.conf.tmpl'
             self._slurm_conf_path = self._slurm_conf_dir / 'slurm.conf'
-
-            self._cgroup_conf_path = self._slurm_conf_dir / 'cgroup.conf'
-
         elif component == "slurmdbd":
             self._slurm_conf_template_name = 'slurmdbd.conf.tmpl'
             self._slurm_conf_path = self._slurm_conf_dir / 'slurmdbd.conf'
@@ -290,7 +287,8 @@ class SlurmOpsManagerBase:
 
     def write_cgroup_conf(self, content):
         """Write the cgroup.conf file."""
-        self._cgroup_conf_path.write_text(content)
+        cgroup_conf_path = self._slurm_conf_dir / 'cgroup.conf'
+        cgroup_conf_path.write_text(content)
 
     def get_munge_key(self) -> str:
         """Read, encode, decode and return the munge key."""
