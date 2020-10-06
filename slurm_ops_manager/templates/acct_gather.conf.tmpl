@@ -1,11 +1,11 @@
 ###
 # Slurm acct_gather configuration file
 ###
-ProfileInfluxDBHost={{ acct_gather.host }}:{{ acct_gather.port }}
+ProfileInfluxDBHost={{ acct_gather.ingress }}:{{ acct_gather.port }}
 ProfileInfluxDBUser={{ acct_gather.user }}
 ProfileInfluxDBPass={{ acct_gather.password }}
 ProfileInfluxDBDatabase={{ acct_gather.database }}
 
-{% if custom_acct_gather %}
-{{ custom_acct_gather }}
+{% if acct_gather.custom %}
+{{ acct_gather.custom }}
 {% endif %}
