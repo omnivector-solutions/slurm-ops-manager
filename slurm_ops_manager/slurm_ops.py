@@ -129,8 +129,7 @@ class SlurmManager(Object):
         # acct_gather and only write the acct_gather.conf if we have
         # acct_gather in the slurm_config object.
         if slurm_config.get('acct_gather'):
-            acct_gather = slurm_config['acct_gather']
-            self._slurm_resource_manager.write_acct_gather_conf(acct_gather)
+            self._slurm_resource_manager.write_acct_gather_conf(slurm_config)
 
         # Write munge.key and restart munged.
         self._slurm_resource_manager.write_munge_key(slurm_config['munge_key'])
