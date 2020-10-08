@@ -90,6 +90,11 @@ class SlurmManager(Object):
         """Return the bool from the stored state."""
         return self._stored.slurm_installed
 
+    @property
+    def slurm_systemd_service(self) -> str:
+        """Return the slurm systemd service from the resocure manager."""
+        return self._slurm_resource_manager.slurm_systemd_service
+
     def get_munge_key(self) -> str:
         """Return the munge key."""
         return self._slurm_resource_manager.get_munge_key()

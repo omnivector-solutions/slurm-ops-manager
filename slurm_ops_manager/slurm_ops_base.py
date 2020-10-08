@@ -126,7 +126,7 @@ class SlurmOpsManagerBase:
             subprocess.call([
                 "systemctl",
                 operation,
-                self._slurm_systemd_service,
+                self.slurm_systemd_service,
             ])
         except subprocess.CalledProcessError as e:
             logger.error(f"Error running {operation} - {e}")
@@ -183,7 +183,7 @@ class SlurmOpsManagerBase:
         raise Exception("Inheriting object needs to define this property.")
 
     @property
-    def _slurm_systemd_service(self) -> str:
+    def slurm_systemd_service(self) -> str:
         raise Exception("Inheriting object needs to define this property.")
 
     @property

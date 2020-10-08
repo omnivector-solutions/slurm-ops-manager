@@ -71,7 +71,7 @@ class SlurmTarManager(SlurmOpsManagerBase):
         return Path("/usr/bin/mail")
 
     @property
-    def _slurm_systemd_service(self) -> str:
+    def slurm_systemd_service(self) -> str:
         return self._slurm_component
 
     @property
@@ -346,7 +346,7 @@ class SlurmSnapManager(SlurmOpsManagerBase):
         return "root"
 
     @property
-    def _slurm_systemd_service(self) -> str:
+    def slurm_systemd_service(self) -> str:
         return f"snap.slurm.{self._slurm_component}"
 
     @property
