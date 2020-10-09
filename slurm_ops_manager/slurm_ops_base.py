@@ -126,7 +126,7 @@ class SlurmOpsManagerBase:
             subprocess.call([
                 "systemctl",
                 operation,
-                self.slurm_systemd_service,
+                self._slurm_systemd_service,
             ])
         except subprocess.CalledProcessError as e:
             logger.error(f"Error running {operation} - {e}")
@@ -183,8 +183,9 @@ class SlurmOpsManagerBase:
         raise Exception("Inheriting object needs to define this property.")
 
     @property
-    def slurm_systemd_service(self) -> str:
-        raise Exception("Inheriting object needs to define this property.")
+    def slurm_component(self) -> str:
+        """Return the slurm component we are."""
+        return self._slurm_component
 
     @property
     def _munge_key_path(self) -> Path:
@@ -209,7 +210,6 @@ class SlurmOpsManagerBase:
 
     def write_acct_gather_conf(self, context) -> None:
         """Render the acct_gather.conf."""
-
         template_name = 'acct_gather.conf.tmpl'
         source = self._template_dir / template_name
         target = self._slurm_conf_dir / 'acct_gather.conf'

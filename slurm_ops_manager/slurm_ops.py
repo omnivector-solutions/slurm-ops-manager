@@ -91,9 +91,9 @@ class SlurmManager(Object):
         return self._stored.slurm_installed
 
     @property
-    def slurm_systemd_service(self) -> str:
-        """Return the slurm systemd service from the resocure manager."""
-        return self._slurm_resource_manager.slurm_systemd_service
+    def slurm_component(self) -> str:
+        """Return the slurm component."""
+        return self._slurm_resource_manager.slurm_component
 
     def get_munge_key(self) -> str:
         """Return the munge key."""

@@ -71,10 +71,6 @@ class SlurmTarManager(SlurmOpsManagerBase):
         return Path("/usr/bin/mail")
 
     @property
-    def slurm_systemd_service(self) -> str:
-        return self._slurm_component
-
-    @property
     def _munge_key_path(self) -> str:
         return Path("/etc/munge/munge.key")
 
@@ -346,7 +342,7 @@ class SlurmSnapManager(SlurmOpsManagerBase):
         return "root"
 
     @property
-    def slurm_systemd_service(self) -> str:
+    def _slurm_systemd_service(self) -> str:
         return f"snap.slurm.{self._slurm_component}"
 
     @property
