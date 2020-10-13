@@ -394,6 +394,10 @@ class SlurmSnapManager(SlurmOpsManagerBase):
 
     def upgrade(self):
         """Run upgrade operations."""
+        logger.debug('upgrade(): entering...')
+        # note: "snap refresh <foobar.snap>" does not work (it can
+        # only refresh from the charm store (use "snap install"
+        # instead).
         self.setup_system()
 
     def _provision_snap_systemd_service_override_file(self):
@@ -426,9 +430,13 @@ class SlurmSnapManager(SlurmOpsManagerBase):
         # Install the slurm snap from the provided resource
         # if the resource file exists and its size is > 0, otherwise
         # install the snap from the snapstore.
+
+        logger.debug('update_snap(): _resource_path=%s' % self._resource_path)
+        
         if self._resource_path is not None:
             resource_size = Path(self._resource_path).stat().st_size
             if resource_size > 0:
+                logger.debug('update_snap(): running snap update')
                 try:
                     subprocess.call([
                         "snap",

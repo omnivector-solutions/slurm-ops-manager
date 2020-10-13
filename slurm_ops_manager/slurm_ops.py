@@ -37,34 +37,54 @@ class SlurmManager(Object):
         self._charm = charm
         self._slurm_component = component
 
-        if not self._stored.resource_checked:
-            try:
-                self._stored.resource_path = str(
-                    self.model.resources.fetch('slurm')
-                )
-            except ModelError as e:
-                logger.debug(e)
-            self._stored.resource_checked = True
+        # Note: I had to comment out the below, because when upgrading
+        # the charm (juju upgrade-charm) and passing a resource,
+        # "resource_checked" will always evaluate to True, but then
+        # resource_path will evaluate to None.
+        
+        # if not self._stored.resource_checked:
+        #     logger.debug('__init__(): self._stored.resource_checked became false')
+        #     try:
+        #         self._stored.resource_path = str(
+        #             self.model.resources.fetch('slurm')
+        #         )
+        #     except ModelError as e:
+        #         logger.debug(e)
+        #     self._stored.resource_checked = True
+        # else:
+        #     logger.debug('__init__(): self._stored.resource_checked became true')
 
+        self._stored.resource_path = str(self.model.resources.fetch('slurm'))
+        logger.debug('__init__(): self._stored.resource_path=%s' % self._stored.resource_path)
+            
         if self._stored.resource_path is not None:
             resource_size = Path(self._stored.resource_path).stat().st_size
+
+            logger.debug(f'__init__(): resource_size={resource_size}')
+            
             if resource_size > 0:
                 if tarfile.is_tarfile(self._stored.resource_path):
+                    logger.debug(f'__init__(): is tar file')
                     self._slurm_resource_manager = SlurmTarManager(
                         self._slurm_component,
                         self._stored.resource_path
                     )
                 else:
+                    logger.debug(f'__init__(): is a snap file')
                     self._slurm_resource_manager = SlurmSnapManager(
                         self._slurm_component,
                         self._stored.resource_path
                     )
             else:
+                logger.debug(f'__init__(): is a snap file.')
+                
                 self._slurm_resource_manager = SlurmSnapManager(
                     self._slurm_component,
                     self._stored.resource_path
                 )
         else:
+            logger.debug(f'__init__(): is a snap file..')
+            
             self._slurm_resource_manager = SlurmSnapManager(
                 self._slurm_component,
                 self._stored.resource_path
