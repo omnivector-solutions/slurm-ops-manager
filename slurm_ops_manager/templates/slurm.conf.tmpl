@@ -45,7 +45,10 @@ PluginDir={{ slurm_plugin_dir }}
 
 PlugStackConfig={{ slurm_plugstack_conf }}
 
-ProctrackType= {{ proctrack_type }}
+ProctrackType={{ proctrack_type }}
+
+SlurmdDebug={{ log_level }}
+SlurmctldDebug={{ log_level }}
 
 RebootProgram="/usr/sbin/reboot --reboot"
 
