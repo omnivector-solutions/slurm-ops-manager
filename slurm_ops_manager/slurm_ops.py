@@ -29,13 +29,14 @@ class SlurmManager(Object):
     def __init__(self, charm, component):
         """Set the initial attribute values."""
         super().__init__(charm, component)
+
+        self._charm = charm
+        self._slurm_component = component
+
         self._stored.set_default(slurm_installed=False)
         self._stored.set_default(slurm_version_set=False)
         self._stored.set_default(resource_path=None)
         self._stored.set_default(resource_checked=False)
-
-        self._charm = charm
-        self._slurm_component = component
 
         if not self._stored.resource_checked:
             try:
@@ -46,25 +47,39 @@ class SlurmManager(Object):
                 logger.debug(e)
             self._stored.resource_checked = True
 
+        logger.debug(
+            "__init__(): self._stored.resource_path="
+            f"{self._stored.resource_path}"
+        )
+
         if self._stored.resource_path is not None:
             resource_size = Path(self._stored.resource_path).stat().st_size
+
+            logger.debug(f'__init__(): resource_size={resource_size}')
+
             if resource_size > 0:
                 if tarfile.is_tarfile(self._stored.resource_path):
+                    logger.debug('__init__(): slurm resource is tar file.')
                     self._slurm_resource_manager = SlurmTarManager(
                         self._slurm_component,
                         self._stored.resource_path
                     )
                 else:
+                    logger.debug('__init__(): slurm resource is a snap file.')
                     self._slurm_resource_manager = SlurmSnapManager(
                         self._slurm_component,
                         self._stored.resource_path
                     )
             else:
+                logger.debug('__init__(): slurm resource is a snap file.')
+
                 self._slurm_resource_manager = SlurmSnapManager(
                     self._slurm_component,
                     self._stored.resource_path
                 )
         else:
+            logger.debug('__init__(): slurm resource from snapstore.')
+
             self._slurm_resource_manager = SlurmSnapManager(
                 self._slurm_component,
                 self._stored.resource_path
@@ -108,6 +123,13 @@ class SlurmManager(Object):
     def upgrade(self, slurm_config) -> None:
         """Upgrade slurm."""
         logger.debug('upgrade(): entering')
+        # Pull the slurm snap from the controller on upgrade.
+        try:
+            self._stored.resource_path = str(
+                self.model.resources.fetch('slurm')
+            )
+        except ModelError as e:
+            logger.debug(e)
         self._slurm_resource_manager.upgrade()
         self.render_config_and_restart(slurm_config)
 
