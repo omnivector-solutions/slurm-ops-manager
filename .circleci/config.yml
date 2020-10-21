@@ -155,7 +155,7 @@ jobs:
           name: "Destroy model"
           command: |
             echo $JUJU_CIRCLECI_USER_PASSWORD | juju login --user circleci
-            juju destroy-model circleci-$CIRCLE_SHA1-bionic -y
+            juju destroy-model --force circleci-$CIRCLE_SHA1-bionic -y
 
 
   deploy-focal:
@@ -207,7 +207,7 @@ jobs:
           name: "Destroy model"
           command: |
             echo $JUJU_CIRCLECI_USER_PASSWORD | juju login --user circleci
-            juju destroy-model circleci-$CIRCLE_SHA1-focal -y
+            juju destroy-model --force circleci-$CIRCLE_SHA1-focal -y
 
 
   deploy-centos7:
@@ -263,4 +263,4 @@ jobs:
           name: "Destroy model"
           command: |
             echo $JUJU_CIRCLECI_USER_PASSWORD | juju login --user circleci
-            juju destroy-model circleci-$CIRCLE_SHA1-centos7 -y
+            juju destroy-model --force circleci-$CIRCLE_SHA1-centos7 -y
