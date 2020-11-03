@@ -62,6 +62,11 @@ JobCompLoc={{elasticsearch_address}}
 JobCompParams=timeout=5
 {% endif %}
 
+{% if slurm_license  %}
+slurmctldepilog_path=/snap/slurm-license/current/bin/slurmctldprolog
+slurmctldprolog_path=/snap/slurm-license/current/bin/slurmctldprolog
+{% endif %}
+
 {% if nhc %}
 HealthCheckProgram={{nhc.nhc_bin}}
 HealthCheckInterval={{nhc.health_check_interval}}
