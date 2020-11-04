@@ -62,9 +62,11 @@ JobCompLoc={{elasticsearch_address}}
 JobCompParams=timeout=5
 {% endif %}
 
-{% if slurm_license  %}
+{% if prolog_epilog %}
+{% if prolog_epilog.slurmctld_epilog_path %}
 slurmctldepilog_path=/snap/slurm-license/current/bin/slurmctldprolog
 slurmctldprolog_path=/snap/slurm-license/current/bin/slurmctldprolog
+{% endif %}
 {% endif %}
 
 {% if nhc %}
