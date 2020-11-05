@@ -62,6 +62,18 @@ JobCompLoc={{elasticsearch_address}}
 JobCompParams=timeout=5
 {% endif %}
 
+{% if prolog_epilog %}
+
+{% if prolog_epilog.slurmctld_epilog_path %}
+slurmctldepilog_path={{prolog_epilog.slurmctld_epilog_path}}
+{% endif %}
+
+{% if prolog_epilog.slurmctld_prolog_path %}
+slurmctldprolog_path={{prolog_epilog.slurmctld_prolog_path}}
+{% endif %}
+
+{% endif %}
+
 {% if nhc %}
 HealthCheckProgram={{nhc.nhc_bin}}
 HealthCheckInterval={{nhc.health_check_interval}}
