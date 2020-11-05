@@ -65,11 +65,11 @@ JobCompParams=timeout=5
 {% if prolog_epilog %}
 
 {% if prolog_epilog.slurmctld_epilog_path %}
-slurmctldepilog_path={{slurmctld_epilog_path}}
+slurmctldepilog_path={{prolog_epilog.slurmctld_epilog_path}}
 {% endif %}
 
 {% if prolog_epilog.slurmctld_prolog_path %}
-slurmctldprolog_path={{slurmctld_prolog_path}}
+slurmctldprolog_path={{prolog_epilog.slurmctld_prolog_path}}
 {% endif %}
 
 {% endif %}
