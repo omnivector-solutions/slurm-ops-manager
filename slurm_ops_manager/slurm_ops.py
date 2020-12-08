@@ -123,6 +123,7 @@ class SlurmManager(Object):
             sleep(1)
 
         self._slurm_resource_manager.setup_system()
+        self._slurm_resource_manager.create_systemd_override_for_nofile()
         self._stored.slurm_installed = True
 
     def upgrade(self, slurm_config) -> None:
