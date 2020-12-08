@@ -92,6 +92,6 @@ def get_inventory():
                 f"{cpu_info} "\
                 f"RealMemory={mem}"
     if (gpus > 0):
-        node_info = node_info+f" Gres={gpus}"
+        node_info = node_info + f" Gres={gpus}"
 
     return node_info
