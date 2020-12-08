@@ -202,10 +202,10 @@ class SlurmOpsManagerBase:
     def create_systemd_override_for_nofile(self):
         """Create the override.conf file for slurm systemd service."""
         systemd_override_dir = Path(
-            "/etc/systemd/system/{self._slurm_systemd_service}.d"
+            f"/etc/systemd/system/{self._slurm_systemd_service}.d"
         )
         if not systemd_override_dir.exists():
-            systemd_override_dir.mkdir()
+            systemd_override_dir.mkdir(exists_ok=True)
 
         systemd_override_conf = systemd_override_dir / 'override.conf'
         systemd_override_conf_tmpl = self._template_dir / 'override.conf'
