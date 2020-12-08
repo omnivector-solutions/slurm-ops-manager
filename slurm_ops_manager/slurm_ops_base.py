@@ -205,7 +205,7 @@ class SlurmOpsManagerBase:
             f"/etc/systemd/system/{self._slurm_systemd_service}.d"
         )
         if not systemd_override_dir.exists():
-            systemd_override_dir.mkdir(exists_ok=True)
+            systemd_override_dir.mkdir(exist_ok=True)
 
         systemd_override_conf = systemd_override_dir / 'override.conf'
         systemd_override_conf_tmpl = self._template_dir / 'override.conf'
