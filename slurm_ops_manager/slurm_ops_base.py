@@ -132,6 +132,10 @@ class SlurmOpsManagerBase:
             logger.error(f"Error running {operation} - {e}")
 
     @property
+    def _slurm_systemd_service(self) -> str:
+        raise Exception("Inheriting object needs to define this property.")
+
+    @property
     def _slurm_conf_dir(self) -> Path:
         raise Exception("Inheriting object needs to define this property.")
 
@@ -194,6 +198,21 @@ class SlurmOpsManagerBase:
     @property
     def _munged_systemd_service(self) -> str:
         raise Exception("Inheriting object needs to define this property.")
+
+    def create_systemd_override_for_nofile(self):
+        """Create the override.conf file for slurm systemd service."""
+        systemd_override_dir = Path(
+            "/etc/systemd/system/{self._slurm_systemd_service}.d"
+        )
+        if not systemd_override_dir.exists():
+            systemd_override_dir.mkdir()
+
+        systemd_override_conf = systemd_override_dir / 'override.conf'
+        systemd_override_conf_tmpl = self._template_dir / 'override.conf'
+
+        systemd_override_conf.write_text(
+            systemd_override_conf_tmpl.read_text()
+        )
 
     def upgrade(self):
         """Preform upgrade-charm operations."""
