@@ -166,7 +166,7 @@ class SlurmManager(Object):
 
 
         self._slurm_resource_manager.write_systemd()
-        self._slurm_resource_manager.systemtcld_daemon_reload()
+        self._slurm_resource_manager.systemtctld_daemon_reload()
 
         # Write slurm.conf and restart the slurm component.
         self._slurm_resource_manager.write_slurm_config(slurm_config)
