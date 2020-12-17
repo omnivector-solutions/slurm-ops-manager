@@ -124,6 +124,8 @@ class SlurmSnapManager(SlurmOpsManagerBase):
         self.setup_system()
 
     def write_systemd(self):
+        '''Write systemd service override file for slum snap'''
+
         override_dir = Path(
             f"/etc/systemd/system/snap.slurm.{self._slurm_component}.service.d"
         )
@@ -140,6 +142,7 @@ class SlurmSnapManager(SlurmOpsManagerBase):
         )
 
     def systemctld_daemon_reload(self) -> None:
+        '''Reloads the systemctl daemon'''
         try:
             subprocess.call([
                 "systemctl",
