@@ -136,7 +136,7 @@ class SlurmSnapManager(SlurmOpsManagerBase):
             override_file.unlink()
 
         override_file.write_text(
-            (self._template_dir / "systemd-override.conf").read_text()
+            (self._template_dir / "override.conf").read_text()
         )
 
     def systemctld_daemon_reload(self) -> None:
