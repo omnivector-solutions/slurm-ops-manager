@@ -123,7 +123,7 @@ class SlurmSnapManager(SlurmOpsManagerBase):
         # instead).
         self.setup_system()
 
-    def write_systemd(self):
+    def write_systemd_file(self):
         '''Write systemd service override file for slum snap'''
 
         override_dir = Path(
