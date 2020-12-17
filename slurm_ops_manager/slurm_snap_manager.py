@@ -134,7 +134,15 @@ class SlurmSnapManager(SlurmOpsManagerBase):
 
         if override_file.exists():
             override_file.unlink()
-
+        logger.debug('############### writing systemd file #################3#')
+        logger.debug('############### writing systemd file #################3#')
+        logger.debug('############### writing systemd file #################3#')
+        logger.debug('############### writing systemd file #################3#')
+        logger.debug('############### writing systemd file #################3#')
+        logger.debug('############### writing systemd file #################3#')
+        logger.debug('############### writing systemd file #################3#')
+        logger.debug('############### writing systemd file #################3#')
+        logger.debug('############### writing systemd file #################3#')
         override_file.write_text(
             (self._template_dir / "override.conf").read_text()
         )
@@ -189,6 +197,6 @@ class SlurmSnapManager(SlurmOpsManagerBase):
         else:
             self._install_slurm_snap_from_edge()
 
-        self._provision_snap_systemd_service_override_file()
-        self._systemctld_daemon_reload()
+        self.write_systemd()
+        self.systemctld_daemon_reload()
         self._set_snap_mode()
