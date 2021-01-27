@@ -77,6 +77,8 @@ class SlurmOpsManagerBase:
         self._slurmctld_pid_file = self._slurm_pid_dir / 'slurmctld.pid'
         self._slurmdbd_pid_file = self._slurm_pid_dir / 'slurmdbd.pid'
 
+        self._slurmctld_parameters = ["enable_configless"]
+
         self._hostname = get_hostname()
         self._port = port_map[self._slurm_component]
 
@@ -130,6 +132,11 @@ class SlurmOpsManagerBase:
             ])
         except subprocess.CalledProcessError as e:
             logger.error(f"Error running {operation} - {e}")
+
+    @property
+    def _slurm_bin_dir(self) -> Path:
+        """Return the directory where the slurm bins live."""
+        raise Exception("Inheriting object needs to define this property.")
 
     @property
     def _slurm_systemd_service(self) -> str:
@@ -266,6 +273,7 @@ class SlurmOpsManagerBase:
             'slurmdbd_pid_file': str(self._slurmdbd_pid_file),
             'slurmd_pid_file': str(self._slurmd_pid_file),
             'slurmctld_pid_file': str(self._slurmctld_pid_file),
+            'slurmctld_parameters': ",".join(self._slurmctld_parameters),
             'slurm_plugstack_conf': str(self._slurm_plugstack_conf),
             'slurm_user': str(self._slurm_user),
         }
@@ -282,6 +290,23 @@ class SlurmOpsManagerBase:
                 "The slurm config template cannot be found."
             )
 
+        # Preprocess merging slurmctld_parameters if they exist in the context
+        context_slurmctld_parameters = context.get("slurmctld_parameters")
+        if context_slurmctld_parameters:
+
+            slurmctld_parameters = list(
+                set(
+                    common_config["slurmctld_parameters"].split(
+                        ","
+                    ) + context_slurmctld_parameters.split(",")
+                )
+            )
+
+            common_config["slurmctld_parameters"] = ",".join(
+                slurmctld_parameters
+            )
+            context.pop("slurmctld_parameters")
+
         rendered_template = Environment(
             loader=FileSystemLoader(str(self._template_dir))
         ).get_template(template_name)
@@ -294,6 +319,8 @@ class SlurmOpsManagerBase:
                 {**context, **common_config}
             )
         )
+        if self._slurm_component == "slurmdbd":
+            target.chmod(0o600)
 
     def restart_slurm_component(self):
         """Restart the slurm component."""
@@ -310,18 +337,32 @@ class SlurmOpsManagerBase:
         cgroup_conf_path.write_text(content)
 
     def get_munge_key(self) -> str:
-        """Read, encode, decode and return the munge key."""
+        """Read the bytes, encode to base64, decode to a string, return."""
         munge_key = self._munge_key_path.read_bytes()
         return b64encode(munge_key).decode()
 
     def restart_munged(self):
-        """Restart munged."""
+        """Restart the munged process."""
         try:
             return subprocess.call([
-                "systemctl",
-                "restart",
+                "service",
                 self._munged_systemd_service,
+                "restart",
             ])
         except subprocess.CalledProcessError as e:
-            logger.error(f"Error copying systemd - {e}")
+            logger.error(f"Error restarting munged - {e}")
+            return -1
+
+    def slurm_cmd(self, command, arg_string):
+        """Run a slurm command."""
+        if command not in self._slurm_cmds:
+            logger.error(f"{command} is not a slurm command.")
+            return -1
+
+        try:
+            return subprocess.call([
+                f"{self._slurm_bin_dir}/{command}"
+            ] + arg_string.split())
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error running {command} - {e}")
             return -1

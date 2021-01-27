@@ -114,8 +114,16 @@ class SlurmManager(Object):
         """Return the munge key."""
         return self._slurm_resource_manager.get_munge_key()
 
+    def get_slurm_conf(self) -> str:
+        """Return the slurm.conf."""
+        return self._slurm_resource_manager.slurm_conf_path.read_text()
+
     def install(self) -> None:
         """Prepare the system for slurm."""
+        # We need to ensure this function doesn't execute before
+        # snapd is available. Wait on snapd here.
+        # Need to make this a bit more robust in terms of eventually
+        # erroring out if snapd never becomes available.
         while True:
             check = check_snapd()
             if check == 0:
@@ -126,23 +134,38 @@ class SlurmManager(Object):
         self._slurm_resource_manager.create_systemd_override_for_nofile()
         self._stored.slurm_installed = True
 
-    def upgrade(self, slurm_config) -> None:
-        """Upgrade slurm."""
-        logger.debug('upgrade(): entering')
-        # Pull the slurm snap from the controller on upgrade.
+        # Set application version
+        self._set_slurm_version()
+
+    def upgrade(self, slurm_config=None) -> None:
+        """Upgrade the slurm snap resource."""
         try:
             self._stored.resource_path = str(
                 self.model.resources.fetch('slurm')
             )
         except ModelError as e:
             logger.debug(e)
+
         self._slurm_resource_manager.upgrade()
-        self.render_config_and_restart(slurm_config)
 
-    def render_config_and_restart(self, slurm_config) -> None:
+        if slurm_config is not None:
+            self.render_slurm_configs(slurm_config)
+
+        # Set application version
+        self._set_slurm_version()
+
+    def configure_munge_key(self, munge_key):
+        """Configure the munge_key."""
+        self._slurm_resource_manager.write_munge_key(munge_key)
+
+    def configure_slurmctld_hostname(self, slurmctld_hostname):
+        """Configure the slurmctld_hostname."""
+        self._slurm_resource_manager.configure_slurmctld_hostname(
+            slurmctld_hostname
+        )
+
+    def render_slurm_configs(self, slurm_config) -> None:
         """Render the slurm.conf and munge key, restart slurm and munge."""
-        logger.debug('render_config_and_restart(): entering')
-
         if not type(slurm_config) == dict:
             raise TypeError("Incorrect type for config.")
 
@@ -159,21 +182,26 @@ class SlurmManager(Object):
         if slurm_config.get('acct_gather'):
             self._slurm_resource_manager.write_acct_gather_conf(slurm_config)
 
-        # Write munge.key and restart munged.
-        self._slurm_resource_manager.write_munge_key(slurm_config['munge_key'])
-        self._slurm_resource_manager.restart_munged()
-        sleep(1)
-
         # Write slurm.conf and restart the slurm component.
         self._slurm_resource_manager.write_slurm_config(slurm_config)
-        self._slurm_resource_manager.restart_slurm_component()
-        sleep(1)
 
-        if not self._stored.slurm_version_set:
-            self._charm.unit.set_workload_version(
-                self._slurm_resource_manager.slurm_version
-            )
-            self._stored.slurm_version_set = True
+    def _set_slurm_version(self):
+        """Set the unit workload_version."""
+        self._charm.unit.set_workload_version(
+            self._slurm_resource_manager.slurm_version
+        )
+
+    def restart_slurm_component(self):
+        """Restart slurm component."""
+        self._slurm_resource_manager.restart_slurm_component()
+
+    def restart_munged(self):
+        """Restart munged."""
+        self._slurm_resource_manager.restart_munged()
+
+    def slurm_cmd(self, command, arg_string):
+        """Run a slurm command."""
+        self._slurm_resource_manager.slurm_cmd(command, arg_string)
 
 
 def check_snapd():
