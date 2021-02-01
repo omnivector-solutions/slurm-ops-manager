@@ -118,7 +118,7 @@ class SlurmManager(Object):
         """Return the slurm.conf."""
         return self._slurm_resource_manager.slurm_conf_path.read_text()
 
-    def install(self) -> None:
+    def install(self, channel=None) -> None:
         """Prepare the system for slurm."""
         # We need to ensure this function doesn't execute before
         # snapd is available. Wait on snapd here.
@@ -130,7 +130,7 @@ class SlurmManager(Object):
                 break
             sleep(1)
 
-        self._slurm_resource_manager.setup_system()
+        self._slurm_resource_manager.setup_system(channel)
         self._slurm_resource_manager.create_systemd_override_for_nofile()
         self._stored.slurm_installed = True
 
