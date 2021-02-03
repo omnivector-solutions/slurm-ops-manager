@@ -120,7 +120,7 @@ class SlurmSnapManager(SlurmOpsManagerBase):
         except subprocess.CalledProcessError as e:
             print(f"Error installing slurm snap - {e}")
 
-    def upgrade(self):
+    def upgrade(self, channel):
         """Run upgrade operations."""
         # note: "snap refresh <foobar.snap>" does not work (it can
         # only refresh from the charm store (use "snap install"
