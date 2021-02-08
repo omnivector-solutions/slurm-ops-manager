@@ -137,7 +137,7 @@ class SlurmManager(Object):
         # Set application version
         self._set_slurm_version()
 
-    def upgrade(self, slurm_config=None, channel=None) -> None:
+    def upgrade(self, slurm_config=None, channel="--stable") -> None:
         """Upgrade the slurm snap resource."""
         try:
             self._stored.resource_path = str(
