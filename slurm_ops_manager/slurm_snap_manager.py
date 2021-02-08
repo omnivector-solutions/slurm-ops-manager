@@ -19,6 +19,11 @@ class SlurmSnapManager(SlurmOpsManagerBase):
         super().__init__(component, resource_path)
 
     @property
+    def _slurm_bin_dir(self) -> Path:
+        """Return the directory where the slurm bins live."""
+        return Path("/snap/bin")
+
+    @property
     def _slurm_conf_dir(self) -> Path:
         return Path("/var/snap/slurm/common/etc/slurm")
 
@@ -103,25 +108,36 @@ class SlurmSnapManager(SlurmOpsManagerBase):
         except subprocess.CalledProcessError as e:
             print(f"Error setting snap.mode - {e}")
 
-    def _install_slurm_snap_from_edge(self):
+    def _install_slurm_snap(self, channel):
         try:
             subprocess.call([
                 "snap",
                 "install",
                 "slurm",
-                "--edge",
+                channel,
                 "--classic",
             ])
         except subprocess.CalledProcessError as e:
             print(f"Error installing slurm snap - {e}")
 
-    def upgrade(self):
+    def upgrade(self, channel):
         """Run upgrade operations."""
-        logger.debug('upgrade(): entering...')
         # note: "snap refresh <foobar.snap>" does not work (it can
         # only refresh from the charm store (use "snap install"
         # instead).
-        self.setup_system()
+        self.setup_system(channel)
+
+    def configure_slurmctld_hostname(self, slurmctld_hostname):
+        """Configure the snap with the slurmctld_hostname."""
+        try:
+            subprocess.call([
+                "snap",
+                "set",
+                "slurm",
+                f"slurmctld.hostname={slurmctld_hostname}",
+            ])
+        except subprocess.CalledProcessError as e:
+            print(f"Trouble setting the slurmctld.hostname - {e}")
 
     def _provision_snap_systemd_service_override_file(self):
         override_dir = Path(
@@ -148,7 +164,7 @@ class SlurmSnapManager(SlurmOpsManagerBase):
         except subprocess.CalledProcessError as e:
             print(f"Error running daemon-reload - {e}")
 
-    def setup_system(self) -> None:
+    def setup_system(self, channel="--stable") -> None:
         """Install the slurm snap, set the snap.mode, create the aliases."""
         # Install the slurm snap from the provided resource
         # if the resource file exists and its size is > 0, otherwise
@@ -185,9 +201,9 @@ class SlurmSnapManager(SlurmOpsManagerBase):
                     except subprocess.CalledProcessError as e:
                         print(f"Cannot create snap alias for: {cmd} - {e}")
             else:
-                self._install_slurm_snap_from_edge()
+                self._install_slurm_snap(channel)
         else:
-            self._install_slurm_snap_from_edge()
+            self._install_slurm_snap(channel)
 
         self._provision_snap_systemd_service_override_file()
         self._systemctld_daemon_reload()
