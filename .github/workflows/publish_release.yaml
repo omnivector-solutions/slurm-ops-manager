@@ -38,6 +38,6 @@ jobs:
         if: ${{ success() }}
         run: |
           git fetch --all
-          git checkout main
+          git checkout master
           ./scripts/bump-version.sh '' "${RELEASE_VERSION}+dev"
           git diff --quiet || git commit -anm 'meta: Bump new development version' && git pull --rebase && git push
