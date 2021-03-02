@@ -37,7 +37,7 @@ class SlurmSnapManager(SlurmOpsManagerBase):
 
     @property
     def _slurm_plugin_dir(self) -> Path:
-        return Path("/snap/slurm/current/lib/slurm")
+        return Path("/snap/slurm/current/usr/lib/slurm")
 
     @property
     def _slurm_log_dir(self) -> Path:
@@ -170,12 +170,12 @@ class SlurmSnapManager(SlurmOpsManagerBase):
         # if the resource file exists and its size is > 0, otherwise
         # install the snap from the snapstore.
 
-        logger.debug(f'update_snap(): _resource_path={self._resource_path}')
+        logger.debug(f'setup_system(): _resource_path={self._resource_path}')
 
         if self._resource_path is not None:
             resource_size = Path(self._resource_path).stat().st_size
             if resource_size > 0:
-                logger.debug('update_snap(): running snap update')
+                logger.debug('setup_system(): running snap install')
                 try:
                     subprocess.call([
                         "snap",

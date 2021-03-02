@@ -124,10 +124,7 @@ class SlurmManager(Object):
         # snapd is available. Wait on snapd here.
         # Need to make this a bit more robust in terms of eventually
         # erroring out if snapd never becomes available.
-        while True:
-            check = check_snapd()
-            if check == 0:
-                break
+        while check_snapd() != 0:
             sleep(1)
 
         self._slurm_resource_manager.setup_system(channel)
