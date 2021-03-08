@@ -47,7 +47,7 @@ ProctrackType={{ proctrack_type }}
 #SlurmdDebug={{ log_level }}
 #SlurmctldDebug={{ log_level }}
 
-{% if acct_gather_profile %} 
+{% if acct_gather_profile %}
 AcctGatherProfileType={{ acct_gather_profile }}
 {% else %}
 AcctGatherProfileType=acct_gather_profile/none
@@ -94,13 +94,18 @@ AccountingStorageBackupHost={{ backup_slurmdbd_hostname }}
 #include /etc/slurm/slurm-%c.conf
 
 # GRES type
-GresTypes=gpu 
+GresTypes=gpu
 
-# Enumerate nodes and partitions 
+# Enumerate nodes and partitions
 {% for partition in partitions %}
 {% for node in partition.inventory %}
 NodeName={{node.node_name}} NodeAddr={{node.node_addr}} State={{node.state}} RealMemory={{node.real_memory}} CPUs={{node.cpus}} ThreadsPerCore={{node.threads_per_core}} CoresPerSocket={{node.cores_per_socket}} SocketsPerBoard={{node.sockets_per_board}} {{ "Gres=%s" % node.gres if node.gres else ""}}
 {%- endfor %}
 
 PartitionName={{partition.partition_name}} Nodes={% for slurmd in partition.inventory %}{{slurmd.node_name}}{{ "," if not loop.last}}{% endfor %} Default={{ 'YES' if partition.partition_default else 'NO' }} State={{partition.partition_state}} {{partition.partition_config if partition.partition_config else ""}}
+{% endfor %}
+
+# Enumerate nodes in DownNodes
+{% for node in down_nodes %}
+DownNodes={{node}} Reason="New node"
 {% endfor %}
