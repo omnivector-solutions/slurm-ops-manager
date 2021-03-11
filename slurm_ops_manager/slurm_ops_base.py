@@ -3,6 +3,8 @@
 import logging
 import os
 import subprocess
+import tempfile
+
 from base64 import b64decode, b64encode
 from pathlib import Path
 
@@ -132,6 +134,11 @@ class SlurmOpsManagerBase:
             ])
         except subprocess.CalledProcessError as e:
             logger.error(f"Error running {operation} - {e}")
+
+    @property
+    def _jwt_rsa_key_file(self) -> Path:
+        """Return the jwt rsa key file path."""
+        return self._slurm_state_dir / "jwt_hs256.key"
 
     @property
     def _slurm_bin_dir(self) -> Path:
@@ -273,6 +280,7 @@ class SlurmOpsManagerBase:
             'slurmdbd_pid_file': str(self._slurmdbd_pid_file),
             'slurmd_pid_file': str(self._slurmd_pid_file),
             'slurmctld_pid_file': str(self._slurmctld_pid_file),
+            'jwt_rsa_key_file': str(self._jwt_rsa_key_file),
             'slurmctld_parameters': ",".join(self._slurmctld_parameters),
             'slurm_plugstack_conf': str(self._slurm_plugstack_conf),
             'slurm_user': str(self._slurm_user),
@@ -331,6 +339,23 @@ class SlurmOpsManagerBase:
         key = b64decode(munge_key.encode())
         self._munge_key_path.write_bytes(key)
 
+    def write_jwt_rsa(self, jwt_rsa):
+        """Write the jwt_rsa key."""
+
+        # Remove jwt_rsa if exists.
+        if self._jwt_rsa_key_file.exits():
+            self._jwt_rsa_key_file.unlink()
+
+        # Write the jwt_rsa key to the file and chmod 0600,
+        # chown to slurm_user.
+        self._jwt_rsa_key_file.write_text(jwt_rsa)
+        self._jwt_rsa_key_file.chmod(0o600)
+        subprocess.call([
+            "chown",
+            self._slurm_user,
+            str(self._jwt_rsa_key_file),
+        ])
+
     def write_cgroup_conf(self, content):
         """Write the cgroup.conf file."""
         cgroup_conf_path = self._slurm_conf_dir / 'cgroup.conf'
@@ -366,3 +391,27 @@ class SlurmOpsManagerBase:
         except subprocess.CalledProcessError as e:
             logger.error(f"Error running {command} - {e}")
             return -1
+
+    def generate_jwt_rsa(self) -> str:
+        """Generate the jwt rsa key."""
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+
+            # Future path of jwt rsa key file
+            tmp_key_path = Path(f"{temp_dir}/jwt_hs256.key")
+
+            # Create the jwt rsa key in the tempdir
+            subprocess.call([
+                "openssl",
+                "genrsa",
+                "-out",
+                str(tmp_key_path),
+                "2048",
+            ])
+
+            jwt_key = tmp_key_path.read_text()
+
+            # Remove the key now that we have saved it.
+            tmp_key_path.unlink()
+
+        return jwt_key

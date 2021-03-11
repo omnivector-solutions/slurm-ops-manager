@@ -17,7 +17,10 @@ BackupAddr={{ backup_controller_ingress_address }}
 SlurmctldParameters={{ slurmctld_parameters }}
 
 AuthType=auth/munge
+AuthAltTypes=auth/jwt
 AuthInfo="socket={{ munge_socket }}"
+AuthAltParameters="jwt_key={{ jwt_rsa_key_file }}"
+
 
 CryptoType=crypto/munge
 

@@ -155,6 +155,10 @@ class SlurmManager(Object):
         """Configure the munge_key."""
         self._slurm_resource_manager.write_munge_key(munge_key)
 
+    def configure_jwt_rsa(self, jwt_rsa):
+        """Configure jwt_rsa."""
+        self._slurm_resource_manager.write_jwt_rsa(jwt_rsa)
+
     def configure_slurmctld_hostname(self, slurmctld_hostname):
         """Configure the slurmctld_hostname."""
         self._slurm_resource_manager.configure_slurmctld_hostname(
@@ -199,6 +203,10 @@ class SlurmManager(Object):
     def slurm_cmd(self, command, arg_string):
         """Run a slurm command."""
         self._slurm_resource_manager.slurm_cmd(command, arg_string)
+
+    def generate_jwt_rsa(self) -> str:
+        """Generate the jwt rsa key."""
+        return self._slurm_resource_manager.generate_jwt_rsa()
 
 
 def check_snapd():

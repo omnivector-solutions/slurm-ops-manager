@@ -11,7 +11,9 @@ DbdBackupHost={{ backup_slurmdbd_hostname }}
 DbdPort={{ active_slurmdbd_port }}
 
 AuthType=auth/munge
+AuthAltTypes=auth/jwt
 AuthInfo=socket={{ munge_socket }}
+AuthAltParameters="jwt_key={{ jwt_rsa_key_file }}"
 
 SlurmUser={{ slurm_user }}
 
