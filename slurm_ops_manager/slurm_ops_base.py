@@ -345,6 +345,7 @@ class SlurmOpsManagerBase:
 
         # Remove jwt_rsa if exists.
         if self._jwt_rsa_key_file.exists():
+            self._jwt_rsa_key_file.write_bytes(os.urandom(2048))
             self._jwt_rsa_key_file.unlink()
 
         # Write the jwt_rsa key to the file and chmod 0600,
