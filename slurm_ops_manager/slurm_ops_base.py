@@ -8,6 +8,8 @@ import tempfile
 from base64 import b64decode, b64encode
 from pathlib import Path
 
+from Crypto.PublicKey import RSA
+
 from jinja2 import Environment, FileSystemLoader
 from slurm_ops_manager.utils import get_hostname
 
@@ -393,25 +395,5 @@ class SlurmOpsManagerBase:
             return -1
 
     def generate_jwt_rsa(self) -> str:
-        """Generate the jwt rsa key."""
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-
-            # Future path of jwt rsa key file
-            tmp_key_path = Path(f"{temp_dir}/jwt_hs256.key")
-
-            # Create the jwt rsa key in the tempdir
-            subprocess.call([
-                "openssl",
-                "genrsa",
-                "-out",
-                str(tmp_key_path),
-                "2048",
-            ])
-
-            jwt_key = tmp_key_path.read_text()
-
-            # Remove the key now that we have saved it.
-            tmp_key_path.unlink()
-
-        return jwt_key
+        """Generate the rsa key to encode the jwt with."""
+        return RSA.generate(2048).export_key('PEM').decode()
