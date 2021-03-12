@@ -3,8 +3,11 @@
 import logging
 import os
 import subprocess
+
 from base64 import b64decode, b64encode
 from pathlib import Path
+
+from Crypto.PublicKey import RSA
 
 from jinja2 import Environment, FileSystemLoader
 from slurm_ops_manager.utils import get_hostname
@@ -132,6 +135,11 @@ class SlurmOpsManagerBase:
             ])
         except subprocess.CalledProcessError as e:
             logger.error(f"Error running {operation} - {e}")
+
+    @property
+    def _jwt_rsa_key_file(self) -> Path:
+        """Return the jwt rsa key file path."""
+        return self._slurm_state_dir / "jwt_hs256.key"
 
     @property
     def _slurm_bin_dir(self) -> Path:
@@ -273,6 +281,7 @@ class SlurmOpsManagerBase:
             'slurmdbd_pid_file': str(self._slurmdbd_pid_file),
             'slurmd_pid_file': str(self._slurmd_pid_file),
             'slurmctld_pid_file': str(self._slurmctld_pid_file),
+            'jwt_rsa_key_file': str(self._jwt_rsa_key_file),
             'slurmctld_parameters': ",".join(self._slurmctld_parameters),
             'slurm_plugstack_conf': str(self._slurm_plugstack_conf),
             'slurm_user': str(self._slurm_user),
@@ -331,6 +340,24 @@ class SlurmOpsManagerBase:
         key = b64decode(munge_key.encode())
         self._munge_key_path.write_bytes(key)
 
+    def write_jwt_rsa(self, jwt_rsa):
+        """Write the jwt_rsa key."""
+
+        # Remove jwt_rsa if exists.
+        if self._jwt_rsa_key_file.exists():
+            self._jwt_rsa_key_file.write_bytes(os.urandom(2048))
+            self._jwt_rsa_key_file.unlink()
+
+        # Write the jwt_rsa key to the file and chmod 0600,
+        # chown to slurm_user.
+        self._jwt_rsa_key_file.write_text(jwt_rsa)
+        self._jwt_rsa_key_file.chmod(0o600)
+        subprocess.call([
+            "chown",
+            self._slurm_user,
+            str(self._jwt_rsa_key_file),
+        ])
+
     def write_cgroup_conf(self, content):
         """Write the cgroup.conf file."""
         cgroup_conf_path = self._slurm_conf_dir / 'cgroup.conf'
@@ -366,3 +393,7 @@ class SlurmOpsManagerBase:
         except subprocess.CalledProcessError as e:
             logger.error(f"Error running {command} - {e}")
             return -1
+
+    def generate_jwt_rsa(self) -> str:
+        """Generate the rsa key to encode the jwt with."""
+        return RSA.generate(2048).export_key('PEM').decode()
