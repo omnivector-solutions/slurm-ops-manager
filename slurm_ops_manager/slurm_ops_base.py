@@ -13,12 +13,6 @@ from jinja2 import Environment, FileSystemLoader
 from slurm_ops_manager.utils import get_hostname
 
 
-OS_RELEASE = Path("/etc/os-release").read_text().split("\n")
-OS_RELEASE_CTXT = {
-    k: v.strip("\"")
-    for k, v in [item.split("=") for item in OS_RELEASE if item != '']
-}
-
 logger = logging.getLogger()
 
 
@@ -93,11 +87,6 @@ class SlurmOpsManagerBase:
             self._template_dir / self._slurm_conf_template_name
 
     @property
-    def os(self):
-        """Return what operating system we are running."""
-        return OS_RELEASE_CTXT['ID']
-
-    @property
     def hostname(self) -> str:
         """Return the hostname."""
         return self._hostname
@@ -115,9 +104,9 @@ class SlurmOpsManagerBase:
     @property
     def slurm_is_active(self) -> bool:
         """Return True if the slurm component is running."""
-        return self._slurm_systemctl("is-active") == 0
+        return self.slurm_systemctl("is-active") == 0
 
-    def _slurm_systemctl(self, operation):
+    def slurm_systemctl(self, operation):
         """Start systemd services for slurmd."""
         supported_systemctl_cmds = [
             "enable",
@@ -125,6 +114,7 @@ class SlurmOpsManagerBase:
             "stop",
             "restart",
             "is-active",
+            "daemon-reload",
         ]
 
         if operation not in supported_systemctl_cmds:
@@ -337,7 +327,7 @@ class SlurmOpsManagerBase:
 
     def restart_slurm_component(self):
         """Restart the slurm component."""
-        self._slurm_systemctl("restart")
+        self.slurm_systemctl("restart")
 
     def write_munge_key(self, munge_key):
         """Write the munge key."""

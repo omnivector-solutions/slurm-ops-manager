@@ -6,6 +6,16 @@ import socket
 import subprocess
 import sys
 
+OS_RELEASE = Path("/etc/os-release").read_text().split("\n")
+OS_RELEASE_CTXT = {
+    k: v.strip("\"")
+    for k, v in [item.split("=") for item in OS_RELEASE if item != '']
+}
+
+def os(self):
+    """Return what operating system we are running."""
+    return OS_RELEASE_CTXT['ID']
+
 
 def _get_real_mem():
     """Return the real memory."""

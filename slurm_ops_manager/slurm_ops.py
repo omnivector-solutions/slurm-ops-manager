@@ -12,10 +12,11 @@ from ops.framework import (
 )
 from ops.model import ModelError
 from slurm_ops_manager.slurm_ops_managers import (
-    SlurmSnapManager,
+    SlurmDebManager,
     SlurmTarManager,
 )
 from slurm_ops_manager.utils import get_inventory
+from slurm_ops_manager import utils
 
 
 logger = logging.getLogger()
@@ -35,55 +36,16 @@ class SlurmManager(Object):
 
         self._stored.set_default(slurm_installed=False)
         self._stored.set_default(slurm_version_set=False)
-        self._stored.set_default(resource_path=None)
-        self._stored.set_default(resource_checked=False)
 
-        if not self._stored.resource_checked:
-            try:
-                self._stored.resource_path = str(
-                    self.model.resources.fetch('slurm')
-                )
-            except ModelError as e:
-                logger.debug(e)
-            self._stored.resource_checked = True
+        operating_system = utils.os()
 
-        logger.debug(
-            "__init__(): self._stored.resource_path="
-            f"{self._stored.resource_path}"
-        )
-
-        if self._stored.resource_path is not None:
-            resource_size = Path(self._stored.resource_path).stat().st_size
-
-            logger.debug(f'__init__(): resource_size={resource_size}')
-
-            if resource_size > 0:
-                if tarfile.is_tarfile(self._stored.resource_path):
-                    logger.debug('__init__(): slurm resource is tar file.')
-                    self._slurm_resource_manager = SlurmTarManager(
-                        self._slurm_component,
-                        self._stored.resource_path
-                    )
-                else:
-                    logger.debug('__init__(): slurm resource is a snap file.')
-                    self._slurm_resource_manager = SlurmSnapManager(
-                        self._slurm_component,
-                        self._stored.resource_path
-                    )
-            else:
-                logger.debug('__init__(): slurm resource is a snap file.')
-
-                self._slurm_resource_manager = SlurmSnapManager(
-                    self._slurm_component,
-                    self._stored.resource_path
-                )
+        if operating_system == "ubuntu":
+            self._slurm_resource_manager = SlurmDebManager(component)
+        elif operating_system  == "centos":
+            #self._slurm_resource_manager = SlurmRpmManager(component)
+            raise Exception("Not yet") # @todo: do it
         else:
-            logger.debug('__init__(): slurm resource from snapstore.')
-
-            self._slurm_resource_manager = SlurmSnapManager(
-                self._slurm_component,
-                self._stored.resource_path
-            )
+            raise Exception("Unsupported OS")
 
     @property
     def hostname(self):
@@ -118,35 +80,13 @@ class SlurmManager(Object):
         """Return the slurm.conf."""
         return self._slurm_resource_manager.slurm_conf_path.read_text()
 
-    def install(self, channel=None) -> None:
+    def install(self) -> None:
         """Prepare the system for slurm."""
-        # We need to ensure this function doesn't execute before
-        # snapd is available. Wait on snapd here.
-        # Need to make this a bit more robust in terms of eventually
-        # erroring out if snapd never becomes available.
-        while check_snapd() != 0:
-            sleep(1)
 
-        self._slurm_resource_manager.setup_system(channel)
+        self._slurm_resource_manager.setup_system()
         self._slurm_resource_manager.create_systemd_override_for_nofile()
+        self._slurm_resource_manager.slurm_systemctl("daemon-reload")
         self._stored.slurm_installed = True
-
-        # Set application version
-        self._set_slurm_version()
-
-    def upgrade(self, slurm_config=None, channel="--stable") -> None:
-        """Upgrade the slurm snap resource."""
-        try:
-            self._stored.resource_path = str(
-                self.model.resources.fetch('slurm')
-            )
-        except ModelError as e:
-            logger.debug(e)
-
-        self._slurm_resource_manager.upgrade(channel)
-
-        if slurm_config is not None:
-            self.render_slurm_configs(slurm_config)
 
         # Set application version
         self._set_slurm_version()
@@ -207,17 +147,3 @@ class SlurmManager(Object):
     def generate_jwt_rsa(self) -> str:
         """Generate the jwt rsa key."""
         return self._slurm_resource_manager.generate_jwt_rsa()
-
-
-def check_snapd():
-    """Check to see if snapd is installed."""
-    try:
-        subprocess.check_call(
-            ['snap', 'list'],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.STDOUT
-        )
-        return 0
-    except subprocess.CalledProcessError as e:
-        logger.debug(f"snapd error: {e}")
-        return 1

@@ -106,12 +106,24 @@ class SlurmDebManager(SlurmOpsManagerBase):
 
         slurm_component = self._slurm_component
 
+        with open("/etc/apt/sources.list.d/bullseye.list") as afile:
+            afile.write("deb http://deb.debian.org/debian bullseye main")
+
+        subprocess.call(["apt-get", "install", "-y", "debian-keyring"])
+        subprocess.call(["apt-key", "adv", "--keyserver",
+                          "keyserver.ubuntu.com", "--recv-keys",
+                          "04EE7237B7D453EC", "648ACFD622F3D138"])
+        subprocess.call(["apt-get", "update"])
+        subprocess.call(["apt-get", "upgrade", "-y"])
+        subprocess.call(["apt-get", "autoremove", "-y"])
+
         try:
             subprocess.call([
-                "apt",
+                "apt-get",
                 "install",
                 "-y",
                 slurm_component,
+                "slurm-client"
             ])
         except subprocess.CalledProcessError as e:
             print(f"Error installing {slurm_component} - {e}")
@@ -124,5 +136,3 @@ class SlurmDebManager(SlurmOpsManagerBase):
     def setup_system(self) -> None:
         """Install the slurm deb."""
         self._install_slurm_from_deb()
-        self._provision_snap_systemd_service_override_file()
-        self._systemctld_daemon_reload()
