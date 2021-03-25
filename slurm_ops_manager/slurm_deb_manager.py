@@ -106,28 +106,32 @@ class SlurmDebManager(SlurmOpsManagerBase):
 
         slurm_component = self._slurm_component
 
-        with open("/etc/apt/sources.list.d/bullseye.list") as afile:
+        with open("/etc/apt/sources.list.d/bullseye.list", "w") as afile:
             afile.write("deb http://deb.debian.org/debian bullseye main")
 
-        subprocess.call(["apt-get", "install", "-y", "debian-keyring"])
+        subprocess.call(["apt-get", "install", "--yes", "debian-keyring"])
         subprocess.call(["apt-key", "adv", "--keyserver",
                           "keyserver.ubuntu.com", "--recv-keys",
                           "04EE7237B7D453EC", "648ACFD622F3D138"])
         subprocess.call(["apt-get", "update"])
-        subprocess.call(["apt-get", "upgrade", "-y"])
-        subprocess.call(["apt-get", "autoremove", "-y"])
+
+        # update specific needed dependencies
+        subprocess.call(["apt-get", "install", "--yes", "libgcrypt20"])
+
+        # pin munge vesion
+        subprocess.call(["apt-get", "install", "--yes", "munge=0.5.14-4"])
 
         try:
-            subprocess.call([
-                "apt-get",
-                "install",
-                "-y",
-                slurm_component,
-                "slurm-client"
-            ])
+            # @todo: improve slurm version handling
+            subprocess.call(["apt-get", "install", "--yes",
+                             slurm_component + "=20.11.4-1",
+                             "slurm-client=20.11.4-1"])
         except subprocess.CalledProcessError as e:
             print(f"Error installing {slurm_component} - {e}")
+            # @todo: set appropriate juju status
+            return -1
 
+        subprocess.call(["apt-get", "autoremove", "--yes"])
 
     def upgrade(self, channel):
         """Run upgrade operations."""

@@ -19,13 +19,10 @@ logger = logging.getLogger()
 class SlurmOpsManagerBase:
     """Base class for slurm ops."""
 
-    def __init__(self, component, resource_path):
+    def __init__(self, component):
         """Set the initial values for attributes in the base class."""
         self._template_dir = Path(
             os.path.dirname(os.path.abspath(__file__))) / 'templates'
-
-        # This should go away
-        self._resource_path = resource_path
 
         port_map = {
             'slurmctld': "6817",
