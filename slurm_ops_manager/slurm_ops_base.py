@@ -30,6 +30,7 @@ class SlurmOpsManagerBase:
         self._template_dir = Path(
             os.path.dirname(os.path.abspath(__file__))) / 'templates'
 
+        # This should go away
         self._resource_path = resource_path
 
         port_map = {
@@ -39,6 +40,8 @@ class SlurmOpsManagerBase:
             'slurmrestd': "6820",
         }
 
+        # Note: missing slurm cmds
+        # Body: Need to extend this list to include all slurm user cmds
         self._slurm_cmds = [
             "sacct",
             "sacctmgr",
@@ -80,6 +83,7 @@ class SlurmOpsManagerBase:
         self._slurmctld_pid_file = self._slurm_pid_dir / 'slurmctld.pid'
         self._slurmdbd_pid_file = self._slurm_pid_dir / 'slurmdbd.pid'
 
+        # Note: Come back to mitigate this configless cruft
         self._slurmctld_parameters = ["enable_configless"]
 
         self._hostname = get_hostname()
