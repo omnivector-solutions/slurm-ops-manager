@@ -29,15 +29,15 @@ class SlurmDebManager(SlurmOpsManagerBase):
 
     @property
     def _slurm_spool_dir(self) -> Path:
-        return Path("/var/spool/slurm/d")
+        return Path("/var/spool/slurmd") # TODO fix this path
 
     @property
     def _slurm_state_dir(self) -> Path:
-        return Path("/var/spool/slurm/ctld")
+        return Path("/var/spool/slurmctld") # TODO fix this path
 
     @property
     def _slurm_plugin_dir(self) -> Path:
-        return Path("/usr/lib/slurm")
+        return Path("/usr/lib/x86_64-linux-gnu/slurm-wlm/")
 
     @property
     def _slurm_log_dir(self) -> Path:
@@ -89,18 +89,8 @@ class SlurmDebManager(SlurmOpsManagerBase):
     @property
     def slurm_version(self) -> str:
         """Return slurm verion."""
-        try:
-            slurm_version = subprocess.check_output(
-                [
-                    'slurmd',
-                    '-V'
-                ]
-            ).decode().strip()
-        except subprocess.CalledProcessError as e:
-            print(f"Cannot get slurm version - {e}")
-            sys.exit(-1)
-
-        return slurm_version
+        # from Debian HPC Team
+        return "20.11.4-1"
 
     def _install_slurm_from_deb(self):
 
@@ -124,8 +114,8 @@ class SlurmDebManager(SlurmOpsManagerBase):
         try:
             # @todo: improve slurm version handling
             subprocess.call(["apt-get", "install", "--yes",
-                             slurm_component + "=20.11.4-1",
-                             "slurm-client=20.11.4-1"])
+                             slurm_component + "=" + self.slurm_version,
+                             "slurm-client=" + self.slurm_version])
         except subprocess.CalledProcessError as e:
             print(f"Error installing {slurm_component} - {e}")
             # @todo: set appropriate juju status
