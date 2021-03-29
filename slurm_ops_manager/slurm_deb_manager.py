@@ -133,7 +133,7 @@ class SlurmDebManager(SlurmOpsManagerBase):
     def _setup_paths(self):
         """Create needed paths with correct permisions."""
 
-        user = "{self._slurm_user}:{self._slurm_group}"
+        user = f"{self._slurm_user}:{self._slurm_group}"
 
         if not self._slurm_conf_dir.exists():
             self._slurm_conf_dir.mkdir()
