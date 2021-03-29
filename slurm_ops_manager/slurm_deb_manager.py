@@ -45,7 +45,7 @@ class SlurmDebManager(SlurmOpsManagerBase):
 
     @property
     def _slurm_pid_dir(self) -> Path:
-        return Path("/tmp")
+        return Path("/var/run/")
 
     @property
     def _mail_prog(self) -> Path:
