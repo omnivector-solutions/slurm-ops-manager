@@ -29,11 +29,11 @@ class SlurmDebManager(SlurmOpsManagerBase):
 
     @property
     def _slurm_spool_dir(self) -> Path:
-        return Path("/var/spool/slurmd") # TODO fix this path
+        return Path("/var/spool/slurmd")
 
     @property
     def _slurm_state_dir(self) -> Path:
-        return Path("/var/spool/slurmctld") # TODO fix this path
+        return Path("/var/spool/slurmctld")
 
     @property
     def _slurm_plugin_dir(self) -> Path:
@@ -66,12 +66,18 @@ class SlurmDebManager(SlurmOpsManagerBase):
     @property
     def _slurm_user(self) -> str:
         """Return the slurm user."""
-        return "slurm"
+        if "slurmdbd" == self._slurm_component:
+            return "slurm"
+        else:
+            return "root"
 
     @property
     def _slurm_group(self) -> str:
         """Return the slurm group."""
-        return "slurm"
+        if "slurmdbd" == self._slurm_component:
+            return "slurm"
+        else:
+            return "root"
 
     @property
     def _slurm_systemd_service(self) -> str:
@@ -80,7 +86,7 @@ class SlurmDebManager(SlurmOpsManagerBase):
     @property
     def _munge_socket(self) -> Path:
         """Return the munge socket."""
-        return Path("/tmp/munged.socket.2")
+        return Path("/var/run/munge/munge.socket.2")
 
     @property
     def _munged_systemd_service(self) -> str:
@@ -93,6 +99,7 @@ class SlurmDebManager(SlurmOpsManagerBase):
         return "20.11.4-1"
 
     def _install_slurm_from_deb(self):
+        """Install Slurm debs"""
 
         slurm_component = self._slurm_component
 
@@ -123,6 +130,23 @@ class SlurmDebManager(SlurmOpsManagerBase):
 
         subprocess.call(["apt-get", "autoremove", "--yes"])
 
+    def _setup_paths(self):
+        """Create needed paths with correct permisions."""
+
+        user = "{self._slurm_user}:{self._slurm_group}"
+
+        if not self._slurm_conf_dir.exists():
+            self._slurm_conf_dir.mkdir()
+        subprocess.call(["chown", "-R", user, self._slurm_conf_dir])
+
+        if not self._slurm_state_dir.exists():
+            self._slurm_state_dir.mkdir()
+        subprocess.call(["chown", "-R", user, self._slurm_state_dir])
+
+        if not self._slurm_spool_dir.exists():
+            self._slurm_spool_dir.mkdir()
+        subprocess.call(["chown", "-R", user, self._slurm_spool_dir])
+
     def upgrade(self, channel):
         """Run upgrade operations."""
         pass
@@ -130,3 +154,4 @@ class SlurmDebManager(SlurmOpsManagerBase):
     def setup_system(self) -> None:
         """Install the slurm deb."""
         self._install_slurm_from_deb()
+        self._setup_paths()
