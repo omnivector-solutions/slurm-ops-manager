@@ -114,6 +114,8 @@ class SlurmDebManager(SlurmOpsManagerBase):
 
         # update specific needed dependencies
         subprocess.call(["apt-get", "install", "--yes", "libgcrypt20"])
+        subprocess.call(["apt-get", "install", "--yes", "mailutils"])
+        subprocess.call(["apt-get", "install", "--yes", "logrotate"])
 
         # pin munge vesion
         subprocess.call(["apt-get", "install", "--yes", "munge=0.5.14-4"])
