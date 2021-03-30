@@ -322,6 +322,9 @@ class SlurmOpsManagerBase:
         if self._slurm_component == "slurmdbd":
             target.chmod(0o600)
 
+        user_group = f"{self._slurm_user}:{self._slurm_group}"
+        subprocess.call(["chown", user_group, target])
+
     def restart_slurm_component(self):
         """Restart the slurm component."""
         self.slurm_systemctl("restart")

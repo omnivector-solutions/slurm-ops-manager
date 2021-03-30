@@ -66,18 +66,18 @@ class SlurmDebManager(SlurmOpsManagerBase):
     @property
     def _slurm_user(self) -> str:
         """Return the slurm user."""
-        if "slurmdbd" == self._slurm_component:
-            return "slurm"
-        else:
+        if "slurmd" == self._slurm_component:
             return "root"
+        else:
+            return "slurm"
 
     @property
     def _slurm_group(self) -> str:
         """Return the slurm group."""
-        if "slurmdbd" == self._slurm_component:
-            return "slurm"
-        else:
+        if "slurmd" == self._slurm_component:
             return "root"
+        else:
+            return "slurm"
 
     @property
     def _slurm_systemd_service(self) -> str:
