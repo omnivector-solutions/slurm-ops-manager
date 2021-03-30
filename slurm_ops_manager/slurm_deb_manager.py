@@ -80,6 +80,16 @@ class SlurmDebManager(SlurmOpsManagerBase):
             return "slurm"
 
     @property
+    def _slurmd_user(self) -> str:
+        """Return the slurmd user."""
+        return "root"
+
+    @property
+    def _slurmd_group(self) -> str:
+        """Return the slurmd group."""
+        return "root"
+
+    @property
     def _slurm_systemd_service(self) -> str:
         return f"{self._slurm_component}"
 

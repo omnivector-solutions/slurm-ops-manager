@@ -193,6 +193,16 @@ class SlurmOpsManagerBase:
         raise Exception("Inheriting object needs to define this property.")
 
     @property
+    def _slurmd_user(self) -> str:
+        """Return the slurmd user."""
+        raise Exception("Inheriting object needs to define this property.")
+
+    @property
+    def _slurmd_group(self) -> str:
+        """Return the slurmd group."""
+        raise Exception("Inheriting object needs to define this property.")
+
+    @property
     def slurm_component(self) -> str:
         """Return the slurm component we are."""
         return self._slurm_component
@@ -276,6 +286,7 @@ class SlurmOpsManagerBase:
             'slurmctld_parameters': ",".join(self._slurmctld_parameters),
             'slurm_plugstack_conf': str(self._slurm_plugstack_conf),
             'slurm_user': str(self._slurm_user),
+            'slurmd_user': str(self._slurmd_user),
         }
 
         template_name = self._slurm_conf_template_name
