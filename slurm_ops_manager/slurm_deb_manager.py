@@ -94,7 +94,7 @@ class SlurmDebManager(SlurmOpsManagerBase):
 
     @property
     def _munged_systemd_service(self) -> str:
-        return "munged"
+        return "munge"
 
     @property
     def slurm_version(self) -> str:
