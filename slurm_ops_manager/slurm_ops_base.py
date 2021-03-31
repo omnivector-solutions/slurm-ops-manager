@@ -330,10 +330,15 @@ class SlurmOpsManagerBase:
                 {**context, **common_config}
             )
         )
+
+        # set correct permissions and ownership for configuration file
         if self._slurm_component == "slurmdbd":
             target.chmod(0o600)
 
-        user_group = f"{self._slurm_user}:{self._slurm_group}"
+        if "slurmd" == self._slurm_component:
+            user_group = f"{self._slurmd_user}:{self._slurmd_group}"
+        else:
+            user_group = f"{self._slurm_user}:{self._slurm_group}"
         subprocess.call(["chown", user_group, target])
 
     def restart_slurm_component(self):

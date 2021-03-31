@@ -66,18 +66,12 @@ class SlurmDebManager(SlurmOpsManagerBase):
     @property
     def _slurm_user(self) -> str:
         """Return the slurm user."""
-        if "slurmd" == self._slurm_component:
-            return "root"
-        else:
-            return "slurm"
+        return "slurm"
 
     @property
     def _slurm_group(self) -> str:
         """Return the slurm group."""
-        if "slurmd" == self._slurm_component:
-            return "root"
-        else:
-            return "slurm"
+        return "slurm"
 
     @property
     def _slurmd_user(self) -> str:
@@ -145,7 +139,10 @@ class SlurmDebManager(SlurmOpsManagerBase):
     def _setup_paths(self):
         """Create needed paths with correct permisions."""
 
-        user = f"{self._slurm_user}:{self._slurm_group}"
+        if "slurmd" == self._slurm_component:
+            user = f"{self._slurmd_user}:{self._slurmd_group}"
+        else:
+            user = f"{self._slurm_user}:{self._slurm_group}"
 
         if not self._slurm_conf_dir.exists():
             self._slurm_conf_dir.mkdir()
