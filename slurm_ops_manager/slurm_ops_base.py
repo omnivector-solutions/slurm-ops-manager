@@ -13,24 +13,16 @@ from jinja2 import Environment, FileSystemLoader
 from slurm_ops_manager.utils import get_hostname
 
 
-OS_RELEASE = Path("/etc/os-release").read_text().split("\n")
-OS_RELEASE_CTXT = {
-    k: v.strip("\"")
-    for k, v in [item.split("=") for item in OS_RELEASE if item != '']
-}
-
 logger = logging.getLogger()
 
 
 class SlurmOpsManagerBase:
     """Base class for slurm ops."""
 
-    def __init__(self, component, resource_path):
+    def __init__(self, component):
         """Set the initial values for attributes in the base class."""
         self._template_dir = Path(
             os.path.dirname(os.path.abspath(__file__))) / 'templates'
-
-        self._resource_path = resource_path
 
         port_map = {
             'slurmctld': "6817",
@@ -39,6 +31,8 @@ class SlurmOpsManagerBase:
             'slurmrestd': "6820",
         }
 
+        # Note: missing slurm cmds
+        # Body: Need to extend this list to include all slurm user cmds
         self._slurm_cmds = [
             "sacct",
             "sacctmgr",
@@ -80,6 +74,7 @@ class SlurmOpsManagerBase:
         self._slurmctld_pid_file = self._slurm_pid_dir / 'slurmctld.pid'
         self._slurmdbd_pid_file = self._slurm_pid_dir / 'slurmdbd.pid'
 
+        # Note: Come back to mitigate this configless cruft
         self._slurmctld_parameters = ["enable_configless"]
 
         self._hostname = get_hostname()
@@ -87,11 +82,6 @@ class SlurmOpsManagerBase:
 
         self._slurm_conf_template_location = \
             self._template_dir / self._slurm_conf_template_name
-
-    @property
-    def os(self):
-        """Return what operating system we are running."""
-        return OS_RELEASE_CTXT['ID']
 
     @property
     def hostname(self) -> str:
@@ -111,9 +101,9 @@ class SlurmOpsManagerBase:
     @property
     def slurm_is_active(self) -> bool:
         """Return True if the slurm component is running."""
-        return self._slurm_systemctl("is-active") == 0
+        return self.slurm_systemctl("is-active") == 0
 
-    def _slurm_systemctl(self, operation):
+    def slurm_systemctl(self, operation):
         """Start systemd services for slurmd."""
         supported_systemctl_cmds = [
             "enable",
@@ -121,6 +111,7 @@ class SlurmOpsManagerBase:
             "stop",
             "restart",
             "is-active",
+            "daemon-reload",
         ]
 
         if operation not in supported_systemctl_cmds:
@@ -199,6 +190,16 @@ class SlurmOpsManagerBase:
     @property
     def _slurm_group(self) -> str:
         """Return the slurm group."""
+        raise Exception("Inheriting object needs to define this property.")
+
+    @property
+    def _slurmd_user(self) -> str:
+        """Return the slurmd user."""
+        raise Exception("Inheriting object needs to define this property.")
+
+    @property
+    def _slurmd_group(self) -> str:
+        """Return the slurmd group."""
         raise Exception("Inheriting object needs to define this property.")
 
     @property
@@ -285,6 +286,7 @@ class SlurmOpsManagerBase:
             'slurmctld_parameters': ",".join(self._slurmctld_parameters),
             'slurm_plugstack_conf': str(self._slurm_plugstack_conf),
             'slurm_user': str(self._slurm_user),
+            'slurmd_user': str(self._slurmd_user),
         }
 
         template_name = self._slurm_conf_template_name
@@ -328,12 +330,20 @@ class SlurmOpsManagerBase:
                 {**context, **common_config}
             )
         )
+
+        # set correct permissions and ownership for configuration file
         if self._slurm_component == "slurmdbd":
             target.chmod(0o600)
 
+        if "slurmd" == self._slurm_component:
+            user_group = f"{self._slurmd_user}:{self._slurmd_group}"
+        else:
+            user_group = f"{self._slurm_user}:{self._slurm_group}"
+        subprocess.call(["chown", user_group, target])
+
     def restart_slurm_component(self):
         """Restart the slurm component."""
-        self._slurm_systemctl("restart")
+        self.slurm_systemctl("restart")
 
     def write_munge_key(self, munge_key):
         """Write the munge key."""
@@ -388,7 +398,7 @@ class SlurmOpsManagerBase:
 
         try:
             return subprocess.call([
-                f"{self._slurm_bin_dir}/{command}"
+                f"{command}"
             ] + arg_string.split())
         except subprocess.CalledProcessError as e:
             logger.error(f"Error running {command} - {e}")

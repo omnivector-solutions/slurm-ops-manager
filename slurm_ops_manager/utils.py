@@ -1,10 +1,22 @@
 #!/usr/bin/env python3
 """slurm-ops-manager utils."""
 import os
+from pathlib import Path
 import re
 import socket
 import subprocess
 import sys
+
+
+OS_RELEASE = Path("/etc/os-release").read_text().split("\n")
+OS_RELEASE_CTXT = {
+    k: v.strip("\"")
+    for k, v in [item.split("=") for item in OS_RELEASE if item != '']
+}
+
+def os():
+    """Return what operating system we are running."""
+    return OS_RELEASE_CTXT['ID']
 
 
 def _get_real_mem():

@@ -1,4 +1,4 @@
 #!/usr/bin/python3
-"""This module provides the SlurmSnapManager and SlurmTarManager."""
-from .slurm_snap_manager import SlurmSnapManager # noqa
+"""This module provides the SlurmDebManager and SlurmTarManager."""
+from .slurm_deb_manager import SlurmDebManager # noqa
 from .slurm_tar_manager import SlurmTarManager # noqa
