@@ -398,7 +398,7 @@ class SlurmOpsManagerBase:
 
         try:
             return subprocess.call([
-                f"{self._slurm_bin_dir}/{command}"
+                f"{command}"
             ] + arg_string.split())
         except subprocess.CalledProcessError as e:
             logger.error(f"Error running {command} - {e}")
