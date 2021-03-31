@@ -1,3 +1,7 @@
+## 0.2.0
+
+- No documented changes.
+
 ## 0.1.1
 
 - No documented changes.
