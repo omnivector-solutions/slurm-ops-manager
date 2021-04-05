@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""This module provides the SlurmDebManager."""
+"""This module provides the SlurmRpmManager."""
 import logging
 import subprocess
 import sys
@@ -11,7 +11,7 @@ from slurm_ops_manager.slurm_ops_base import SlurmOpsManagerBase
 logger = logging.getLogger()
 
 
-class SlurmDebManager(SlurmOpsManagerBase):
+class SlurmRpmManager(SlurmOpsManagerBase):
     """Slurm debian operations manager."""
 
     def __init__(self, component):
@@ -21,67 +21,67 @@ class SlurmDebManager(SlurmOpsManagerBase):
     @property
     def _slurm_bin_dir(self) -> Path:
         """Return the directory where the slurm bins live."""
-        return Path("/usr/bin")
+        return Path("/usr/bin") # move to base class
 
     @property
     def _slurm_conf_dir(self) -> Path:
-        return Path("/etc/slurm")
+        return Path("/etc/slurm")  # move to base class
 
     @property
     def _slurm_spool_dir(self) -> Path:
-        return Path("/var/spool/slurmd")
+        return Path("/var/spool/slurmd") # move to base class
 
     @property
     def _slurm_state_dir(self) -> Path:
-        return Path("/var/spool/slurmctld")
+        return Path("/var/spool/slurmctld") # move to base class
 
     @property
     def _slurm_plugin_dir(self) -> Path:
-        return Path("/usr/lib/x86_64-linux-gnu/slurm-wlm/")
+        return Path("/usr/lib64/slurm/")
 
     @property
     def _slurm_log_dir(self) -> Path:
-        return Path("/var/log/slurm")
+        return Path("/var/log/slurm") # move to base class
 
     @property
     def _slurm_pid_dir(self) -> Path:
-        return Path("/var/run/")
+        return Path("/var/run/") # move to base class
 
     @property
     def _mail_prog(self) -> Path:
-        return Path("/usr/bin/mail.mailutils")
+        return Path("/usr/bin/mailx")
 
     @property
     def _munge_key_path(self) -> Path:
-        return Path("/etc/munge/munge.key")
+        return Path("/etc/munge/munge.key")  # move to base class
 
     @property
     def _slurm_plugstack_dir(self) -> Path:
-        return Path("/etc/slurm/plugstack.d")
+        return Path("/etc/slurm/plugstack.d") # move to base class
 
     @property
     def _slurm_plugstack_conf(self) -> Path:
-        return self._slurm_plugstack_dir / 'plugstack.conf'
+        return self._slurm_plugstack_dir / 'plugstack.conf' # TODO check this
 
     @property
     def _slurm_user(self) -> str:
         """Return the slurm user."""
-        return "slurm"
+        return "slurm" # move to base class
 
     @property
     def _slurm_group(self) -> str:
         """Return the slurm group."""
-        return "slurm"
+        return "slurm" # move to base class
 
     @property
     def _slurmd_user(self) -> str:
         """Return the slurmd user."""
-        return "root"
+        return "root" # move to base class
 
     @property
     def _slurmd_group(self) -> str:
         """Return the slurmd group."""
-        return "root"
+        return "root" # move to base class
 
     @property
     def _slurm_systemd_service(self) -> str:
@@ -90,51 +90,43 @@ class SlurmDebManager(SlurmOpsManagerBase):
     @property
     def _munge_socket(self) -> Path:
         """Return the munge socket."""
-        return Path("/var/run/munge/munge.socket.2")
+        return Path("/var/run/munge/munge.socket.2") # move to base class
 
     @property
     def _munged_systemd_service(self) -> str:
-        return "munge"
+        return "munge" # move to base class
 
     @property
     def slurm_version(self) -> str:
         """Return slurm verion."""
-        # from Debian HPC Team
-        return "20.11.4-1"
+        # from EPEL7
+        return "20.11.2"
 
-    def _install_slurm_from_deb(self):
+    def _install_slurm_from_rpm(self):
         """Install Slurm debs"""
 
         slurm_component = self._slurm_component
 
-        with open("/etc/apt/sources.list.d/bullseye.list", "w") as afile:
-            afile.write("deb http://deb.debian.org/debian bullseye main")
-
-        subprocess.call(["apt-get", "install", "--yes", "debian-keyring"])
-        subprocess.call(["apt-key", "adv", "--keyserver",
-                          "keyserver.ubuntu.com", "--recv-keys",
-                          "04EE7237B7D453EC", "648ACFD622F3D138"])
-        subprocess.call(["apt-get", "update"])
+        # TODO handle EPEL7 and EPEL8
+        epel = "https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm"
+        subprocess.call(["yum", "install", "--assumeyes", epel])
+        subprocess.call(["yum", "makecache"])
 
         # update specific needed dependencies
-        subprocess.call(["apt-get", "install", "--yes", "libgcrypt20"])
-        subprocess.call(["apt-get", "install", "--yes", "mailutils"])
-        subprocess.call(["apt-get", "install", "--yes", "logrotate"])
+        subprocess.call(["yum", "install", "--assumeyes", "pciutils"])
 
         # pin munge vesion
-        subprocess.call(["apt-get", "install", "--yes", "munge=0.5.14-4"])
+        subprocess.call(["yum", "install", "--assumeyes", "munge-0.5.11"])
 
         try:
             # @todo: improve slurm version handling
-            subprocess.call(["apt-get", "install", "--yes",
-                             slurm_component + "=" + self.slurm_version,
-                             "slurm-client=" + self.slurm_version])
+            subprocess.call(["yum", "install", "--assumeyes",
+                             f"slurm-{slurm_component}-{self.slurm_version}",
+                             "slurm-" + self.slurm_version])
         except subprocess.CalledProcessError as e:
             print(f"Error installing {slurm_component} - {e}")
             # @todo: set appropriate juju status
             return -1
-
-        subprocess.call(["apt-get", "autoremove", "--yes"])
 
     def _setup_paths(self):
         """Create needed paths with correct permisions."""
@@ -159,5 +151,5 @@ class SlurmDebManager(SlurmOpsManagerBase):
 
     def setup_system(self) -> None:
         """Install the slurm deb."""
-        self._install_slurm_from_deb()
+        self._install_slurm_from_rpm()
         self._setup_paths()

@@ -13,7 +13,7 @@ from ops.framework import (
 from ops.model import ModelError
 from slurm_ops_manager.slurm_ops_managers import (
     SlurmDebManager,
-    SlurmTarManager,
+    SlurmRpmManager,
 )
 from slurm_ops_manager.utils import get_inventory
 from slurm_ops_manager import utils
@@ -42,8 +42,7 @@ class SlurmManager(Object):
         if operating_system == "ubuntu":
             self._slurm_resource_manager = SlurmDebManager(component)
         elif operating_system  == "centos":
-            #self._slurm_resource_manager = SlurmRpmManager(component)
-            raise Exception("Not yet") # @todo: do it
+            self._slurm_resource_manager = SlurmRpmManager(component)
         else:
             raise Exception("Unsupported OS")
 
