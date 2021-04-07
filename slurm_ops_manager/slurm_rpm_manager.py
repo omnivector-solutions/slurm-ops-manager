@@ -107,16 +107,13 @@ class SlurmRpmManager(SlurmOpsManagerBase):
 
         slurm_component = self._slurm_component
 
-        # TODO handle EPEL7 and EPEL8
-        epel = "https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm"
-        subprocess.call(["yum", "install", "--assumeyes", epel])
+        # the dispatch file in the charms takes care of installing epel and py3
         subprocess.call(["yum", "makecache"])
 
-        # update specific needed dependencies
-        subprocess.call(["yum", "install", "--assumeyes", "pciutils"])
-
-        # pin munge vesion
-        subprocess.call(["yum", "install", "--assumeyes", "munge-0.5.11"])
+        # update/install specific needed dependencies
+        subprocess.call(["yum", "install", "--assumeyes",
+                         "pciutils", "logrotate", "mailx",
+                         "munge-0.5.11"]) # pin munge vesion
 
         try:
             # @todo: improve slurm version handling
