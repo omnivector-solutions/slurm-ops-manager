@@ -125,6 +125,12 @@ class SlurmRpmManager(SlurmOpsManagerBase):
             # @todo: set appropriate juju status
             return -1
 
+        # munge rpm does not create a munge key, so we need to create one
+        keycmd = f"dd if=/dev/urandom of={str(self._munge_key_path)} bs=1 count=1024"
+        subprocess.call(keycmd.split())
+        subprocess.call(f"chown munge:munge {str(self._munge_key_path)}".split())
+        subprocess.call(f"chmod 0400 {str(self._munge_key_path)}".split())
+
     def _setup_paths(self):
         """Create needed paths with correct permisions."""
 
