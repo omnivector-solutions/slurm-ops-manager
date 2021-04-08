@@ -37,7 +37,7 @@ class SlurmManager(Object):
         self._stored.set_default(slurm_installed=False)
         self._stored.set_default(slurm_version_set=False)
 
-        operating_system = utils.os()
+        operating_system = utils.operating_system()
 
         if operating_system == "ubuntu":
             self._slurm_resource_manager = SlurmDebManager(component)

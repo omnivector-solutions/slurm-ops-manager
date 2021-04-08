@@ -14,7 +14,7 @@ OS_RELEASE_CTXT = {
     for k, v in [item.split("=") for item in OS_RELEASE if item != '']
 }
 
-def os():
+def operating_system():
     """Return what operating system we are running."""
     return OS_RELEASE_CTXT['ID']
 

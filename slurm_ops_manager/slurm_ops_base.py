@@ -11,6 +11,7 @@ from Crypto.PublicKey import RSA
 
 from jinja2 import Environment, FileSystemLoader
 from slurm_ops_manager.utils import get_hostname
+from slurm_ops_manager.utils import operating_system
 
 
 logger = logging.getLogger()
@@ -290,6 +291,11 @@ class SlurmOpsManagerBase:
 
     def write_slurm_config(self, context) -> None:
         """Render the context to a template, adding in common configs."""
+        if operating_system() == 'ubuntu':
+            enable_jwt = True
+        else:
+            enable_jwt = False
+
         common_config = {
             'munge_socket': str(self._munge_socket),
             'mail_prog': str(self._mail_prog),
@@ -302,6 +308,7 @@ class SlurmOpsManagerBase:
             'slurmdbd_pid_file': str(self._slurmdbd_pid_file),
             'slurmd_pid_file': str(self._slurmd_pid_file),
             'slurmctld_pid_file': str(self._slurmctld_pid_file),
+            'enable_jwt': enable_jwt,
             'jwt_rsa_key_file': str(self._jwt_rsa_key_file),
             'slurmctld_parameters': ",".join(self._slurmctld_parameters),
             'slurm_plugstack_conf': str(self._slurm_plugstack_conf),
