@@ -188,9 +188,19 @@ class SlurmOpsManagerBase:
         raise Exception("Inheriting object needs to define this property.")
 
     @property
+    def _slurm_user_id(self) -> str:
+        """Return the slurm user ID."""
+        return "64030"
+
+    @property
     def _slurm_group(self) -> str:
         """Return the slurm group."""
         raise Exception("Inheriting object needs to define this property.")
+
+    @property
+    def _slurm_group_id(self) -> str:
+        """Return the slurm group ID."""
+        return "64030"
 
     @property
     def _slurmd_user(self) -> str:
@@ -214,6 +224,16 @@ class SlurmOpsManagerBase:
     @property
     def _munged_systemd_service(self) -> str:
         raise Exception("Inheriting object needs to define this property.")
+
+    @property
+    def _munge_user(self) -> str:
+        """The user for munge daemon."""
+        return "munge"
+
+    @property
+    def _munge_group(self) -> str:
+        """The group for munge daemon."""
+        return "munge"
 
     def create_systemd_override_for_nofile(self):
         """Create the override.conf file for slurm systemd service."""

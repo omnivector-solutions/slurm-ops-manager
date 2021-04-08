@@ -66,12 +66,12 @@ class SlurmRpmManager(SlurmOpsManagerBase):
     @property
     def _slurm_user(self) -> str:
         """Return the slurm user."""
-        return "slurm" # move to base class
+        return "slurm"
 
     @property
     def _slurm_group(self) -> str:
         """Return the slurm group."""
-        return "slurm" # move to base class
+        return "slurm"
 
     @property
     def _slurmd_user(self) -> str:
@@ -125,11 +125,27 @@ class SlurmRpmManager(SlurmOpsManagerBase):
             # @todo: set appropriate juju status
             return -1
 
+        logger.info("#### All packages installed!")
+
         # munge rpm does not create a munge key, so we need to create one
+        logger.info("#### Creating munge key")
         keycmd = f"dd if=/dev/urandom of={str(self._munge_key_path)} bs=1 count=1024"
         subprocess.call(keycmd.split())
-        subprocess.call(f"chown munge:munge {str(self._munge_key_path)}".split())
+        usergroup = f"{self._munge_user}:{self._munge_group}"
+        subprocess.call(f"chown {usergroup} {str(self._munge_key_path)}".split())
         subprocess.call(f"chmod 0400 {str(self._munge_key_path)}".split())
+        logger.info("#### Created munge key")
+
+        # current rpms do not create a slurm user and group, so we create it
+        logger.info("#### Creating slurm user and group")
+        subprocess.call(["groupadd", "--gid", self._slurm_group_id,
+                                     self._slurm_group])
+        subprocess.call(["adduser", "--system", "--gid", self._slurm_group_id,
+                                    "--uid",self._slurm_user_id,
+                                    "--no-create-home",
+                                    "--home", "/nonexistent",
+                                    self._slurm_user])
+        logger.info("#### Created slurm user and group")
 
     def _setup_paths(self):
         """Create needed paths with correct permisions."""
