@@ -139,6 +139,10 @@ class SlurmManager(Object):
         """Restart munged."""
         self._slurm_resource_manager.restart_munged()
 
+    def start_munged(self):
+        """Start munged."""
+        self._slurm_resource_manager.start_munged()
+
     def slurm_cmd(self, command, arg_string):
         """Run a slurm command."""
         self._slurm_resource_manager.slurm_cmd(command, arg_string)

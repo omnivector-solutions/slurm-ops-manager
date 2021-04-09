@@ -405,6 +405,24 @@ class SlurmOpsManagerBase:
         munge_key = self._munge_key_path.read_bytes()
         return b64encode(munge_key).decode()
 
+    def start_munged(self):
+        """Enable and start munge.service"""
+        munge = self._munged_systemd_service
+        subprocess.call(["systemctl", "enable", munge])
+        subprocess.call(["systemctl", "start", munge])
+
+        try:
+            status = subprocess.check_output(f"systemctl is-active {munge}",
+                                             shell=True)
+            if 'active' != status:
+                logger.error(f"Error starting munge: {status}")
+                return -1
+            else:
+                logger.debug("#### munge.service started and enabled")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error restarting munged - {e}")
+            return -1
+
     def restart_munged(self):
         """Restart the munged process."""
         try:
