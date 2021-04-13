@@ -19,82 +19,12 @@ class SlurmDebManager(SlurmOpsManagerBase):
         super().__init__(component)
 
     @property
-    def _slurm_bin_dir(self) -> Path:
-        """Return the directory where the slurm bins live."""
-        return Path("/usr/bin")
-
-    @property
-    def _slurm_conf_dir(self) -> Path:
-        return Path("/etc/slurm")
-
-    @property
-    def _slurm_spool_dir(self) -> Path:
-        return Path("/var/spool/slurmd")
-
-    @property
-    def _slurm_state_dir(self) -> Path:
-        return Path("/var/spool/slurmctld")
-
-    @property
     def _slurm_plugin_dir(self) -> Path:
         return Path("/usr/lib/x86_64-linux-gnu/slurm-wlm/")
 
     @property
-    def _slurm_log_dir(self) -> Path:
-        return Path("/var/log/slurm")
-
-    @property
-    def _slurm_pid_dir(self) -> Path:
-        return Path("/var/run/")
-
-    @property
     def _mail_prog(self) -> Path:
         return Path("/usr/bin/mail.mailutils")
-
-    @property
-    def _munge_key_path(self) -> Path:
-        return Path("/etc/munge/munge.key")
-
-    @property
-    def _slurm_plugstack_dir(self) -> Path:
-        return Path("/etc/slurm/plugstack.d")
-
-    @property
-    def _slurm_plugstack_conf(self) -> Path:
-        return self._slurm_plugstack_dir / 'plugstack.conf'
-
-    @property
-    def _slurm_user(self) -> str:
-        """Return the slurm user."""
-        return "slurm"
-
-    @property
-    def _slurm_group(self) -> str:
-        """Return the slurm group."""
-        return "slurm"
-
-    @property
-    def _slurmd_user(self) -> str:
-        """Return the slurmd user."""
-        return "root"
-
-    @property
-    def _slurmd_group(self) -> str:
-        """Return the slurmd group."""
-        return "root"
-
-    @property
-    def _slurm_systemd_service(self) -> str:
-        return f"{self._slurm_component}"
-
-    @property
-    def _munge_socket(self) -> Path:
-        """Return the munge socket."""
-        return Path("/var/run/munge/munge.socket.2")
-
-    @property
-    def _munged_systemd_service(self) -> str:
-        return "munge"
 
     @property
     def slurm_version(self) -> str:

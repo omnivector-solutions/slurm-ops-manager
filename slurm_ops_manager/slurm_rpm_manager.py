@@ -19,82 +19,12 @@ class SlurmRpmManager(SlurmOpsManagerBase):
         super().__init__(component)
 
     @property
-    def _slurm_bin_dir(self) -> Path:
-        """Return the directory where the slurm bins live."""
-        return Path("/usr/bin") # move to base class
-
-    @property
-    def _slurm_conf_dir(self) -> Path:
-        return Path("/etc/slurm")  # move to base class
-
-    @property
-    def _slurm_spool_dir(self) -> Path:
-        return Path("/var/spool/slurmd") # move to base class
-
-    @property
-    def _slurm_state_dir(self) -> Path:
-        return Path("/var/spool/slurmctld") # move to base class
-
-    @property
     def _slurm_plugin_dir(self) -> Path:
         return Path("/usr/lib64/slurm/")
 
     @property
-    def _slurm_log_dir(self) -> Path:
-        return Path("/var/log/slurm") # move to base class
-
-    @property
-    def _slurm_pid_dir(self) -> Path:
-        return Path("/var/run/") # move to base class
-
-    @property
     def _mail_prog(self) -> Path:
         return Path("/usr/bin/mailx")
-
-    @property
-    def _munge_key_path(self) -> Path:
-        return Path("/etc/munge/munge.key")  # move to base class
-
-    @property
-    def _slurm_plugstack_dir(self) -> Path:
-        return Path("/etc/slurm/plugstack.d") # move to base class
-
-    @property
-    def _slurm_plugstack_conf(self) -> Path:
-        return self._slurm_plugstack_dir / 'plugstack.conf' # TODO check this
-
-    @property
-    def _slurm_user(self) -> str:
-        """Return the slurm user."""
-        return "slurm"
-
-    @property
-    def _slurm_group(self) -> str:
-        """Return the slurm group."""
-        return "slurm"
-
-    @property
-    def _slurmd_user(self) -> str:
-        """Return the slurmd user."""
-        return "root" # move to base class
-
-    @property
-    def _slurmd_group(self) -> str:
-        """Return the slurmd group."""
-        return "root" # move to base class
-
-    @property
-    def _slurm_systemd_service(self) -> str:
-        return f"{self._slurm_component}"
-
-    @property
-    def _munge_socket(self) -> Path:
-        """Return the munge socket."""
-        return Path("/var/run/munge/munge.socket.2") # move to base class
-
-    @property
-    def _munged_systemd_service(self) -> str:
-        return "munge" # move to base class
 
     @property
     def slurm_version(self) -> str:

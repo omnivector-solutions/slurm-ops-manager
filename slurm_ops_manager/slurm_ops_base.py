@@ -129,102 +129,64 @@ class SlurmOpsManagerBase:
             logger.error(f"Error running {operation} - {e}")
 
     @property
+    def _slurm_bin_dir(self) -> Path:
+        """Return the directory where the slurm bins live."""
+        return Path("/usr/bin")
+
+    @property
+    def _slurm_conf_dir(self) -> Path:
+        """Return the directory for Slurm configuration files."""
+        return Path("/etc/slurm")
+
+    @property
+    def _slurm_spool_dir(self) -> Path:
+        """Return the directory for slurmd's state information."""
+        return Path("/var/spool/slurmd")
+
+    @property
+    def _slurm_state_dir(self) -> Path:
+        """Return the directory for slurmctld's state information."""
+        return Path("/var/spool/slurmctld")
+
+    @property
+    def _slurm_plugin_dir(self) -> Path:
+        """Return the path for the Slurm plugin dir."""
+        raise Exception("Inheriting object needs to define this property.")
+
+    @property
+    def _slurm_log_dir(self) -> Path:
+        """Return the directory for Slurm logs."""
+        return Path("/var/log/slurm")
+
+    @property
+    def _slurm_pid_dir(self) -> Path:
+        """Return the directory for Slurm PID file."""
+        return Path("/var/run/")
+
+    @property
     def _jwt_rsa_key_file(self) -> Path:
         """Return the jwt rsa key file path."""
         return self._slurm_state_dir / "jwt_hs256.key"
 
     @property
-    def _slurm_bin_dir(self) -> Path:
-        """Return the directory where the slurm bins live."""
-        raise Exception("Inheriting object needs to define this property.")
-
-    @property
-    def _slurm_systemd_service(self) -> str:
-        raise Exception("Inheriting object needs to define this property.")
-
-    @property
-    def _slurm_conf_dir(self) -> Path:
-        raise Exception("Inheriting object needs to define this property.")
-
-    @property
-    def _slurm_spool_dir(self) -> Path:
-        raise Exception("Inheriting object needs to define this property.")
-
-    @property
-    def _slurm_state_dir(self) -> Path:
-        raise Exception("Inheriting object needs to define this property.")
-
-    @property
-    def _slurm_plugin_dir(self) -> Path:
-        raise Exception("Inheriting object needs to define this property.")
-
-    @property
-    def _slurm_log_dir(self) -> Path:
-        raise Exception("Inheriting object needs to define this property.")
-
-    @property
-    def _slurm_plugstack_conf(self) -> Path:
-        raise Exception("Inheriting object needs to define this property.")
-
-    @property
-    def _slurm_plugstack_dir(self) -> Path:
-        raise Exception("Inheriting object needs to define this property.")
-
-    @property
-    def _slurm_pid_dir(self) -> Path:
-        raise Exception("Inheriting object needs to define this property.")
-
-    @property
     def _mail_prog(self) -> Path:
+        """Return the full path for the mailing program."""
         raise Exception("Inheriting object needs to define this property.")
+
+    @property
+    def _munge_key_path(self) -> Path:
+        """Return the full path to the munge key."""
+        return Path("/etc/munge/munge.key")
 
     @property
     def _munge_socket(self) -> Path:
         """Return the munge socket."""
-        raise Exception("Inheriting object needs to define this property.")
-
-    @property
-    def _slurm_user(self) -> str:
-        """Return the slurm user."""
-        raise Exception("Inheriting object needs to define this property.")
-
-    @property
-    def _slurm_user_id(self) -> str:
-        """Return the slurm user ID."""
-        return "64030"
-
-    @property
-    def _slurm_group(self) -> str:
-        """Return the slurm group."""
-        raise Exception("Inheriting object needs to define this property.")
-
-    @property
-    def _slurm_group_id(self) -> str:
-        """Return the slurm group ID."""
-        return "64030"
-
-    @property
-    def _slurmd_user(self) -> str:
-        """Return the slurmd user."""
-        raise Exception("Inheriting object needs to define this property.")
-
-    @property
-    def _slurmd_group(self) -> str:
-        """Return the slurmd group."""
-        raise Exception("Inheriting object needs to define this property.")
-
-    @property
-    def slurm_component(self) -> str:
-        """Return the slurm component we are."""
-        return self._slurm_component
-
-    @property
-    def _munge_key_path(self) -> Path:
-        raise Exception("Inheriting object needs to define this property.")
+        return Path("/var/run/munge/munge.socket.2")
 
     @property
     def _munged_systemd_service(self) -> str:
-        raise Exception("Inheriting object needs to define this property.")
+        """Return the name of the Munge Systemd unit file."""
+        return "munge"
 
     @property
     def _munge_user(self) -> str:
@@ -235,6 +197,56 @@ class SlurmOpsManagerBase:
     def _munge_group(self) -> str:
         """The group for munge daemon."""
         return "munge"
+
+    @property
+    def _slurm_plugstack_dir(self) -> Path:
+        """Return the directory to the SPANK plugins."""
+        return Path("/etc/slurm/plugstack.d")
+
+    @property
+    def _slurm_plugstack_conf(self) -> Path:
+        """Return the full path to the SPANK configuration file."""
+        return self._slurm_plugstack_dir / 'plugstack.conf' # TODO check this on CentOS
+
+    @property
+    def _slurm_systemd_service(self) -> str:
+        """Return the Slurm systemd unit file."""
+        return f"{self._slurm_component}"
+
+    @property
+    def _slurm_user(self) -> str:
+        """Return the slurm user."""
+        return "slurm"
+
+    @property
+    def _slurm_user_id(self) -> str:
+        """Return the slurm user ID."""
+        return "64030"
+
+    @property
+    def _slurm_group(self) -> str:
+        """Return the slurm group."""
+        return "slurm"
+
+    @property
+    def _slurm_group_id(self) -> str:
+        """Return the slurm group ID."""
+        return "64030"
+
+    @property
+    def _slurmd_user(self) -> str:
+        """Return the slurmd user."""
+        return "root"
+
+    @property
+    def _slurmd_group(self) -> str:
+        """Return the slurmd group."""
+        return "root"
+
+    @property
+    def slurm_component(self) -> str:
+        """Return the slurm component we are."""
+        return self._slurm_component
 
     def create_systemd_override_for_nofile(self):
         """Create the override.conf file for slurm systemd service."""
