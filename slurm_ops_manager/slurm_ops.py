@@ -82,7 +82,10 @@ class SlurmManager(Object):
     def install(self) -> None:
         """Prepare the system for slurm."""
 
-        self._slurm_resource_manager.setup_system()
+        self._slurm_resource_manager.setup_slurm()
+        if "slurmd" == self._slurm_component:
+            self._slurm_resource_manager.setup_nhc()
+
         self._slurm_resource_manager.create_systemd_override_for_nofile()
         self._slurm_resource_manager.slurm_systemctl("daemon-reload")
         self._stored.slurm_installed = True
@@ -103,6 +106,17 @@ class SlurmManager(Object):
         self._slurm_resource_manager.configure_slurmctld_hostname(
             slurmctld_hostname
         )
+
+    def slurm_config_nhc_values(self, interval=600, state='ANY,CYCLE') -> dict:
+        """Craft NHC bits for slurm.conf."""
+        params = {'nhc': self._slurm_resource_manager.slurm_config_nhc_values(
+            interval, state)
+        }
+        return params
+
+    def render_nhc_config(self, extra_configs):
+        """Write NHC.conf using extra_configs."""
+        self._slurm_resource_manager.render_nhc_config(extra_configs)
 
     def render_slurm_configs(self, slurm_config) -> None:
         """Render the slurm.conf and munge key, restart slurm and munge."""

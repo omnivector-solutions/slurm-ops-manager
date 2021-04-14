@@ -6,6 +6,7 @@ import subprocess
 
 from base64 import b64decode, b64encode
 from pathlib import Path
+from shutil import rmtree
 
 from Crypto.PublicKey import RSA
 
@@ -102,6 +103,8 @@ class SlurmOpsManagerBase:
     @property
     def slurm_is_active(self) -> bool:
         """Return True if the slurm component is running."""
+        # FIXME this method is always failing
+        # the function returns nothing
         return self.slurm_systemctl("is-active") == 0
 
     def slurm_systemctl(self, operation):
@@ -267,13 +270,107 @@ class SlurmOpsManagerBase:
         """Preform upgrade-charm operations."""
         raise Exception("Inheriting object needs to define this method.")
 
-    def setup_system(self):
-        """Preform the install and setup operations."""
+    def setup_slurm(self):
+        """Install and setup Slurm and its dependencies."""
         raise Exception("Inheriting object needs to define this method.")
 
     @property
+    def nhc_version(self) -> str:
+        """Return NHC version."""
+        return "1.4.2-omni-1.0"
+
+    def _install_nhc_from_git(self) -> None:
+        """Install NHC from Omnivector fork."""
+        version = self.nhc_version
+        src = f"https://codeload.github.com/omnivector-solutions/nhc/tar.gz/refs/tags/{version}"
+
+        logger.info(f"#### downloading and installing NHC {version}")
+
+        base_path = Path("/tmp/nhc")
+        full_path = base_path / f"nhc-{version}"
+        nhc_tar = base_path / "nhc.tar.gz"
+
+        # cleanup old installations
+        if base_path.exists():
+            rmtree(base_path)
+        base_path.mkdir()
+
+        cmd = f"curl -o {nhc_tar} -s {src}".split()
+        subprocess.run(cmd)
+
+        cmd = f"tar --extract --directory {base_path} --file {nhc_tar}".split()
+        subprocess.run(cmd)
+
+        if operating_system() == 'ubuntu':
+            libdir = "/usr/lib"
+        else:
+            libdir = "/usr/libexec"
+
+        # NOTE: this requires make. We install it using the dispatch file in
+        # the slurmd charm.
+        try:
+            locale = {'LC_ALL':'C', 'LANG':'C.UTF-8'}
+            cmd = f"./autogen.sh --prefix=/usr --sysconfdir=/etc \
+                                 --libexecdir={libdir}".split()
+            logger.info(f'##### NHC - running autogen')
+            r = subprocess.run(cmd, cwd=full_path, env=locale,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT)
+            logger.debug(f'##### autogen: {r.stdout.decode()}')
+            r.check_returncode()
+
+            logger.info(f'##### NHC - running tests')
+            r = subprocess.run(["make", "test"], cwd=full_path,
+                               env=locale, stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT)
+            logger.debug(f'##### NHC make test: {r.stdout.decode()}')
+            r.check_returncode()
+            if not "tests passed" in r.stdout.decode():
+                logger.error(f"##### NHC tests failed")
+                logger.error(f"##### Error installing NHC")
+                return -1
+
+            logger.info(f'##### NHC - installing')
+            r = subprocess.run(["make", "install"], cwd=full_path,
+                               env=locale, stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT)
+            logger.debug(f'##### NHC make install: {r.stdout.decode()}')
+            r.check_returncode()
+        except subprocess.CalledProcessError as e:
+            logger.error(f"#### Error installing NHC: {e.cmd}")
+            return -1
+
+        logger.info("#### NHC succesfully installed")
+
+    def render_nhc_config(self, extra_configs=None) -> None:
+        """Render basic NHC.conf during installation."""
+        target = Path('/etc/nhc/nhc.conf')
+
+        context = {'munge_user': self._munge_user,
+                   'extra_configs': extra_configs}
+
+        environment = Environment(loader=FileSystemLoader(self._template_dir))
+        template = environment.get_template('nhc.conf.tmpl')
+        try:
+            target.write_text(template.render(context))
+        except FileNotFoundError as e:
+            logger.error(f"#### Error rendering NHC.conf: {e}")
+            return -1
+
+    def setup_nhc(self) -> None:
+        """Install NHC and its dependencies."""
+        self._install_nhc_from_git()
+        self.render_nhc_config()
+
+    def slurm_config_nhc_values(self, interval=600, state='ANY,CYCLE'):
+        """NHC parameters for slurm.conf."""
+        return {'nhc_bin': '/sbin/nhc',
+                'health_check_interval': interval,
+                'health_check_node_state': state}
+
+    @property
     def slurm_version(self) -> str:
-        """Return slurm verion."""
+        """Return slurm version."""
         raise Exception("Inheriting object needs to define this property.")
 
     def write_acct_gather_conf(self, context) -> None:

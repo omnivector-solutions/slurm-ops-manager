@@ -60,7 +60,7 @@ class SlurmDebManager(SlurmOpsManagerBase):
                              slurm_component + "=" + self.slurm_version,
                              "slurm-client=" + self.slurm_version])
         except subprocess.CalledProcessError as e:
-            print(f"Error installing {slurm_component} - {e}")
+            logger.error(f"Error installing {slurm_component} - {e}")
             # @todo: set appropriate juju status
             return -1
 
@@ -87,7 +87,7 @@ class SlurmDebManager(SlurmOpsManagerBase):
         """Run upgrade operations."""
         pass
 
-    def setup_system(self) -> None:
-        """Install the slurm deb."""
+    def setup_slurm(self) -> None:
+        """Install Slurm and its dependencies."""
         self._install_slurm_from_deb()
         self._setup_paths()
