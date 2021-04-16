@@ -551,9 +551,7 @@ class SlurmOpsManagerBase:
             return -1
 
         try:
-            return subprocess.call([
-                f"{command}"
-            ] + arg_string.split())
+            return subprocess.call([f"{command}"] + arg_string.split())
         except subprocess.CalledProcessError as e:
             logger.error(f"Error running {command} - {e}")
             return -1

@@ -30,7 +30,7 @@ class SlurmRpmManager(SlurmOpsManagerBase):
     def slurm_version(self) -> str:
         """Return slurm verion."""
         # from EPEL7
-        return "20.11.2"
+        return "20.11.5"
 
     def _install_slurm_from_rpm(self):
         """Install Slurm debs"""
@@ -43,13 +43,14 @@ class SlurmRpmManager(SlurmOpsManagerBase):
         # update/install specific needed dependencies
         subprocess.call(["yum", "install", "--assumeyes",
                          "pciutils", "logrotate", "mailx",
-                         "munge-0.5.11"]) # pin munge vesion
+                         "munge"])
 
         try:
             # @todo: improve slurm version handling
             subprocess.call(["yum", "install", "--assumeyes",
                              f"slurm-{slurm_component}-{self.slurm_version}",
                              "slurm-" + self.slurm_version])
+            # TODO have a proper check for succesfull installtion
         except subprocess.CalledProcessError as e:
             logger.error(f"Error installing {slurm_component} - {e}")
             # @todo: set appropriate juju status
