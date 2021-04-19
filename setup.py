@@ -1,7 +1,7 @@
 from setuptools import find_packages, setup
 
 
-__version__ = "0.3.1+dev"
+__version__ = "0.4.0"
 
 setup(
     name='slurm-ops-manager',
