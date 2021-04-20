@@ -15,6 +15,7 @@ from slurm_ops_manager.slurm_ops_managers import (
     SlurmDebManager,
     SlurmRpmManager,
 )
+from slurm_ops_manager.infiniband import Infiniband
 from slurm_ops_manager.utils import get_inventory
 from slurm_ops_manager import utils
 
@@ -45,6 +46,8 @@ class SlurmManager(Object):
             self._slurm_resource_manager = SlurmRpmManager(component)
         else:
             raise Exception("Unsupported OS")
+
+        self.infiniband = Infiniband(charm, component)
 
     @property
     def hostname(self):

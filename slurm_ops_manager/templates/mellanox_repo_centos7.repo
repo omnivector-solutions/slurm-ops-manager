@@ -1,0 +1,15 @@
+#
+# Mellanox Technologies Ltd. public repository configuration file.
+# For more information, refer to http://linux.mellanox.com
+#
+# Downloaded from
+# https://linux.mellanox.com/public/repo/mlnx_ofed/latest/rhel7.9/mellanox_mlnx_ofed.repo
+# on 2021-04-20
+
+[mlnx_ofed_5.3-1.0.0.1_base]
+name=Mellanox Technologies rhel7.9-$basearch mlnx_ofed 5.3-1.0.0.1 GA
+baseurl=http://linux.mellanox.com/public/repo/mlnx_ofed/5.3-1.0.0.1/rhel7.9/$basearch
+enabled=1
+gpgkey=http://www.mellanox.com/downloads/ofed/RPM-GPG-KEY-Mellanox
+gpgcheck=1
+
