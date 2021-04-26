@@ -2,6 +2,7 @@
 """This module provides the SlurmInstallManager."""
 import logging
 import os
+import shlex
 import subprocess
 
 from base64 import b64decode, b64encode
@@ -103,9 +104,13 @@ class SlurmOpsManagerBase:
     @property
     def slurm_is_active(self) -> bool:
         """Return True if the slurm component is running."""
-        # FIXME this method is always failing
-        # the function returns nothing
-        return self.slurm_systemctl("is-active") == 0
+        try:
+            cmd = f"systemctl is-active {self._slurm_systemd_service}"
+            r = subprocess.check_output(shlext.split(cmd))
+            return 'active' == r.decode().strip().lower()
+        except subprocess.CalledProcessError as e:
+            return False
+        return False
 
     def slurm_systemctl(self, operation):
         """Start systemd services for slurmd."""
@@ -114,7 +119,6 @@ class SlurmOpsManagerBase:
             "start",
             "stop",
             "restart",
-            "is-active",
             "daemon-reload",
         ]
 
@@ -523,13 +527,14 @@ class SlurmOpsManagerBase:
         try:
             status = subprocess.check_output(f"systemctl is-active {munge}",
                                              shell=True)
-            if 'active' != status:
+            status = status.decode().strip()
+            if 'active' in status:
+                logger.debug("#### munge.service started and enabled")
+            else:
                 logger.error(f"Error starting munge: {status}")
                 return -1
-            else:
-                logger.debug("#### munge.service started and enabled")
         except subprocess.CalledProcessError as e:
-            logger.error(f"Error restarting munged - {e}")
+            logger.error(f"Error starting munged - {e}")
             return -1
 
     def restart_munged(self):
