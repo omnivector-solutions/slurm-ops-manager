@@ -152,17 +152,3 @@ class Infiniband(Object):
         except subprocess.CalledProcessError as e:
             return False
         return False
-
-    def ibstat(self) -> str:
-        """Run ibstat on node."""
-
-        if not self._stored.ib_installed:
-            return "Infiniband not installed"
-
-        stat = ""
-        devices = subprocess.check_output(["ibstat", "-l"]).decode().strip()
-        for device in devices.split():
-            stat += subprocess.check_output(["ibstat", device, "-v"]).decode().strip()
-            stat += '\n'
-
-        return stat
