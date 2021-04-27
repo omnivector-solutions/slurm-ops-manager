@@ -121,6 +121,10 @@ class SlurmManager(Object):
         """Write NHC.conf using extra_configs."""
         self._slurm_resource_manager.render_nhc_config(extra_configs)
 
+    def get_nhc_config(self):
+        """Get the current nhc configuration."""
+        return self._slurm_resource_manager.get_nhc_config()
+
     def render_slurm_configs(self, slurm_config) -> None:
         """Render the slurm.conf and munge key, restart slurm and munge."""
         if not type(slurm_config) == dict:

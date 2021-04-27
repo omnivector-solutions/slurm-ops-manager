@@ -361,6 +361,14 @@ class SlurmOpsManagerBase:
             logger.error(f"#### Error rendering NHC.conf: {e}")
             return -1
 
+    def get_nhc_config(self) -> None:
+        """Get current nhc.conf."""
+        target = Path('/etc/nhc/nhc.conf')
+        if target.exists():
+            return target.read_text()
+        else:
+            return f"{target} not found."
+
     def setup_nhc(self) -> None:
         """Install NHC and its dependencies."""
         self._install_nhc_from_git()
