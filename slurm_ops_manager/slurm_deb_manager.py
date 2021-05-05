@@ -91,3 +91,4 @@ class SlurmDebManager(SlurmOpsManagerBase):
         """Install Slurm and its dependencies."""
         self._install_slurm_from_deb()
         self._setup_paths()
+        self.slurm_systemctl('enable')

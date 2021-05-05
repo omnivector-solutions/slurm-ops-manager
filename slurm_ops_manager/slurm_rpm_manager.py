@@ -103,3 +103,4 @@ class SlurmRpmManager(SlurmOpsManagerBase):
         """Install Slurm and its dependencies."""
         self._install_slurm_from_rpm()
         self._setup_paths()
+        self.slurm_systemctl('enable')
