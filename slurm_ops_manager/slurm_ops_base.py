@@ -376,7 +376,7 @@ class SlurmOpsManagerBase:
 
     def slurm_config_nhc_values(self, interval=600, state='ANY,CYCLE'):
         """NHC parameters for slurm.conf."""
-        return {'nhc_bin': '/sbin/nhc',
+        return {'nhc_bin': '/usr/sbin/nhc-wrapper',
                 'health_check_interval': interval,
                 'health_check_node_state': state}
 
