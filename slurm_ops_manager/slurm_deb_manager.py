@@ -2,7 +2,6 @@
 """This module provides the SlurmDebManager."""
 import logging
 import subprocess
-import sys
 from pathlib import Path
 
 from slurm_ops_manager.slurm_ops_base import SlurmOpsManagerBase
@@ -33,7 +32,7 @@ class SlurmDebManager(SlurmOpsManagerBase):
         return "20.11.4-1"
 
     def _install_slurm_from_deb(self):
-        """Install Slurm debs"""
+        """Install Slurm debs."""
 
         slurm_component = self._slurm_component
 
@@ -42,8 +41,8 @@ class SlurmDebManager(SlurmOpsManagerBase):
 
         subprocess.call(["apt-get", "install", "--yes", "debian-keyring"])
         subprocess.call(["apt-key", "adv", "--keyserver",
-                          "keyserver.ubuntu.com", "--recv-keys",
-                          "04EE7237B7D453EC", "648ACFD622F3D138"])
+                         "keyserver.ubuntu.com", "--recv-keys",
+                         "04EE7237B7D453EC", "648ACFD622F3D138"])
         subprocess.call(["apt-get", "update"])
 
         # update specific needed dependencies

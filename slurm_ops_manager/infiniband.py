@@ -3,19 +3,19 @@
 
 import logging
 import os
-from pathlib import Path
 import shlex
 import shutil
 import subprocess
+from pathlib import Path
 
 from ops.framework import Object, StoredState
-
 from slurm_ops_manager.utils import operating_system
 
 
 logger = logging.getLogger()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 class Infiniband(Object):
     """Responsible for Infiniband operations."""
@@ -67,7 +67,7 @@ class Infiniband(Object):
             logger.debug(f'#### Infiniband - setting custom repo: {repo}')
             Path(self._stored.ib_repo_path).write_text(repo)
         else:
-            logger.debug(f'#### Infiniband - setting default repo')
+            logger.debug('#### Infiniband - setting default repo')
             shutil.copyfile(self._stored.ib_default_repo,
                             self._stored.ib_repo_path)
 
@@ -96,7 +96,7 @@ class Infiniband(Object):
         if not self._stored.ib_repo_configured:
             self.repository = ""
 
-        logger.debug(f'#### Infiniband - detecting OS to install drivers')
+        logger.debug('#### Infiniband - detecting OS to install drivers')
 
         if self._operating_system == 'ubuntu':
             cmd = f"apt install --yes {self._stored.ib_package_name}"
@@ -115,7 +115,7 @@ class Infiniband(Object):
     def uninstall(self):
         """Uninstall Mellanox Infiniband packages."""
 
-        logger.debug(f'#### Infiniband - detecting OS to uninstall drivers')
+        logger.debug('#### Infiniband - detecting OS to uninstall drivers')
 
         if self._operating_system == 'ubuntu':
             cmd = f"apt purge --yes {self._stored.ib_package_name}"
@@ -147,8 +147,9 @@ class Infiniband(Object):
         """Check if systemd infiniband service is active."""
         try:
             cmd = f"systemctl is-active {self._ib_systemd_service}"
-            r = subprocess.check_output(shlext.split(cmd))
+            r = subprocess.check_output(shlex.split(cmd))
             return 'active' == r.decode().strip().lower()
         except subprocess.CalledProcessError as e:
+            logger.error(f'#### Could not check infiniband: {e}')
             return False
         return False

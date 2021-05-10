@@ -4,13 +4,11 @@ import logging
 import os
 import shlex
 import subprocess
-
 from base64 import b64decode, b64encode
 from pathlib import Path
 from shutil import rmtree
 
 from Crypto.PublicKey import RSA
-
 from jinja2 import Environment, FileSystemLoader
 from slurm_ops_manager.utils import get_hostname
 from slurm_ops_manager.utils import operating_system
@@ -106,9 +104,10 @@ class SlurmOpsManagerBase:
         """Return True if the slurm component is running."""
         try:
             cmd = f"systemctl is-active {self._slurm_systemd_service}"
-            r = subprocess.check_output(shlext.split(cmd))
+            r = subprocess.check_output(shlex.split(cmd))
             return 'active' == r.decode().strip().lower()
         except subprocess.CalledProcessError as e:
+            logger.error(f'#### Error checking if slurm is active: {e}')
             return False
         return False
 
@@ -313,28 +312,28 @@ class SlurmOpsManagerBase:
         # NOTE: this requires make. We install it using the dispatch file in
         # the slurmd charm.
         try:
-            locale = {'LC_ALL':'C', 'LANG':'C.UTF-8'}
+            locale = {'LC_ALL': 'C', 'LANG': 'C.UTF-8'}
             cmd = f"./autogen.sh --prefix=/usr --sysconfdir=/etc \
                                  --libexecdir={libdir}".split()
-            logger.info(f'##### NHC - running autogen')
+            logger.info('##### NHC - running autogen')
             r = subprocess.run(cmd, cwd=full_path, env=locale,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT)
             logger.debug(f'##### autogen: {r.stdout.decode()}')
             r.check_returncode()
 
-            logger.info(f'##### NHC - running tests')
+            logger.info('##### NHC - running tests')
             r = subprocess.run(["make", "test"], cwd=full_path,
                                env=locale, stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT)
             logger.debug(f'##### NHC make test: {r.stdout.decode()}')
             r.check_returncode()
-            if not "tests passed" in r.stdout.decode():
-                logger.error(f"##### NHC tests failed")
-                logger.error(f"##### Error installing NHC")
+            if "tests passed" not in r.stdout.decode():
+                logger.error("##### NHC tests failed")
+                logger.error("##### Error installing NHC")
                 return -1
 
-            logger.info(f'##### NHC - installing')
+            logger.info('##### NHC - installing')
             r = subprocess.run(["make", "install"], cwd=full_path,
                                env=locale, stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT)
@@ -527,7 +526,7 @@ class SlurmOpsManagerBase:
         return b64encode(munge_key).decode()
 
     def start_munged(self):
-        """Enable and start munge.service"""
+        """Enable and start munge.service."""
         munge = self._munged_systemd_service
         subprocess.call(["systemctl", "enable", munge])
         subprocess.call(["systemctl", "start", munge])

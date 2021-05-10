@@ -2,7 +2,6 @@
 """This module provides the SlurmRpmManager."""
 import logging
 import subprocess
-import sys
 from pathlib import Path
 
 from slurm_ops_manager.slurm_ops_base import SlurmOpsManagerBase
@@ -33,7 +32,7 @@ class SlurmRpmManager(SlurmOpsManagerBase):
         return "20.11.5"
 
     def _install_slurm_from_rpm(self):
-        """Install Slurm debs"""
+        """Install Slurm rpms."""
 
         slurm_component = self._slurm_component
 
@@ -71,8 +70,9 @@ class SlurmRpmManager(SlurmOpsManagerBase):
         logger.info("#### Creating slurm user and group")
         subprocess.call(["groupadd", "--gid", self._slurm_group_id,
                                      self._slurm_group])
-        subprocess.call(["adduser", "--system", "--gid", self._slurm_group_id,
-                                    "--uid",self._slurm_user_id,
+        subprocess.call(["adduser", "--system",
+                                    "--gid", self._slurm_group_id,
+                                    "--uid", self._slurm_user_id,
                                     "--no-create-home",
                                     "--home", "/nonexistent",
                                     self._slurm_user])

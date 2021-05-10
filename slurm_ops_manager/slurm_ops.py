@@ -1,23 +1,17 @@
 #!/usr/bin/env python3
 """This module provides the SlurmManager."""
 import logging
-import subprocess
-import tarfile
-from pathlib import Path
-from time import sleep
 
 from ops.framework import (
     Object,
     StoredState,
 )
-from ops.model import ModelError
+from slurm_ops_manager import utils
+from slurm_ops_manager.infiniband import Infiniband
 from slurm_ops_manager.slurm_ops_managers import (
     SlurmDebManager,
     SlurmRpmManager,
 )
-from slurm_ops_manager.infiniband import Infiniband
-from slurm_ops_manager.utils import get_inventory
-from slurm_ops_manager import utils
 
 
 logger = logging.getLogger()
@@ -42,7 +36,7 @@ class SlurmManager(Object):
 
         if operating_system == "ubuntu":
             self._slurm_resource_manager = SlurmDebManager(component)
-        elif operating_system  == "centos":
+        elif operating_system == "centos":
             self._slurm_resource_manager = SlurmRpmManager(component)
         else:
             raise Exception("Unsupported OS")
@@ -62,7 +56,7 @@ class SlurmManager(Object):
     @property
     def inventory(self) -> str:
         """Return the node inventory and gpu count."""
-        return get_inventory()
+        return utils.get_inventory()
 
     @property
     def slurm_installed(self) -> bool:
