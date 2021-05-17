@@ -3,6 +3,7 @@
 import logging
 import os
 import shlex
+import shutil
 import subprocess
 from base64 import b64decode, b64encode
 from pathlib import Path
@@ -75,7 +76,7 @@ class SlurmOpsManagerBase:
         self._slurmctld_pid_file = self._slurm_pid_dir / 'slurmctld.pid'
         self._slurmdbd_pid_file = self._slurm_pid_dir / 'slurmdbd.pid'
 
-        # Note: Come back to mitigate this configless cruft
+        # NOTE: Come back to mitigate this configless cruft
         self._slurmctld_parameters = ["enable_configless"]
 
         self._hostname = get_hostname()
@@ -217,7 +218,7 @@ class SlurmOpsManagerBase:
     @property
     def _slurm_systemd_service(self) -> str:
         """Return the Slurm systemd unit file."""
-        return f"{self._slurm_component}"
+        return f"{self._slurm_component}.service"
 
     @property
     def _slurm_user(self) -> str:
@@ -265,9 +266,34 @@ class SlurmOpsManagerBase:
         systemd_override_conf = systemd_override_dir / 'override.conf'
         systemd_override_conf_tmpl = self._template_dir / 'override.conf'
 
-        systemd_override_conf.write_text(
-            systemd_override_conf_tmpl.read_text()
+        shutil.copyfile(systemd_override_conf_tmpl,
+                        systemd_override_conf)
+
+    def create_configless_systemd_override(self, host, port):
+        """Create the files needed to enable configless mode in slurmd.
+
+        slurmd.service needs to modified to remove a precondition on slurm.conf
+        and we need to set the slurmctld hostname and port in /etc/default.
+        """
+        logger.debug('## Creating systemd override for configless slurmd')
+
+        systemd_override_dir = Path(
+            f"/etc/systemd/system/{self._slurm_systemd_service}.d"
         )
+        if not systemd_override_dir.exists():
+            systemd_override_dir.mkdir(exist_ok=True)
+
+        target = systemd_override_dir / 'configless.conf'
+        source = self._template_dir / 'configless-drop-in.conf'
+        shutil.copyfile(source, target)
+
+        logger.debug('## Creating /etc/default/slurm for configless slurmd')
+
+        environment = Environment(loader=FileSystemLoader(self._template_dir))
+        template = environment.get_template('configless.default.tmpl')
+        target = Path('/etc/default/slurmd')
+        context = {'HOST': host, 'PORT': port}
+        target.write_text(template.render(context))
 
     def upgrade(self):
         """Preform upgrade-charm operations."""
@@ -451,13 +477,9 @@ class SlurmOpsManagerBase:
         # Preprocess merging slurmctld_parameters if they exist in the context
         context_slurmctld_parameters = context.get("slurmctld_parameters")
         if context_slurmctld_parameters:
-
             slurmctld_parameters = list(
-                set(
-                    common_config["slurmctld_parameters"].split(
-                        ","
-                    ) + context_slurmctld_parameters.split(",")
-                )
+                set(common_config["slurmctld_parameters"].split(",") +
+                    context_slurmctld_parameters.split(","))
             )
 
             common_config["slurmctld_parameters"] = ",".join(
@@ -482,10 +504,7 @@ class SlurmOpsManagerBase:
         if self._slurm_component == "slurmdbd":
             target.chmod(0o600)
 
-        if "slurmd" == self._slurm_component:
-            user_group = f"{self._slurmd_user}:{self._slurmd_group}"
-        else:
-            user_group = f"{self._slurm_user}:{self._slurm_group}"
+        user_group = f"{self._slurm_user}:{self._slurm_group}"
         subprocess.call(["chown", user_group, target])
 
     def restart_slurm_component(self):
@@ -493,7 +512,7 @@ class SlurmOpsManagerBase:
         self.slurm_systemctl("restart")
 
     def write_munge_key(self, munge_key):
-        """Write the munge key."""
+        """Base64 decode and write the munge key."""
         key = b64decode(munge_key.encode())
         self._munge_key_path.write_bytes(key)
 
