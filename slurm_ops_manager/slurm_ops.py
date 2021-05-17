@@ -84,7 +84,7 @@ class SlurmManager(Object):
             self._slurm_resource_manager.setup_nhc()
 
         self._slurm_resource_manager.create_systemd_override_for_nofile()
-        self._slurm_resource_manager.slurm_systemctl("daemon-reload")
+        self._slurm_resource_manager.daemon_reload()
         self._stored.slurm_installed = True
 
         # Set application version
@@ -148,6 +148,10 @@ class SlurmManager(Object):
     def slurm_systemctl(self, cmd):
         """Proxy for slurm_systemctl."""
         self._slurm_resource_manager.slurm_systemctl(cmd)
+
+    def daemon_reload(self):
+        """Proxy for daemon_reload."""
+        self._slurm_resource_manager.daemon_reload()
 
     def _set_slurm_version(self):
         """Set the unit workload_version."""

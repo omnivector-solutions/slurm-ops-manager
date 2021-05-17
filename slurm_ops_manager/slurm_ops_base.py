@@ -112,6 +112,11 @@ class SlurmOpsManagerBase:
             return False
         return False
 
+    @staticmethod
+    def daemon_reload():
+        logger.debug('## issuing systemctl daemon-reload')
+        subprocess.call(["systemctl", "daemon-reload"])
+
     def slurm_systemctl(self, operation):
         """Start systemd services for slurmd."""
         logger.debug(f'## Running slurm_systemctl {operation}')
@@ -120,7 +125,6 @@ class SlurmOpsManagerBase:
             "start",
             "stop",
             "restart",
-            "daemon-reload",
         ]
 
         if operation not in supported_systemctl_cmds:
