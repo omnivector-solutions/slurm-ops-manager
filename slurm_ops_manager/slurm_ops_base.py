@@ -114,6 +114,7 @@ class SlurmOpsManagerBase:
 
     def slurm_systemctl(self, operation):
         """Start systemd services for slurmd."""
+        logger.debug(f'## Running slurm_systemctl {operation}')
         supported_systemctl_cmds = [
             "enable",
             "start",
@@ -266,8 +267,7 @@ class SlurmOpsManagerBase:
         systemd_override_conf = systemd_override_dir / 'override.conf'
         systemd_override_conf_tmpl = self._template_dir / 'override.conf'
 
-        shutil.copyfile(systemd_override_conf_tmpl,
-                        systemd_override_conf)
+        shutil.copyfile(systemd_override_conf_tmpl, systemd_override_conf)
 
     def create_configless_systemd_override(self, host, port):
         """Create the files needed to enable configless mode in slurmd.

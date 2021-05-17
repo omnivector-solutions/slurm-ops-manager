@@ -140,6 +140,15 @@ class SlurmManager(Object):
         # Write slurm.conf and restart the slurm component.
         self._slurm_resource_manager.write_slurm_config(slurm_config)
 
+    def create_configless_systemd_override(self, host, port):
+        """Proxy for slurm_ops_base.create_configless_systemd_override."""
+        self._slurm_resource_manager.create_configless_systemd_override(host,
+                                                                        port)
+
+    def slurm_systemctl(self, cmd):
+        """Proxy for slurm_systemctl."""
+        self._slurm_resource_manager.slurm_systemctl(cmd)
+
     def _set_slurm_version(self):
         """Set the unit workload_version."""
         self._charm.unit.set_workload_version(
