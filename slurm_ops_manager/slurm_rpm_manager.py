@@ -78,6 +78,10 @@ class SlurmRpmManager(SlurmOpsManagerBase):
                                     self._slurm_user])
         logger.info("#### Created slurm user and group")
 
+        # we need to override the default service unit for slurmrestd only
+        if "slurmrestd" == self._slurm_component:
+            self.setup_slurmrestd_systemd_unit()
+
     def _setup_paths(self):
         """Create needed paths with correct permisions."""
 

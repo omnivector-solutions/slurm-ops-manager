@@ -65,6 +65,10 @@ class SlurmDebManager(SlurmOpsManagerBase):
 
         subprocess.call(["apt-get", "autoremove", "--yes"])
 
+        # we need to override the default service unit for slurmrestd only
+        if "slurmrestd" == self._slurm_component:
+            self.setup_slurmrestd_systemd_unit()
+
     def _setup_paths(self):
         """Create needed paths with correct permisions."""
 

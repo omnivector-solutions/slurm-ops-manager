@@ -299,6 +299,18 @@ class SlurmOpsManagerBase:
         context = {'HOST': host, 'PORT': port}
         target.write_text(template.render(context))
 
+    def setup_slurmrestd_systemd_unit(self):
+        """Replace default systemd unit.
+
+        The default service unit uses a local Unix socket for connection, we
+        explicitly disable it and expose the port 6820.
+        """
+        logger.debug(f'## Replacing slurmrestd.service')
+        target = Path('/usr/lib/systemd/system/slurmrestd.service')
+        source = self._template_dir / 'slurmrestd.service'
+
+        shutil.copyfile(source, target)
+
     def upgrade(self):
         """Preform upgrade-charm operations."""
         raise Exception("Inheriting object needs to define this method.")
