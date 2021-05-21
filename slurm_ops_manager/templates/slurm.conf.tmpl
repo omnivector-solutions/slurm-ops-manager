@@ -18,10 +18,8 @@ SlurmctldParameters={{ slurmctld_parameters }}
 
 AuthType=auth/munge
 AuthInfo="socket={{ munge_socket }}"
-{% if enable_jwt %}
 AuthAltTypes=auth/jwt
 AuthAltParameters="jwt_key={{ jwt_rsa_key_file }}"
-{% endif %}
 
 
 CryptoType=crypto/munge
