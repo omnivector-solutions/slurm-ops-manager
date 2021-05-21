@@ -29,7 +29,7 @@ class SlurmRpmManager(SlurmOpsManagerBase):
     def slurm_version(self) -> str:
         """Return slurm verion."""
         # from EPEL7
-        return "20.11.5"
+        return "20.11.6"
 
     def _install_slurm_from_rpm(self):
         """Install Slurm rpms."""
