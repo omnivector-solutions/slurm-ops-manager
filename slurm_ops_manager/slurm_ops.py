@@ -149,6 +149,10 @@ class SlurmManager(Object):
         """Proxy for slurm_systemctl."""
         self._slurm_resource_manager.slurm_systemctl(cmd)
 
+    def slurm_is_active(self) -> bool:
+        """Proxy for slurm_is_active."""
+        return self._slurm_resource_manager.slurm_is_active
+
     def daemon_reload(self):
         """Proxy for daemon_reload."""
         self._slurm_resource_manager.daemon_reload()
