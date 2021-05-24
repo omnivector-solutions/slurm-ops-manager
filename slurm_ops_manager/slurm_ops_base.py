@@ -114,12 +114,13 @@ class SlurmOpsManagerBase:
 
     @staticmethod
     def daemon_reload():
-        logger.debug('## issuing systemctl daemon-reload')
+        """Reload systemd service units."""
+        logger.debug("## issuing systemctl daemon-reload")
         subprocess.call(["systemctl", "daemon-reload"])
 
     def slurm_systemctl(self, operation):
         """Start systemd services for slurmd."""
-        logger.debug(f'## Running slurm_systemctl {operation}')
+        logger.debug(f"## Running slurm_systemctl {operation}")
         supported_systemctl_cmds = [
             "enable",
             "start",
@@ -202,12 +203,12 @@ class SlurmOpsManagerBase:
 
     @property
     def _munge_user(self) -> str:
-        """The user for munge daemon."""
+        """Return the user for munge daemon."""
         return "munge"
 
     @property
     def _munge_group(self) -> str:
-        """The group for munge daemon."""
+        """Return the group for munge daemon."""
         return "munge"
 
     @property
@@ -279,7 +280,7 @@ class SlurmOpsManagerBase:
         slurmd.service needs to modified to remove a precondition on slurm.conf
         and we need to set the slurmctld hostname and port in /etc/default.
         """
-        logger.debug('## Creating systemd override for configless slurmd')
+        logger.debug("## Creating systemd override for configless slurmd")
 
         systemd_override_dir = Path(
             f"/etc/systemd/system/{self._slurm_systemd_service}.d"
@@ -287,16 +288,16 @@ class SlurmOpsManagerBase:
         if not systemd_override_dir.exists():
             systemd_override_dir.mkdir(exist_ok=True)
 
-        target = systemd_override_dir / 'configless.conf'
-        source = self._template_dir / 'configless-drop-in.conf'
+        target = systemd_override_dir / "configless.conf"
+        source = self._template_dir / "configless-drop-in.conf"
         shutil.copyfile(source, target)
 
-        logger.debug('## Creating /etc/default/slurm for configless slurmd')
+        logger.debug("## Creating /etc/default/slurm for configless slurmd")
 
         environment = Environment(loader=FileSystemLoader(self._template_dir))
-        template = environment.get_template('configless.default.tmpl')
-        target = Path('/etc/default/slurmd')
-        context = {'HOST': host, 'PORT': port}
+        template = environment.get_template("configless.default.tmpl")
+        target = Path("/etc/default/slurmd")
+        context = {"HOST": host, "PORT": port}
         target.write_text(template.render(context))
 
     def setup_slurmrestd_systemd_unit(self):
@@ -305,9 +306,9 @@ class SlurmOpsManagerBase:
         The default service unit uses a local Unix socket for connection, we
         explicitly disable it and expose the port 6820.
         """
-        logger.debug(f'## Replacing slurmrestd.service')
-        target = Path('/usr/lib/systemd/system/slurmrestd.service')
-        source = self._template_dir / 'slurmrestd.service'
+        logger.debug("## Replacing slurmrestd.service")
+        target = Path("/usr/lib/systemd/system/slurmrestd.service")
+        source = self._template_dir / "slurmrestd.service"
 
         shutil.copyfile(source, target)
 
@@ -494,8 +495,8 @@ class SlurmOpsManagerBase:
         context_slurmctld_parameters = context.get("slurmctld_parameters")
         if context_slurmctld_parameters:
             slurmctld_parameters = list(
-                set(common_config["slurmctld_parameters"].split(",") +
-                    context_slurmctld_parameters.split(","))
+                set(common_config["slurmctld_parameters"].split(",")
+                    + context_slurmctld_parameters.split(","))
             )
 
             common_config["slurmctld_parameters"] = ",".join(
