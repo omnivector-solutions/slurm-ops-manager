@@ -278,7 +278,8 @@ class SlurmOpsManagerBase:
         """Create the files needed to enable configless mode in slurmd.
 
         slurmd.service needs to modified to remove a precondition on slurm.conf
-        and we need to set the slurmctld hostname and port in /etc/default.
+        and we need to set the slurmctld hostname and port in /etc/default (on
+        Ubuntu) or /etc/sysconfig (on Centos7).
         """
         logger.debug("## Creating systemd override for configless slurmd")
 
@@ -296,7 +297,12 @@ class SlurmOpsManagerBase:
 
         environment = Environment(loader=FileSystemLoader(self._template_dir))
         template = environment.get_template("configless.default.tmpl")
-        target = Path("/etc/default/slurmd")
+
+        if operating_system() == 'ubuntu':
+            target = Path("/etc/default/slurmd")
+        else:
+            target = Path("/etc/sysconfig/slurmd")
+
         context = {"HOST": host, "PORT": port}
         target.write_text(template.render(context))
 
