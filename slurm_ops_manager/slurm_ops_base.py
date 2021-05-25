@@ -106,9 +106,11 @@ class SlurmOpsManagerBase:
         try:
             cmd = f"systemctl is-active {self._slurm_systemd_service}"
             r = subprocess.check_output(shlex.split(cmd))
-            return 'active' == r.decode().strip().lower()
+            r = r.decode().strip().lower()
+            logger.debug(f"### systemctl is-active {self._slurm_systemd_service}: {r}")
+            return 'active' == r
         except subprocess.CalledProcessError as e:
-            logger.error(f'#### Error checking if slurm is active: {e}')
+            logger.error(f"#### Error checking if slurm is active: {e}")
             return False
         return False
 
@@ -129,7 +131,7 @@ class SlurmOpsManagerBase:
         ]
 
         if operation not in supported_systemctl_cmds:
-            msg = f"Unsupported systemctl command: {operation}"
+            msg = f"## Unsupported systemctl command: {operation}"
             logger.error(msg)
             raise Exception(msg)
         try:
@@ -139,7 +141,7 @@ class SlurmOpsManagerBase:
                 self._slurm_systemd_service,
             ])
         except subprocess.CalledProcessError as e:
-            logger.error(f"Error running {operation} - {e}")
+            logger.error(f"## Error running {operation}: {e}")
 
     @property
     def _slurm_bin_dir(self) -> Path:
@@ -569,6 +571,8 @@ class SlurmOpsManagerBase:
 
     def start_munged(self):
         """Enable and start munge.service."""
+        logger.debug("## Enabling and starting munge")
+
         munge = self._munged_systemd_service
         subprocess.call(["systemctl", "enable", munge])
         subprocess.call(["systemctl", "start", munge])
@@ -580,22 +584,23 @@ class SlurmOpsManagerBase:
             if 'active' in status:
                 logger.debug("#### munge.service started and enabled")
             else:
-                logger.error(f"Error starting munge: {status}")
+                logger.error(f"## Error starting munge: {status}")
                 return -1
         except subprocess.CalledProcessError as e:
-            logger.error(f"Error starting munged - {e}")
+            logger.error(f"## Error starting munged - {e}")
             return -1
 
     def restart_munged(self):
         """Restart the munged process."""
         try:
+            logger.debug("## Restarting munge")
             return subprocess.call([
                 "service",
                 self._munged_systemd_service,
                 "restart",
             ])
         except subprocess.CalledProcessError as e:
-            logger.error(f"Error restarting munged - {e}")
+            logger.error(f"## Error restarting munged - {e}")
             return -1
 
     def slurm_cmd(self, command, arg_string):
