@@ -333,8 +333,11 @@ class SlurmOpsManagerBase:
         """Return NHC version."""
         return "1.4.2-omni-1.0"
 
-    def _install_nhc_from_git(self) -> None:
-        """Install NHC from Omnivector fork."""
+    def _install_nhc_from_git(self) -> bool:
+        """Install NHC from Omnivector fork.
+
+        Returns True on success, False otherwise.
+        """
         version = self.nhc_version
         src = f"https://codeload.github.com/omnivector-solutions/nhc/tar.gz/refs/tags/{version}"
 
@@ -382,7 +385,7 @@ class SlurmOpsManagerBase:
             if "tests passed" not in r.stdout.decode():
                 logger.error("##### NHC tests failed")
                 logger.error("##### Error installing NHC")
-                return -1
+                return False
 
             logger.info('##### NHC - installing')
             r = subprocess.run(["make", "install"], cwd=full_path,
@@ -392,12 +395,16 @@ class SlurmOpsManagerBase:
             r.check_returncode()
         except subprocess.CalledProcessError as e:
             logger.error(f"#### Error installing NHC: {e.cmd}")
-            return -1
+            return False
 
         logger.info("#### NHC succesfully installed")
+        return True
 
-    def render_nhc_config(self, extra_configs=None) -> None:
-        """Render basic NHC.conf during installation."""
+    def render_nhc_config(self, extra_configs=None) -> bool:
+        """Render basic NHC.conf during installation.
+
+        Returns True on success, False otherwise.
+        """
         target = Path('/etc/nhc/nhc.conf')
 
         context = {'munge_user': self._munge_user,
@@ -407,9 +414,10 @@ class SlurmOpsManagerBase:
         template = environment.get_template('nhc.conf.tmpl')
         try:
             target.write_text(template.render(context))
+            return True
         except FileNotFoundError as e:
             logger.error(f"#### Error rendering NHC.conf: {e}")
-            return -1
+            return False
 
     def get_nhc_config(self) -> None:
         """Get current nhc.conf."""
@@ -419,10 +427,15 @@ class SlurmOpsManagerBase:
         else:
             return f"{target} not found."
 
-    def setup_nhc(self) -> None:
-        """Install NHC and its dependencies."""
-        self._install_nhc_from_git()
-        self.render_nhc_config()
+    def setup_nhc(self) -> bool:
+        """Install NHC and its dependencies.
+
+        Returns True on success, False otherwise.
+        """
+        status = self._install_nhc_from_git()
+        status &= self.render_nhc_config()
+
+        return status
 
     def slurm_config_nhc_values(self, interval=600, state='ANY,CYCLE'):
         """NHC parameters for slurm.conf."""

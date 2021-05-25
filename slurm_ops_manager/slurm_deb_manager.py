@@ -31,8 +31,11 @@ class SlurmDebManager(SlurmOpsManagerBase):
         # from Debian HPC Team
         return "20.11.4-1"
 
-    def _install_slurm_from_deb(self):
-        """Install Slurm debs."""
+    def _install_slurm_from_deb(self) -> bool:
+        """Install Slurm debs.
+
+        Returns True on success and False otherwise.
+        """
 
         slurm_component = self._slurm_component
 
@@ -55,19 +58,20 @@ class SlurmDebManager(SlurmOpsManagerBase):
 
         try:
             # @todo: improve slurm version handling
-            subprocess.call(["apt-get", "install", "--yes",
-                             slurm_component + "=" + self.slurm_version,
-                             "slurm-client=" + self.slurm_version])
+            subprocess.check_output(["apt-get", "install", "--yes",
+                                     slurm_component + "=" + self.slurm_version,
+                                     "slurm-client=" + self.slurm_version])
         except subprocess.CalledProcessError as e:
-            logger.error(f"Error installing {slurm_component} - {e}")
-            # @todo: set appropriate juju status
-            return -1
+            logger.error(f"## Error installing {slurm_component} - {e}")
+            return False
 
         subprocess.call(["apt-get", "autoremove", "--yes"])
 
         # we need to override the default service unit for slurmrestd only
         if "slurmrestd" == self._slurm_component:
             self.setup_slurmrestd_systemd_unit()
+
+        return True
 
     def _setup_paths(self):
         """Create needed paths with correct permisions."""
@@ -90,8 +94,10 @@ class SlurmDebManager(SlurmOpsManagerBase):
         """Run upgrade operations."""
         pass
 
-    def setup_slurm(self) -> None:
+    def setup_slurm(self) -> bool:
         """Install Slurm and its dependencies."""
-        self._install_slurm_from_deb()
+        successful_installation = self._install_slurm_from_deb()
         self._setup_paths()
         self.slurm_systemctl('enable')
+
+        return successful_installation

@@ -76,12 +76,20 @@ class SlurmManager(Object):
         """Return the slurm.conf."""
         return self._slurm_resource_manager.slurm_conf_path.read_text()
 
-    def install(self) -> None:
-        """Prepare the system for slurm."""
+    def install(self) -> bool:
+        """Prepare the system for slurm.
 
-        self._slurm_resource_manager.setup_slurm()
+        Returns True on success, False otherwise.
+        """
+
+        success = self._slurm_resource_manager.setup_slurm()
+        if not success:
+            return False
+
         if "slurmd" == self._slurm_component:
-            self._slurm_resource_manager.setup_nhc()
+            success = self._slurm_resource_manager.setup_nhc()
+            if not success:
+                return False
 
         self._slurm_resource_manager.create_systemd_override_for_nofile()
         self._slurm_resource_manager.daemon_reload()
@@ -89,6 +97,8 @@ class SlurmManager(Object):
 
         # Set application version
         self._set_slurm_version()
+
+        return True
 
     def configure_munge_key(self, munge_key):
         """Configure the munge_key."""

@@ -31,8 +31,11 @@ class SlurmRpmManager(SlurmOpsManagerBase):
         # from EPEL7
         return "20.11.6"
 
-    def _install_slurm_from_rpm(self):
-        """Install Slurm rpms."""
+    def _install_slurm_from_rpm(self) -> bool:
+        """Install Slurm rpms.
+
+        Returns True on success and False otherwise.
+        """
 
         slurm_component = self._slurm_component
 
@@ -46,14 +49,12 @@ class SlurmRpmManager(SlurmOpsManagerBase):
 
         try:
             # @todo: improve slurm version handling
-            subprocess.call(["yum", "install", "--assumeyes",
-                             f"slurm-{slurm_component}-{self.slurm_version}",
-                             "slurm-" + self.slurm_version])
-            # TODO have a proper check for succesfull installtion
+            subprocess.check_output(["yum", "install", "--assumeyes",
+                                     f"slurm-{slurm_component}-{self.slurm_version}",
+                                     "slurm-" + self.slurm_version])
         except subprocess.CalledProcessError as e:
             logger.error(f"Error installing {slurm_component} - {e}")
-            # @todo: set appropriate juju status
-            return -1
+            return False
 
         logger.info("#### All packages installed!")
 
@@ -82,6 +83,8 @@ class SlurmRpmManager(SlurmOpsManagerBase):
         if "slurmrestd" == self._slurm_component:
             self.setup_slurmrestd_systemd_unit()
 
+        return True
+
     def _setup_paths(self):
         """Create needed paths with correct permisions."""
 
@@ -103,8 +106,10 @@ class SlurmRpmManager(SlurmOpsManagerBase):
         """Run upgrade operations."""
         pass
 
-    def setup_slurm(self) -> None:
+    def setup_slurm(self) -> bool:
         """Install Slurm and its dependencies."""
-        self._install_slurm_from_rpm()
+        successful_installation = self._install_slurm_from_rpm()
         self._setup_paths()
         self.slurm_systemctl('enable')
+
+        return successful_installation
