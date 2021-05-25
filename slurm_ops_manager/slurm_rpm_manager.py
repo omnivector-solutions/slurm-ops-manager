@@ -28,8 +28,16 @@ class SlurmRpmManager(SlurmOpsManagerBase):
     @property
     def slurm_version(self) -> str:
         """Return slurm verion."""
-        # from EPEL7
-        return "20.11.6"
+        cmd = 'yum info -C slurm | grep "^Version"'
+        version = subprocess.check_output(cmd, shell=True)
+        return version.decode().split(":")[-1].strip()
+
+    @property
+    def munge_version(self) -> str:
+        """Return munge verion."""
+        cmd = 'yum info -C munge | grep "^Version"'
+        version = subprocess.check_output(cmd, shell=True)
+        return version.decode().split(":")[-1].strip()
 
     def _install_slurm_from_rpm(self) -> bool:
         """Install Slurm rpms.
@@ -50,8 +58,7 @@ class SlurmRpmManager(SlurmOpsManagerBase):
         try:
             # @todo: improve slurm version handling
             subprocess.check_output(["yum", "install", "--assumeyes",
-                                     f"slurm-{slurm_component}-{self.slurm_version}",
-                                     "slurm-" + self.slurm_version])
+                                     f"slurm-{slurm_component}", "slurm"])
         except subprocess.CalledProcessError as e:
             logger.error(f"Error installing {slurm_component} - {e}")
             return False

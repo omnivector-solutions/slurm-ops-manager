@@ -28,8 +28,16 @@ class SlurmDebManager(SlurmOpsManagerBase):
     @property
     def slurm_version(self) -> str:
         """Return slurm verion."""
-        # from Debian HPC Team
-        return "20.11.4-1"
+        cmd = 'dpkg --status slurm-client | grep "^Version"'
+        version = subprocess.check_output(cmd, shell=True)
+        return version.decode().split(":")[-1].strip()
+
+    @property
+    def munge_version(self) -> str:
+        """Return munge verion."""
+        cmd = 'dpkg --status munge | grep "^Version"'
+        version = subprocess.check_output(cmd, shell=True)
+        return version.decode().split(":")[-1].strip()
 
     def _install_slurm_from_deb(self) -> bool:
         """Install Slurm debs.
@@ -54,13 +62,12 @@ class SlurmDebManager(SlurmOpsManagerBase):
         subprocess.call(["apt-get", "install", "--yes", "logrotate"])
 
         # pin munge vesion
-        subprocess.call(["apt-get", "install", "--yes", "munge=0.5.14-4"])
+        subprocess.call(["apt-get", "install", "--yes", "munge"])
 
         try:
             # @todo: improve slurm version handling
             subprocess.check_output(["apt-get", "install", "--yes",
-                                     slurm_component + "=" + self.slurm_version,
-                                     "slurm-client=" + self.slurm_version])
+                                     slurm_component, "slurm-client"])
         except subprocess.CalledProcessError as e:
             logger.error(f"## Error installing {slurm_component} - {e}")
             return False

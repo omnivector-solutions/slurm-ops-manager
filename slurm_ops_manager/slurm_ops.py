@@ -95,9 +95,6 @@ class SlurmManager(Object):
         self._slurm_resource_manager.daemon_reload()
         self._stored.slurm_installed = True
 
-        # Set application version
-        self._set_slurm_version()
-
         return True
 
     def configure_munge_key(self, munge_key):
@@ -166,12 +163,6 @@ class SlurmManager(Object):
     def daemon_reload(self):
         """Proxy for daemon_reload."""
         self._slurm_resource_manager.daemon_reload()
-
-    def _set_slurm_version(self):
-        """Set the unit workload_version."""
-        self._charm.unit.set_workload_version(
-            self._slurm_resource_manager.slurm_version
-        )
 
     def restart_slurm_component(self):
         """Restart slurm component."""

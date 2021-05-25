@@ -448,6 +448,11 @@ class SlurmOpsManagerBase:
         """Return slurm version."""
         raise Exception("Inheriting object needs to define this property.")
 
+    @property
+    def munge_version(self) -> str:
+        """Return munge version."""
+        raise Exception("Inheriting object needs to define this property.")
+
     def write_acct_gather_conf(self, context) -> None:
         """Render the acct_gather.conf."""
         template_name = 'acct_gather.conf.tmpl'
