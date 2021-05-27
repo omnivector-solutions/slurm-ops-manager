@@ -50,6 +50,11 @@ class Infiniband(Object):
             logger.error(f'#### Unsupported OS to install infiniband: {self._operating_system}')
 
     @property
+    def installed(self) -> bool:
+        """Return wether infiniband is installed."""
+        return self._stored.ib_installed
+
+    @property
     def repository(self):
         """Return the repository used for Infiniband drivers."""
         if self._stored.ib_repo_configured:
@@ -85,6 +90,24 @@ class Infiniband(Object):
                     return -1
 
         self._stored.ib_repo_configured = True
+
+    @property
+    def version(self):
+        """Return installed infiniband version."""
+        if self.installed:
+            pkg = self._stored.ib_package_name
+            if "ubuntu" == self._operating_system:
+                cmd = f'dpkg --status {pkg} | grep "^Version"'
+            elif "centos" == self._operating_system:
+                cmd = f'yum info -C {pkg} | grep "^Version"'
+            else:
+                logger.error("## Unsupported OS")
+                return ""
+
+            version = subprocess.check_output(cmd, shell=True)
+            return version.decode().split(":").strip()
+        else:
+            return "not installed"
 
     def install(self):
         """Install Mellanox Infiniband packages.
