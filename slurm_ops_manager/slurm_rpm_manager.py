@@ -29,14 +29,16 @@ class SlurmRpmManager(SlurmOpsManagerBase):
     def slurm_version(self) -> str:
         """Return slurm verion."""
         cmd = 'yum info -C slurm | grep "^Version"'
-        version = subprocess.check_output(cmd, shell=True)
+        locale = {'LC_ALL': 'C', 'LANG': 'C.UTF-8'}
+        version = subprocess.check_output(cmd, shell=True, env=locale)
         return version.decode().split(":")[-1].strip()
 
     @property
     def munge_version(self) -> str:
         """Return munge verion."""
         cmd = 'yum info -C munge | grep "^Version"'
-        version = subprocess.check_output(cmd, shell=True)
+        locale = {'LC_ALL': 'C', 'LANG': 'C.UTF-8'}
+        version = subprocess.check_output(cmd, shell=True, env=locale)
         return version.decode().split(":")[-1].strip()
 
     def _install_slurm_from_rpm(self) -> bool:

@@ -96,15 +96,18 @@ class Infiniband(Object):
         """Return installed infiniband version."""
         if self.installed:
             pkg = self._stored.ib_package_name
+
             if "ubuntu" == self._operating_system:
                 cmd = f'dpkg --status {pkg} | grep "^Version"'
+                version = subprocess.check_output(cmd, shell=True)
             elif "centos" == self._operating_system:
                 cmd = f'yum info -C {pkg} | grep "^Version"'
+                locale = {'LC_ALL': 'C', 'LANG': 'C.UTF-8'}
+                version = subprocess.check_output(cmd, shell=True, env=locale)
             else:
                 logger.error("## Unsupported OS")
                 return ""
 
-            version = subprocess.check_output(cmd, shell=True)
             return version.decode().split(":").strip()
         else:
             return "not installed"
