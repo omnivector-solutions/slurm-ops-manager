@@ -201,7 +201,7 @@ class SlurmOpsManagerBase:
     @property
     def _munged_systemd_service(self) -> str:
         """Return the name of the Munge Systemd unit file."""
-        return "munge"
+        return "munge.service"
 
     @property
     def _munge_user(self) -> str:
@@ -608,18 +608,19 @@ class SlurmOpsManagerBase:
             logger.error(f"## Error starting munged - {e}")
             return -1
 
-    def restart_munged(self):
-        """Restart the munged process."""
+    def restart_munged(self) -> bool:
+        """Restart the munged process.
+
+        Return True on success, and False otherwise.
+        """
         try:
             logger.debug("## Restarting munge")
-            return subprocess.call([
-                "service",
-                self._munged_systemd_service,
-                "restart",
-            ])
+            cmd = f"service {self._munged_systemd_service} restart"
+            subprocess.check_output(shlex.split(cmd))
+            return True
         except subprocess.CalledProcessError as e:
             logger.error(f"## Error restarting munged - {e}")
-            return -1
+            return False
 
     def slurm_cmd(self, command, arg_string):
         """Run a slurm command."""
