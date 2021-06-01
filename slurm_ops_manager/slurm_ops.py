@@ -86,6 +86,10 @@ class SlurmManager(Object):
         if not success:
             return False
 
+        # remove slurm.conf, as the charms setup configless mode
+        if self._slurm_resource_manager.slurm_conf_path.exists():
+            self._slurm_resource_manager.slurm_conf_path.unlink()
+
         if "slurmd" == self._slurm_component:
             success = self._slurm_resource_manager.setup_nhc()
             if not success:
