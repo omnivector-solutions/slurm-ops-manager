@@ -592,7 +592,6 @@ class SlurmOpsManagerBase:
         logger.debug("## Enabling and starting munge")
 
         munge = self._munged_systemd_service
-        subprocess.call(["systemctl", "enable", munge])
         subprocess.call(["systemctl", "start", munge])
 
         try:

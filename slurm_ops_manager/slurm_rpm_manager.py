@@ -56,6 +56,7 @@ class SlurmRpmManager(SlurmOpsManagerBase):
         subprocess.call(["yum", "install", "--assumeyes",
                          "pciutils", "logrotate", "mailx",
                          "munge"])
+        subprocess.call(["systemctl", "enable", self._munged_systemd_service])
 
         try:
             # @todo: improve slurm version handling

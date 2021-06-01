@@ -61,8 +61,9 @@ class SlurmDebManager(SlurmOpsManagerBase):
         subprocess.call(["apt-get", "install", "--yes", "mailutils"])
         subprocess.call(["apt-get", "install", "--yes", "logrotate"])
 
-        # pin munge vesion
+        # setup munge
         subprocess.call(["apt-get", "install", "--yes", "munge"])
+        subprocess.call(["systemctl", "enable", self._munged_systemd_service])
 
         try:
             # @todo: improve slurm version handling
