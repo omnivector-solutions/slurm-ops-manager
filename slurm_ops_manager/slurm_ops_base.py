@@ -607,7 +607,7 @@ class SlurmOpsManagerBase:
             logger.error(f"## Error starting munged - {e}")
             return -1
 
-    def restart_munged(self) -> bool:
+    def handle_restart_munged(self) -> bool:
         """Restart the munged process.
 
         Return True on success, and False otherwise.

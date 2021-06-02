@@ -172,9 +172,12 @@ class SlurmManager(Object):
         """Restart slurm component."""
         self._slurm_resource_manager.restart_slurm_component()
 
-    def restart_munged(self):
-        """Restart munged."""
-        self._slurm_resource_manager.restart_munged()
+    def restart_munged(self) -> bool:
+        """Restart munged.
+
+        Returns True if munge restarts successfully, and False otherwise.
+        """
+        return self._slurm_resource_manager.handle_restart_munged()
 
     def start_munged(self):
         """Start munged."""
