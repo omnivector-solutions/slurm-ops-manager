@@ -614,7 +614,7 @@ class SlurmOpsManagerBase:
         """
         try:
             logger.debug("## Restarting munge")
-            cmd = f"service {self._munged_systemd_service} restart"
+            cmd = f"systemctl restart {self._munged_systemd_service}"
             subprocess.check_output(shlex.split(cmd))
             return True
         except subprocess.CalledProcessError as e:
