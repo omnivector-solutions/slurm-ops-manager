@@ -120,8 +120,8 @@ class SlurmOpsManagerBase:
         logger.debug("## issuing systemctl daemon-reload")
         subprocess.call(["systemctl", "daemon-reload"])
 
-    def slurm_systemctl(self, operation):
-        """Start systemd services for slurmd."""
+    def slurm_systemctl(self, operation) -> bool:
+        """Run systemd commands for Slurm service units."""
         logger.debug(f"## Running slurm_systemctl {operation}")
         supported_systemctl_cmds = [
             "enable",
@@ -135,13 +135,15 @@ class SlurmOpsManagerBase:
             logger.error(msg)
             raise Exception(msg)
         try:
-            subprocess.call([
+            subprocess.check_output([
                 "systemctl",
                 operation,
                 self._slurm_systemd_service,
             ])
+            return True
         except subprocess.CalledProcessError as e:
             logger.error(f"## Error running {operation}: {e}")
+            return False
 
     @property
     def _slurm_bin_dir(self) -> Path:
@@ -550,9 +552,9 @@ class SlurmOpsManagerBase:
         user_group = f"{self._slurm_user}:{self._slurm_group}"
         subprocess.call(["chown", user_group, target])
 
-    def restart_slurm_component(self):
+    def restart_slurm_component(self) -> bool:
         """Restart the slurm component."""
-        self.slurm_systemctl("restart")
+        return self.slurm_systemctl("restart")
 
     def write_munge_key(self, munge_key):
         """Base64 decode and write the munge key."""

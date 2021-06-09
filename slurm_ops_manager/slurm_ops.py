@@ -162,9 +162,9 @@ class SlurmManager(Object):
         self._slurm_resource_manager.create_configless_systemd_override(host,
                                                                         port)
 
-    def slurm_systemctl(self, cmd):
+    def slurm_systemctl(self, cmd) -> bool:
         """Proxy for slurm_systemctl."""
-        self._slurm_resource_manager.slurm_systemctl(cmd)
+        return self._slurm_resource_manager.slurm_systemctl(cmd)
 
     def slurm_is_active(self) -> bool:
         """Proxy for slurm_is_active."""
@@ -176,7 +176,7 @@ class SlurmManager(Object):
 
     def restart_slurm_component(self):
         """Restart slurm component."""
-        self._slurm_resource_manager.restart_slurm_component()
+        return self._slurm_resource_manager.restart_slurm_component()
 
     def restart_munged(self) -> bool:
         """Restart munged.
