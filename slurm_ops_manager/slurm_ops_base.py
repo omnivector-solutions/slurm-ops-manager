@@ -592,25 +592,52 @@ class SlurmOpsManagerBase:
         logger.debug("## Starting munge")
 
         munge = self._munged_systemd_service
-        subprocess.call(["systemctl", "start", munge])
+        try:
+            subprocess.check_output(["systemctl", "start", munge])
+        except subprocess.CalledProcessError as e:
+            logger.error(f"## Error starting munge: {e}")
+            return False
 
+        return self._is_active_munged()
+
+    def _is_active_munged(self):
+        munge = self._munged_systemd_service
         try:
             status = subprocess.check_output(f"systemctl is-active {munge}",
                                              shell=True)
             status = status.decode().strip()
             if 'active' in status:
-                logger.debug("#### munge.service started and enabled")
+                logger.debug("#### Munge daemon active")
+                return True
             else:
-                logger.error(f"## Error starting munge: {status}")
-                return -1
+                logger.error(f"## Munge not running: {status}")
+                return False
         except subprocess.CalledProcessError as e:
-            logger.error(f"## Error starting munged - {e}")
-            return -1
+            logger.error(f"## Error querring munged - {e}")
+            return False
 
     def stop_munged(self):
         """Stop munge.service."""
         logger.debug("## Stoping munge")
         subprocess.call(["systemctl", "stop", self._munged_systemd_service])
+
+    def check_munged(self) -> bool:
+        """Check if munge is working correctly."""
+
+        # check if systemd service unit is active
+        if not self._is_active_munged():
+            return False
+
+        # check if munge is working, i.e., can use the credentials correctly
+        try:
+            logger.debug("## Testing if munge is working correctly")
+            cmd = f"sudo -u {self._slurm_user} munge -n | unmunge"
+            subprocess.check_output(cmd, shell=True, stderr=subprocess.PIPE)
+        except subprocess.CalledProcessError as e:
+            logger.error(f"## Error testing munge: {e}")
+            return False
+
+        return True
 
     def handle_restart_munged(self) -> bool:
         """Restart the munged process.
@@ -621,10 +648,11 @@ class SlurmOpsManagerBase:
             logger.debug("## Restarting munge")
             cmd = f"systemctl restart {self._munged_systemd_service}"
             subprocess.check_output(shlex.split(cmd))
-            return True
         except subprocess.CalledProcessError as e:
             logger.error(f"## Error restarting munged - {e}")
             return False
+
+        return self.check_munged()
 
     def slurm_cmd(self, command, arg_string):
         """Run a slurm command."""

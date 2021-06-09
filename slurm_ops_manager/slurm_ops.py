@@ -185,9 +185,19 @@ class SlurmManager(Object):
         """
         return self._slurm_resource_manager.handle_restart_munged()
 
-    def start_munged(self):
-        """Start munged."""
-        self._slurm_resource_manager.start_munged()
+    def start_munged(self) -> bool:
+        """Start munged.
+
+        Returns True if munge starts successfully, and False otherwise.
+        """
+        return self._slurm_resource_manager.start_munged()
+
+    def check_munged(self) -> bool:
+        """Check wether munge is working correctly.
+
+        Returns True if munge is running, and False otherwise.
+        """
+        return self._slurm_resource_manager.check_munged()
 
     def slurm_cmd(self, command, arg_string):
         """Run a slurm command."""
