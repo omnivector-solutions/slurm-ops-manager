@@ -588,8 +588,8 @@ class SlurmOpsManagerBase:
         return b64encode(munge_key).decode()
 
     def start_munged(self):
-        """Enable and start munge.service."""
-        logger.debug("## Enabling and starting munge")
+        """Start munge.service."""
+        logger.debug("## Starting munge")
 
         munge = self._munged_systemd_service
         subprocess.call(["systemctl", "start", munge])
@@ -606,6 +606,11 @@ class SlurmOpsManagerBase:
         except subprocess.CalledProcessError as e:
             logger.error(f"## Error starting munged - {e}")
             return -1
+
+    def stop_munged(self):
+        """Stop munge.service."""
+        logger.debug("## Stoping munge")
+        subprocess.call(["systemctl", "stop", self._munged_systemd_service])
 
     def handle_restart_munged(self) -> bool:
         """Restart the munged process.

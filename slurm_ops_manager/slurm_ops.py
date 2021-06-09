@@ -97,6 +97,12 @@ class SlurmManager(Object):
 
         self._slurm_resource_manager.create_systemd_override_for_nofile()
         self._slurm_resource_manager.daemon_reload()
+
+        # At this point, munged and slurmxxxd are enabled, we stop them to have
+        # a consistent startup sequence in the charms
+        self._slurm_resource_manager.slurm_systemctl("stop")
+        self._slurm_resource_manager.stop_munged()
+
         self._stored.slurm_installed = True
 
         return True
