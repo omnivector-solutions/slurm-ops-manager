@@ -201,7 +201,7 @@ class SlurmManager(Object):
 
     def slurm_cmd(self, command, arg_string):
         """Run a slurm command."""
-        self._slurm_resource_manager.slurm_cmd(command, arg_string)
+        return self._slurm_resource_manager.slurm_cmd(command, arg_string)
 
     def generate_jwt_rsa(self) -> str:
         """Generate the jwt rsa key."""
