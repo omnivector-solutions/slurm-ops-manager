@@ -108,7 +108,7 @@ class Infiniband(Object):
                 logger.error("## Unsupported OS")
                 return ""
 
-            return version.decode().split(":").strip()
+            return version.decode().split(":")[-1].strip()
         else:
             return "not installed"
 
