@@ -628,13 +628,24 @@ class SlurmOpsManagerBase:
         # check if munge is working, i.e., can use the credentials correctly
         try:
             logger.debug("## Testing if munge is working correctly")
-            cmd = f"sudo -u {self._slurm_user} munge -n | unmunge"
-            subprocess.check_output(cmd, shell=True, stderr=subprocess.PIPE)
+            cmd = f"munge -n"
+            munge = subprocess.Popen(shlex.split(cmd),
+                                     stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE)
+            unmunge = subprocess.Popen(["unmunge"],
+                                       stdin=munge.stdout,
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE)
+            munge.stdout.close()
+            output = unmunge.communicate()[0]
+            if "Success" in output.decode():
+                logger.debug(f"## Munge working as expected: {output}")
+                return True
+            logger.error(f"## Munge not working: {output}")
         except subprocess.CalledProcessError as e:
             logger.error(f"## Error testing munge: {e}")
-            return False
 
-        return True
+        return False
 
     def handle_restart_munged(self) -> bool:
         """Restart the munged process.
