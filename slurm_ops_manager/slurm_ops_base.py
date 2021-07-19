@@ -455,7 +455,7 @@ class SlurmOpsManagerBase:
         """Return munge version."""
         raise Exception("Inheriting object needs to define this property.")
 
-    def write_acct_gather_conf(self, context) -> None:
+    def write_acct_gather_conf(self, context: dict) -> None:
         """Render the acct_gather.conf."""
         template_name = 'acct_gather.conf.tmpl'
         source = self._template_dir / template_name
@@ -479,6 +479,14 @@ class SlurmOpsManagerBase:
         target.write_text(
             rendered_template.render(context)
         )
+
+    def remove_acct_gather_conf(self) -> None:
+        """Remove acct_gather.conf."""
+
+        target = self._slurm_conf_dir / 'acct_gather.conf'
+        if target.exists():
+            target.unlink()
+
 
     def write_slurm_config(self, context) -> None:
         """Render the context to a template, adding in common configs."""

@@ -153,6 +153,9 @@ class SlurmManager(Object):
         # acct_gather in the slurm_config object.
         if slurm_config.get('acct_gather'):
             self._slurm_resource_manager.write_acct_gather_conf(slurm_config)
+        else:
+            self._slurm_resource_manager.remove_acct_gather_conf()
+
 
         # Write slurm.conf and restart the slurm component.
         self._slurm_resource_manager.write_slurm_config(slurm_config)
