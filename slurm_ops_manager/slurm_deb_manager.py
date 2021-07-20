@@ -19,7 +19,9 @@ class SlurmDebManager(SlurmOpsManagerBase):
 
     @property
     def _slurm_plugin_dir(self) -> Path:
-        return Path("/usr/lib/x86_64-linux-gnu/slurm-wlm/")
+        # Debian packages slurm plugins in /usr/lib/x86_64-linux-gnu/slurm-wlm/
+        # but we symlink /usr/lib64/slurm to it for compatibility with centos
+        return Path("/usr/lib64/slurm/")
 
     @property
     def _mail_prog(self) -> Path:
@@ -78,6 +80,10 @@ class SlurmDebManager(SlurmOpsManagerBase):
         # we need to override the default service unit for slurmrestd only
         if "slurmrestd" == self._slurm_component:
             self.setup_slurmrestd_systemd_unit()
+
+        # symlink /usr/lib64/slurm -> /usr/lib/x86_64-linux-gnu/slurm-wlm/ to
+        # have "standard" location accross OSes
+        Path("/usr/lib64/slurm").symlink_to("/usr/lib/x86_64-linux-gnu/slurm-wlm/")
 
         return True
 
