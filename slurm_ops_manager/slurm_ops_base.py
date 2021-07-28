@@ -18,14 +18,14 @@ from slurm_ops_manager.utils import operating_system
 logger = logging.getLogger()
 
 
+TEMPLATE_DIR = Path(os.path.dirname(os.path.abspath(__file__))) / 'templates'
+
+
 class SlurmOpsManagerBase:
     """Base class for slurm ops."""
 
     def __init__(self, component):
         """Set the initial values for attributes in the base class."""
-        self._template_dir = Path(
-            os.path.dirname(os.path.abspath(__file__))) / 'templates'
-
         port_map = {
             'slurmctld': "6817",
             'slurmd': "6818",
@@ -83,7 +83,7 @@ class SlurmOpsManagerBase:
         self._port = port_map[self._slurm_component]
 
         self._slurm_conf_template_location = \
-            self._template_dir / self._slurm_conf_template_name
+            TEMPLATE_DIR / self._slurm_conf_template_name
 
     @property
     def hostname(self) -> str:
@@ -274,7 +274,7 @@ class SlurmOpsManagerBase:
             systemd_override_dir.mkdir(exist_ok=True)
 
         systemd_override_conf = systemd_override_dir / 'override.conf'
-        systemd_override_conf_tmpl = self._template_dir / 'override.conf'
+        systemd_override_conf_tmpl = TEMPLATE_DIR / 'override.conf'
 
         shutil.copyfile(systemd_override_conf_tmpl, systemd_override_conf)
 
@@ -294,12 +294,12 @@ class SlurmOpsManagerBase:
             systemd_override_dir.mkdir(exist_ok=True)
 
         target = systemd_override_dir / "configless.conf"
-        source = self._template_dir / "configless-drop-in.conf"
+        source = TEMPLATE_DIR / "configless-drop-in.conf"
         shutil.copyfile(source, target)
 
         logger.debug("## Creating /etc/default/slurm for configless slurmd")
 
-        environment = Environment(loader=FileSystemLoader(self._template_dir))
+        environment = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
         template = environment.get_template("configless.default.tmpl")
 
         if operating_system() == 'ubuntu':
@@ -318,7 +318,7 @@ class SlurmOpsManagerBase:
         """
         logger.debug("## Replacing slurmrestd.service")
         target = Path("/usr/lib/systemd/system/slurmrestd.service")
-        source = self._template_dir / "slurmrestd.service"
+        source = TEMPLATE_DIR / "slurmrestd.service"
 
         shutil.copyfile(source, target)
 
@@ -412,7 +412,7 @@ class SlurmOpsManagerBase:
         context = {'munge_user': self._munge_user,
                    'extra_configs': extra_configs}
 
-        environment = Environment(loader=FileSystemLoader(self._template_dir))
+        environment = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
         template = environment.get_template('nhc.conf.tmpl')
         try:
             target.write_text(template.render(context))
@@ -458,7 +458,7 @@ class SlurmOpsManagerBase:
     def write_acct_gather_conf(self, context: dict) -> None:
         """Render the acct_gather.conf."""
         template_name = 'acct_gather.conf.tmpl'
-        source = self._template_dir / template_name
+        source = TEMPLATE_DIR / template_name
         target = self._slurm_conf_dir / 'acct_gather.conf'
 
         if not type(context) == dict:
@@ -470,7 +470,7 @@ class SlurmOpsManagerBase:
             )
 
         rendered_template = Environment(
-            loader=FileSystemLoader(str(self._template_dir))
+            loader=FileSystemLoader(TEMPLATE_DIR)
         ).get_template(template_name)
 
         if target.exists():
@@ -536,7 +536,7 @@ class SlurmOpsManagerBase:
             context.pop("slurmctld_parameters")
 
         rendered_template = Environment(
-            loader=FileSystemLoader(str(self._template_dir))
+            loader=FileSystemLoader(TEMPLATE_DIR)
         ).get_template(template_name)
 
         if target.exists():
