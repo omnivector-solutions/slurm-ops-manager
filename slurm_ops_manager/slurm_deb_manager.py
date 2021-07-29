@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """This module provides the SlurmDebManager."""
 import logging
+import os
 import subprocess
 from pathlib import Path
 
-from slurm_ops_manager.slurm_ops_base import SlurmOpsManagerBase
+from slurm_ops_manager.slurm_ops_base import SlurmOpsManagerBase, TEMPLATE_DIR
 
 
 logger = logging.getLogger()
@@ -46,16 +47,22 @@ class SlurmDebManager(SlurmOpsManagerBase):
 
         Returns True on success and False otherwise.
         """
-
         slurm_component = self._slurm_component
-
-        with open("/etc/apt/sources.list.d/bullseye.list", "w") as afile:
-            afile.write("deb http://deb.debian.org/debian bullseye main")
-
         subprocess.call(["apt-get", "install", "--yes", "debian-keyring"])
-        subprocess.call(["apt-key", "adv", "--keyserver",
-                         "keyserver.ubuntu.com", "--recv-keys",
-                         "04EE7237B7D453EC", "648ACFD622F3D138"])
+
+        # The following keys are needed to install pkgs from debian bullseye.
+        # These keys are carried with the charm to remedy scenarios
+        # where keyserver.ubuntu.com is not reachable.
+        # Ref: https://github.com/omnivector-solutions/slurm-charms/issues/111
+        # Iterate over the two keys, adding them to the system.
+        for keyfile in ["04EE7237B7D453EC.key", "648ACFD622F3D138.key"]:
+            key = TEMPLATE_DIR / keyfile
+            subprocess.call(["apt-key", "add", key.as_posix()])
+
+        # Add the bullseye repo and run apt update.
+        Path("/etc/apt/sources.list.d/bullseye.list").write_text(
+            "deb http://deb.debian.org/debian bullseye main"
+        )
         subprocess.call(["apt-get", "update"])
 
         # update specific needed dependencies
