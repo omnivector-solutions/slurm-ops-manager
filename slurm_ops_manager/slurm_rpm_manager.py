@@ -112,12 +112,20 @@ class SlurmRpmManager(SlurmOpsManagerBase):
                 syspath.mkdir()
             subprocess.call(["chown", "-R", user, syspath])
 
-    def upgrade(self, channel):
+    def upgrade(self) -> bool:
         """Run upgrade operations."""
-        pass
+        logger.warning("## This operation is not yet supported on CentOS.")
+        return True
 
-    def setup_slurm(self) -> bool:
-        """Install Slurm and its dependencies."""
+    def setup_slurm(self, custom_repo: str = "") -> bool:
+        """Install Slurm and its dependencies.
+
+        Args:
+            custom_repo: URL to a custom repository. Setting it to any value
+                         superseeds the Omnivector Repository.
+        Returns:
+            bool: whether the installation succeds or not.
+        """
         successful_installation = self._install_slurm_from_rpm()
         self._setup_paths()
         self.slurm_systemctl('enable')

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """This module provides the SlurmDebManager."""
 import logging
-import os
+import shlex
 import subprocess
 from pathlib import Path
 
-from slurm_ops_manager.slurm_ops_base import SlurmOpsManagerBase, TEMPLATE_DIR
+from slurm_ops_manager.slurm_ops_base import SlurmOpsManagerBase
 
 
 logger = logging.getLogger()
@@ -42,40 +42,50 @@ class SlurmDebManager(SlurmOpsManagerBase):
         version = subprocess.check_output(cmd, shell=True)
         return version.decode().split(":")[-1].strip()
 
+    def _setup_ppas(self, custom_ppa: str) -> bool:
+        """Set up a custom repository to install Slurm.
+
+        Args:
+            custom_ppa: a string in the format "ppa:user/ppa-name" or the URL
+                        for the repository to install Slurm from.
+        Returns:
+            bool: whether the operations was successfull.
+        """
+        if custom_ppa:
+            ppa = custom_ppa
+        else:
+            ppa = "ppa:omnivector/osd"
+
+        logger.debug(f"## Adding ppa {ppa}.")
+        try:
+            cmd = f'add-apt-repository --yes --update "{ppa}"'
+            subprocess.check_output(shlex.split(cmd))
+        except subprocess.CalledProcessError as e:
+            logger.error(f"## Error setting up {cmd}: {e}")
+            return False
+
+        return True
+
     def _install_slurm_from_deb(self) -> bool:
         """Install Slurm debs.
 
-        Returns True on success and False otherwise.
+        Returns:
+            bool: True on success and False otherwise.
         """
-        slurm_component = self._slurm_component
-        subprocess.call(["apt-get", "install", "--yes", "debian-keyring"])
-
-        # The following keys are needed to install pkgs from debian bullseye.
-        # These keys are carried with the charm to remedy scenarios
-        # where keyserver.ubuntu.com is not reachable.
-        # Ref: https://github.com/omnivector-solutions/slurm-charms/issues/111
-        # Iterate over the two keys, adding them to the system.
-        for keyfile in ["04EE7237B7D453EC.key", "648ACFD622F3D138.key"]:
-            key = TEMPLATE_DIR / keyfile
-            subprocess.call(["apt-key", "add", key.as_posix()])
-
-        # Add the bullseye repo and run apt update.
-        Path("/etc/apt/sources.list.d/bullseye.list").write_text(
-            "deb http://deb.debian.org/debian bullseye main"
-        )
-        subprocess.call(["apt-get", "update"])
+        subprocess.check_output(["apt-get", "update"])
 
         # update specific needed dependencies
-        subprocess.call(["apt-get", "install", "--yes", "libgcrypt20"])
-        subprocess.call(["apt-get", "install", "--yes", "mailutils"])
-        subprocess.call(["apt-get", "install", "--yes", "logrotate"])
+        logger.debug("## Installing dependencies")
+        subprocess.call(["apt-get", "install", "--yes", "mailutils", "logrotate"])
 
         # setup munge
+        logger.debug("## Installing munge")
         subprocess.call(["apt-get", "install", "--yes", "munge"])
         subprocess.call(["systemctl", "enable", self._munged_systemd_service])
 
+        slurm_component = self._slurm_component
+        logger.debug(f"## Installing {slurm_component}")
         try:
-            # @todo: improve slurm version handling
             subprocess.check_output(["apt-get", "install", "--yes",
                                      slurm_component, "slurm-client"])
         except subprocess.CalledProcessError as e:
@@ -90,7 +100,9 @@ class SlurmDebManager(SlurmOpsManagerBase):
 
         # symlink /usr/lib64/slurm -> /usr/lib/x86_64-linux-gnu/slurm-wlm/ to
         # have "standard" location accross OSes
-        Path("/usr/lib64/slurm").symlink_to("/usr/lib/x86_64-linux-gnu/slurm-wlm/")
+        lib64_slurm = Path("/usr/lib64/slurm")
+        if not lib64_slurm.exists():
+            lib64_slurm.symlink_to("/usr/lib/x86_64-linux-gnu/slurm-wlm/")
 
         return True
 
@@ -111,14 +123,25 @@ class SlurmDebManager(SlurmOpsManagerBase):
                 syspath.mkdir()
             subprocess.call(["chown", "-R", user, syspath])
 
-    def upgrade(self, channel):
+    def upgrade(self) -> bool:
         """Run upgrade operations."""
-        pass
+        return self._install_slurm_from_deb()
 
-    def setup_slurm(self) -> bool:
-        """Install Slurm and its dependencies."""
-        successful_installation = self._install_slurm_from_deb()
+    def setup_slurm(self, custom_ppa: str = "") -> bool:
+        """Install Slurm and its dependencies.
+
+        Args:
+            custom_ppa: URL to a custom repository. Setting it to any value
+                        superseeds the Omnivector stable PPA.
+        Returns:
+            bool: whether the installation succeds or not.
+        """
+        if not self._setup_ppas(custom_ppa):
+            return False
+        if not self._install_slurm_from_deb():
+            return False
+
         self._setup_paths()
         self.slurm_systemctl('enable')
 
-        return successful_installation
+        return True

@@ -322,12 +322,19 @@ class SlurmOpsManagerBase:
 
         shutil.copyfile(source, target)
 
-    def upgrade(self):
-        """Preform upgrade-charm operations."""
+    def upgrade(self) -> bool:
+        """Perform upgrade-charm operations."""
         raise Exception("Inheriting object needs to define this method.")
 
-    def setup_slurm(self):
-        """Install and setup Slurm and its dependencies."""
+    def setup_slurm(self, custom_repo: str = "") -> bool:
+        """Install and setup Slurm and its dependencies.
+
+        Args:
+            custom_repo: URL to a custom repository. Setting it to any value
+                         superseeds the Omnivector repository.
+        Returns:
+            bool: whether the installation succeds or not.
+        """
         raise Exception("Inheriting object needs to define this method.")
 
     @property
@@ -487,7 +494,6 @@ class SlurmOpsManagerBase:
         if target.exists():
             target.unlink()
 
-
     def write_slurm_config(self, context) -> None:
         """Render the context to a template, adding in common configs."""
 
@@ -636,7 +642,7 @@ class SlurmOpsManagerBase:
         # check if munge is working, i.e., can use the credentials correctly
         try:
             logger.debug("## Testing if munge is working correctly")
-            cmd = f"munge -n"
+            cmd = "munge -n"
             munge = subprocess.Popen(shlex.split(cmd),
                                      stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)

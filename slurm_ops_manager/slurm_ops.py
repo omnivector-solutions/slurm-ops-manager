@@ -76,13 +76,21 @@ class SlurmManager(Object):
         """Return the slurm.conf."""
         return self._slurm_resource_manager.slurm_conf_path.read_text()
 
-    def install(self) -> bool:
+    def upgrade(self) -> bool:
+        """Upgrade Slurm component."""
+        return self._slurm_resource_manager.upgrade()
+
+    def install(self, custom_repo: str = "") -> bool:
         """Prepare the system for slurm.
 
-        Returns True on success, False otherwise.
+        Args:
+            custom_repo: URL to a custom repository. Setting it to any value
+                         superseeds the Omnivector repository.
+        Returns:
+            bool: True on success, False otherwise.
         """
 
-        success = self._slurm_resource_manager.setup_slurm()
+        success = self._slurm_resource_manager.setup_slurm(custom_repo)
         if not success:
             return False
 
@@ -155,7 +163,6 @@ class SlurmManager(Object):
             self._slurm_resource_manager.write_acct_gather_conf(slurm_config)
         else:
             self._slurm_resource_manager.remove_acct_gather_conf()
-
 
         # Write slurm.conf and restart the slurm component.
         self._slurm_resource_manager.write_slurm_config(slurm_config)
