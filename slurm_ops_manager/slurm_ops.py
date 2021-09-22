@@ -68,6 +68,46 @@ class SlurmManager(Object):
         """Return the slurm component."""
         return self._slurm_resource_manager.slurm_component
 
+    @property
+    def fluentbit_config_nhc(self) -> list:
+        """Return Fluentbit configuration parameters to forward NHC logs."""
+        cfg = [{"input": [("name",             "tail"),
+                          ("path",             "/var/log/nhc.log"),
+                          ("path_key",         "filename"),
+                          ("tag",              "nhc"),
+                          ("multiline.parser", "nhc")]},
+               {"multiline_parser": [("name",          "nhc"),
+                                     ("type",          "regex"),
+                                     ("flush_timeout", "1000"),
+                                     ("rule",          '"start_state"', '"/^([\d]{8} [\d:]*) (.*)/"', '"cont"'), # noqa
+                                     ("rule",          '"cont"',        '"/^([^\d].*)/"',             '"cont"')]}] # noqa
+        return cfg
+
+    @property
+    def fluentbit_config_slurm(self) -> list:
+        """Return Fluentbit configuration parameters to forward Slurm logs."""
+        if self._slurm_component == "slurmd":
+            log_file = self._slurm_resource_manager._slurmd_log_file
+        elif self._slurm_component == "slurmdbd":
+            log_file = self._slurm_resource_manager._slurmdbd_log_file
+        elif self._slurm_component == "slurmctld":
+            log_file = self._slurm_resource_manager._slurmctld_log_file
+        elif self._slurm_component == "slurmrestd":
+            # slurmrestd does not have log files :(
+            return []
+
+        cfg = [{"input": [("name",     "tail"),
+                          ("path",     log_file.as_posix()),
+                          ("path_key", "filename"),
+                          ("tag",      self._slurm_component),
+                          ("parser",   "slurm")]},
+               {"parser": [("name",        "slurm"),
+                           ("format",      "regex"),
+                           ("regex",      r"^\[(?<time>[^\]]*)\] (?<log>.*)$"),
+                           ("time_key",    "time"),
+                           ("time_format", "%Y-%m-%dT%H,%M,%S.%L")]}]
+        return cfg
+
     def get_munge_key(self) -> str:
         """Return the munge key."""
         return self._slurm_resource_manager.get_munge_key()
