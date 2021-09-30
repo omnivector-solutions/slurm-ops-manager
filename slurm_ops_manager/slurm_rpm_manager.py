@@ -4,6 +4,7 @@ import logging
 import subprocess
 from pathlib import Path
 
+from jinja2 import Environment, FileSystemLoader
 from slurm_ops_manager.slurm_ops_base import SlurmOpsManagerBase
 
 
@@ -46,20 +47,16 @@ class SlurmRpmManager(SlurmOpsManagerBase):
 
         Returns True on success and False otherwise.
         """
-
         slurm_component = self._slurm_component
-
-        # the dispatch file in the charms takes care of installing epel and py3
-        subprocess.call(["yum", "makecache"])
+        logger.debug(f"## Installing dependencies for {slurm_component}")
 
         # update/install specific needed dependencies
-        subprocess.call(["yum", "install", "--assumeyes",
-                         "pciutils", "logrotate", "mailx",
-                         "munge"])
-        subprocess.call(["systemctl", "enable", self._munged_systemd_service])
+        subprocess.check_output(["yum", "install", "--assumeyes",
+                                 "pciutils", "logrotate", "mailx", "munge"])
+        subprocess.check_output(["systemctl", "enable", self._munged_systemd_service])
 
+        logger.debug(f"## Installing {slurm_component}")
         try:
-            # @todo: improve slurm version handling
             subprocess.check_output(["yum", "install", "--assumeyes",
                                      f"slurm-{slurm_component}", "slurm"])
         except subprocess.CalledProcessError as e:
@@ -71,22 +68,22 @@ class SlurmRpmManager(SlurmOpsManagerBase):
         # munge rpm does not create a munge key, so we need to create one
         logger.info("#### Creating munge key")
         keycmd = f"dd if=/dev/urandom of={str(self._munge_key_path)} bs=1 count=1024"
-        subprocess.call(keycmd.split())
+        subprocess.check_output(keycmd.split())
         usergroup = f"{self._munge_user}:{self._munge_group}"
-        subprocess.call(f"chown {usergroup} {str(self._munge_key_path)}".split())
-        subprocess.call(f"chmod 0400 {str(self._munge_key_path)}".split())
+        subprocess.check_output(f"chown {usergroup} {str(self._munge_key_path)}".split())
+        subprocess.check_output(f"chmod 0400 {str(self._munge_key_path)}".split())
         logger.info("#### Created munge key")
 
         # current rpms do not create a slurm user and group, so we create it
         logger.info("#### Creating slurm user and group")
-        subprocess.call(["groupadd", "--gid", self._slurm_group_id,
-                                     self._slurm_group])
-        subprocess.call(["adduser", "--system",
-                                    "--gid", self._slurm_group_id,
-                                    "--uid", self._slurm_user_id,
-                                    "--no-create-home",
-                                    "--home", "/nonexistent",
-                                    self._slurm_user])
+        subprocess.check_output(["groupadd", "--gid", self._slurm_group_id,
+                                             self._slurm_group])
+        subprocess.check_output(["adduser", "--system",
+                                            "--gid", self._slurm_group_id,
+                                            "--uid", self._slurm_user_id,
+                                            "--no-create-home",
+                                            "--home", "/nonexistent",
+                                            self._slurm_user])
         logger.info("#### Created slurm user and group")
 
         # we need to override the default service unit for slurmrestd only
@@ -112,6 +109,39 @@ class SlurmRpmManager(SlurmOpsManagerBase):
                 syspath.mkdir()
             subprocess.call(["chown", "-R", user, syspath])
 
+    def _setup_repo(self, custom_repo: str) -> bool:
+        """Set up RPM configuration for slurm rpms.
+
+        Args:
+            custom_repo: string with URL of the custom repository. Setting it
+                         to any value overrides the default Omnivector stable
+                         repo. Example value:
+                         "https://omnivector-solutions.github.io/repo/centos7/stable/$basearch"
+        Returns:
+            bool: wether the operation was successful.
+        """
+        if custom_repo:
+            context = {"title": "omni-custom",
+                       "baseurl": custom_repo}
+        else:
+            context = {"title": "omni-stable",
+                       "baseurl": "https://omnivector-solutions.github.io/repo/centos7/stable/$basearch"} # noqa
+        logger.debug(f"## Configuring repository for Slurm rpms: {context}")
+
+        template_dir = Path(__file__).parent / "templates/"
+        environment = Environment(loader=FileSystemLoader(template_dir))
+        template = environment.get_template("omnirepo_centos.repo.tmpl")
+
+        target = Path("/etc/yum.repos.d/omni.repo")
+        target.write_text(template.render(context))
+
+        try:
+            subprocess.check_output(["yum", "makecache"])
+            return True
+        except subprocess.CalledProcessError as e:
+            logger.error(f"## Error setting up repo: {e}")
+            return False
+
     def upgrade(self) -> bool:
         """Run upgrade operations."""
         logger.warning("## This operation is not yet supported on CentOS.")
@@ -126,6 +156,9 @@ class SlurmRpmManager(SlurmOpsManagerBase):
         Returns:
             bool: whether the installation succeds or not.
         """
+        if not self._setup_repo(custom_repo):
+            return False
+
         successful_installation = self._install_slurm_from_rpm()
         self._setup_paths()
         self.slurm_systemctl('enable')

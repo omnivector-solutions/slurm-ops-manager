@@ -76,12 +76,12 @@ class SlurmDebManager(SlurmOpsManagerBase):
 
         # update specific needed dependencies
         logger.debug("## Installing dependencies")
-        subprocess.call(["apt-get", "install", "--yes", "mailutils", "logrotate"])
+        subprocess.check_output(["apt-get", "install", "--yes", "mailutils", "logrotate"])
 
         # setup munge
         logger.debug("## Installing munge")
-        subprocess.call(["apt-get", "install", "--yes", "munge"])
-        subprocess.call(["systemctl", "enable", self._munged_systemd_service])
+        subprocess.check_output(["apt-get", "install", "--yes", "munge"])
+        subprocess.check_output(["systemctl", "enable", self._munged_systemd_service])
 
         slurm_component = self._slurm_component
         logger.debug(f"## Installing {slurm_component}")
@@ -92,7 +92,7 @@ class SlurmDebManager(SlurmOpsManagerBase):
             logger.error(f"## Error installing {slurm_component} - {e}")
             return False
 
-        subprocess.call(["apt-get", "autoremove", "--yes"])
+        subprocess.check_output(["apt-get", "autoremove", "--yes"])
 
         # we need to override the default service unit for slurmrestd only
         if "slurmrestd" == self._slurm_component:
