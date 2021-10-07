@@ -86,12 +86,21 @@ class SlurmRpmManager(SlurmOpsManagerBase):
             else:
                 logger.error(f"## Error creating group: {e}")
                 return False
-        subprocess.check_output(["adduser", "--system",
-                                            "--gid", self._slurm_group_id,
-                                            "--uid", self._slurm_user_id,
-                                            "--no-create-home",
-                                            "--home", "/nonexistent",
-                                            self._slurm_user])
+
+        try:
+            subprocess.check_output(["adduser", "--system",
+                                                "--gid", self._slurm_group_id,
+                                                "--uid", self._slurm_user_id,
+                                                "--no-create-home",
+                                                "--home", "/nonexistent",
+                                                self._slurm_user])
+        except subprocess.CalledProcessError as e:
+            if e.returncode == 9:
+                logger.warning("## User already exists.")
+            else:
+                logger.error(f"## Error creating user: {e}")
+                return False
+
         logger.info("#### Created slurm user and group")
 
         # we need to override the default service unit for slurmrestd only
