@@ -76,8 +76,16 @@ class SlurmRpmManager(SlurmOpsManagerBase):
 
         # current rpms do not create a slurm user and group, so we create it
         logger.info("#### Creating slurm user and group")
-        subprocess.check_output(["groupadd", "--gid", self._slurm_group_id,
-                                             self._slurm_group])
+
+        try:
+            subprocess.check_output(["groupadd", "--gid", self._slurm_group_id,
+                                                 self._slurm_group])
+        except subprocess.CalledProcessError as e:
+            if e.returncode == 9:
+                logger.warning("## Group already exists.")
+            else:
+                logger.error(f"## Error creating group: {e}")
+                return False
         subprocess.check_output(["adduser", "--system",
                                             "--gid", self._slurm_group_id,
                                             "--uid", self._slurm_user_id,
