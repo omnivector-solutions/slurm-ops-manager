@@ -89,6 +89,9 @@ class Infiniband(Object):
                     logger.error('#### Infiniband - failed to add GPG key')
                     return -1
 
+                # it is necessary to update apt's db after every repo change
+                subprocess.call(["apt-get", "update"])
+
         self._stored.ib_repo_configured = True
 
     @property
@@ -125,7 +128,7 @@ class Infiniband(Object):
         logger.debug('#### Infiniband - detecting OS to install drivers')
 
         if self._operating_system == 'ubuntu':
-            cmd = f"apt install --yes {self._stored.ib_package_name}"
+            cmd = f"apt-get install --yes {self._stored.ib_package_name}"
         elif self._operating_system == 'centos':
             cmd = f"yum install --assumeyes {self._stored.ib_package_name}"
         else:
@@ -144,7 +147,7 @@ class Infiniband(Object):
         logger.debug('#### Infiniband - detecting OS to uninstall drivers')
 
         if self._operating_system == 'ubuntu':
-            cmd = f"apt purge --yes {self._stored.ib_package_name}"
+            cmd = f"apt-get purge --yes {self._stored.ib_package_name}"
         elif self._operating_system == 'centos':
             cmd = f"yum remove --assumeyes {self._stored.ib_package_name}"
         else:
