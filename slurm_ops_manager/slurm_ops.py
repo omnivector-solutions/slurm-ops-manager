@@ -105,7 +105,7 @@ class SlurmManager(Object):
                            ("format",      "regex"),
                            ("regex",      r"^\[(?<time>[^\]]*)\] (?<log>.*)$"),
                            ("time_key",    "time"),
-                           ("time_format", "%Y-%m-%dT%H,%M,%S.%L")]}]
+                           ("time_format", "%Y-%m-%dT%H:%M:%S.%L")]}]
         return cfg
 
     def get_munge_key(self) -> str:
