@@ -80,7 +80,16 @@ class SlurmManager(Object):
                                      ("type",          "regex"),
                                      ("flush_timeout", "1000"),
                                      ("rule",          '"start_state"', '"/^([\d]{8} [\d:]*) (.*)/"', '"cont"'), # noqa
-                                     ("rule",          '"cont"',        '"/^([^\d].*)/"',             '"cont"')]}] # noqa
+                                     ("rule",          '"cont"',        '"/^([^\d].*)/"',             '"cont"')]}, # noqa
+               {"filter": [("name",    "record_modifier"),
+                           ("match",   "nhc"),
+                           ("record",  "hostname ${HOSTNAME}"),
+                           ("record", f"cluster-name {self._charm.cluster_name}"),
+                           ("record",  "service nhc")]}]
+
+        if self._slurm_component == "slurmd":
+            partition_cfg = ("record", f"partition-name {self._charm.get_partition_name()}")
+            cfg[2]["filter"].append(partition_cfg)
         return cfg
 
     @property
@@ -105,7 +114,17 @@ class SlurmManager(Object):
                            ("format",      "regex"),
                            ("regex",      r"^\[(?<time>[^\]]*)\] (?<log>.*)$"),
                            ("time_key",    "time"),
-                           ("time_format", "%Y-%m-%dT%H:%M:%S.%L")]}]
+                           ("time_format", "%Y-%m-%dT%H:%M:%S.%L")]},
+               {"filter": [("name",    "record_modifier"),
+                           ("match",   self._slurm_component),
+                           ("record",  "hostname ${HOSTNAME}"),
+                           ("record", f"cluster-name {self._charm.cluster_name}"),
+                           ("record", f"service {self._slurm_component}")]}]
+
+        if self._slurm_component == "slurmd":
+            partition_cfg = ("record", f"partition-name {self._charm.get_partition_name()}")
+            cfg[2]["filter"].append(partition_cfg)
+
         return cfg
 
     def get_munge_key(self) -> str:
