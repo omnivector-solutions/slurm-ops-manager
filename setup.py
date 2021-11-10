@@ -1,7 +1,7 @@
 from setuptools import find_packages, setup
 
 
-__version__ = "0.4.0+dev"
+__version__ = "0.7.5"
 
 setup(
     name='slurm-ops-manager',
@@ -10,7 +10,7 @@ setup(
     license='MIT',
     long_description=open('README.md', 'r').read(),
     url='https://github.com/omnivector-solutions/slurm-ops-manager',
-    install_requires=['jinja2', 'pycryptodome'],
+    install_requires=['jinja2 > 3.0.0', 'pycryptodome'],
     python_requires='>=3.6',
     package_data={'slurm_ops_manager': ['templates/*']},
 )

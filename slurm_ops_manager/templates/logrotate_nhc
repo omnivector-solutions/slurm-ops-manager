@@ -1,0 +1,9 @@
+# Log rotation configuration for LBNL NHC
+# File created by the Charms. Do not edit manually.
+
+/var/log/nhc.log {
+	missingok
+	notifempty
+	weekly
+	nocopytruncate
+}

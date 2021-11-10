@@ -446,6 +446,23 @@ class SlurmOpsManagerBase:
 
         return status
 
+    def setup_logrotate(self):
+        """Set up logrotate profiles.
+
+        Copy logorate profiles for NHC and Slurm.
+        """
+        logrotate_dir = Path("/etc/logrotate.d")
+
+        shutil.copyfile(TEMPLATE_DIR / "logrotate_nhc", logrotate_dir / "nhc")
+        shutil.copyfile(TEMPLATE_DIR / "logrotate_slurm", logrotate_dir / "slurm")
+
+        # ubuntu package creates /etc/logrotate.d/slurm{d,dbd,ctld} files, we
+        # need to remove those
+        for daemon in ["slurmd", "slurmdbd", "slurmctld"]:
+            profile = logrotate_dir / daemon
+            if profile.exists():
+                profile.unlink()
+
     def slurm_config_nhc_values(self, interval=600, state='ANY,CYCLE'):
         """NHC parameters for slurm.conf."""
         return {'nhc_bin': '/usr/sbin/nhc-wrapper',

@@ -162,6 +162,7 @@ class SlurmManager(Object):
             if not success:
                 return False
 
+        self._slurm_resource_manager.setup_logrotate()
         self._slurm_resource_manager.create_systemd_override_for_nofile()
         self._slurm_resource_manager.daemon_reload()
 
