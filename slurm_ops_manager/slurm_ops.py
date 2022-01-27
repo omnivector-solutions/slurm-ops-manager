@@ -1,6 +1,7 @@
-#!/usr/bin/env python3
 """This module provides the SlurmManager."""
 import logging
+import subprocess
+from pathlib import Path
 
 from ops.framework import (
     Object,
@@ -8,6 +9,7 @@ from ops.framework import (
 )
 from slurm_ops_manager import utils
 from slurm_ops_manager.infiniband import Infiniband
+from slurm_ops_manager.nvidia import NvidiaGPU
 from slurm_ops_manager.slurm_ops_managers import (
     SlurmDebManager,
     SlurmRpmManager,
@@ -42,6 +44,8 @@ class SlurmManager(Object):
             raise Exception("Unsupported OS")
 
         self.infiniband = Infiniband(charm, component)
+        if self._slurm_component == "slurmd":
+            self.nvidia = NvidiaGPU(charm, component)
 
     @property
     def hostname(self):
