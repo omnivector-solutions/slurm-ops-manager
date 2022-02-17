@@ -296,3 +296,15 @@ class SlurmManager(Object):
     def infiniband_version(self) -> str:
         """Return the installed infiniband version."""
         return self.infiniband.version
+
+    @property
+    def needs_reboot(self) -> bool:
+        """Return True if the machine needs to be rebooted."""
+        if Path("/var/run/reboot-required").exists():
+            return True
+        if Path("/bin/needs-restarting").exists(): # only on CentOS
+            p = subprocess.run(["/bin/needs-restarting", "--reboothint"])
+            if p.returncode == 1:
+                return True
+
+        return False
