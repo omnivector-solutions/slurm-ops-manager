@@ -428,6 +428,17 @@ class SlurmOpsManagerBase:
             logger.error(f"#### Error rendering NHC.conf: {e}")
             return False
 
+    def render_nhc_wrapper(self, params: str):
+        """Render the /usr/sbin/omni-nhc-wrapper script."""
+
+        target = Path("/usr/sbin/omni-nhc-wrapper")
+        context = {"nhc_params": params}
+        environment = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
+        template = environment.get_template('omni-nhc-wrapper.tmpl')
+
+        target.write_text(template.render(context))
+        target.chmod(0o755) # everybody can read/execute, owner can write
+
     def get_nhc_config(self) -> None:
         """Get current nhc.conf."""
         target = Path('/etc/nhc/nhc.conf')
@@ -465,7 +476,7 @@ class SlurmOpsManagerBase:
 
     def slurm_config_nhc_values(self, interval=600, state='ANY,CYCLE'):
         """NHC parameters for slurm.conf."""
-        return {'nhc_bin': '/usr/sbin/nhc-wrapper',
+        return {'nhc_bin': '/usr/sbin/omni-nhc-wrapper',
                 'health_check_interval': interval,
                 'health_check_node_state': state}
 

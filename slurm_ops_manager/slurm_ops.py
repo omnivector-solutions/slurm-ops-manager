@@ -204,6 +204,10 @@ class SlurmManager(Object):
         """Write NHC.conf using extra_configs."""
         self._slurm_resource_manager.render_nhc_config(extra_configs)
 
+    def render_nhc_wrapper(self, params):
+        """Proxy to render the /usr/sbin/omni-nhc-wrapper script."""
+        self._slurm_resource_manager.render_nhc_wrapper(params)
+
     def get_nhc_config(self):
         """Get the current nhc configuration."""
         return self._slurm_resource_manager.get_nhc_config()
