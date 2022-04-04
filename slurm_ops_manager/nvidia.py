@@ -36,11 +36,9 @@ class NvidiaGPU(Object):
         else:
             logger.error(f"#### Unsupported OS: {self._operating_system}")
 
-        # set a default package name and repository
+        # set a default package name
         if not self.package:
             self.package = ""
-        if not self._stored.gpu_repo_configured:
-            self.repository = ""
 
     @property
     def installed(self) -> bool:
