@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """slurm-ops-manager utils."""
+import logging
 import os
 import re
 import socket
@@ -8,6 +9,8 @@ import sys
 
 from pathlib import Path
 
+
+logger = logging.getLogger()
 
 OS_RELEASE = Path("/etc/os-release").read_text().split("\n")
 OS_RELEASE_CTXT = {
@@ -21,7 +24,7 @@ def operating_system():
     return OS_RELEASE_CTXT['ID']
 
 
-def _get_real_mem():
+def get_real_mem():
     """Return the real memory."""
     try:
         real_mem = subprocess.check_output(
@@ -29,8 +32,7 @@ def _get_real_mem():
             shell=True
         )
     except subprocess.CalledProcessError as e:
-        # logger.debug(e)
-        print(e)
+        logger.error(e)
         sys.exit(-1)
 
     return real_mem.decode().strip()
@@ -96,7 +98,7 @@ def get_hostname():
 def get_inventory():
     """Assemble and return the node info."""
     hostname = get_hostname()
-    mem = _get_real_mem()
+    mem = get_real_mem()
     cpu_info = _get_cpu_info()
     gpus = _get_gpus()
 
