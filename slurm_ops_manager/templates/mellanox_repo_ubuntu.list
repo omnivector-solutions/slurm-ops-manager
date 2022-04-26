@@ -3,9 +3,8 @@
 # For more information, refer to http://linux.mellanox.com
 #
 # Downloaded from
-# https://linux.mellanox.com/public/repo/mlnx_ofed/latest/ubuntu20.04/mellanox_mlnx_ofed.list
-# on 2021-04-20
+# https://linux.mellanox.com/public/repo/mlnx_ofed/5.4-1.0.3.0/ubuntu20.04/mellanox_mlnx_ofed.list
+# on 2022-04-20
 
-# [mlnx_ofed_5.3-1.0.0.1_base]
-deb http://linux.mellanox.com/public/repo/mlnx_ofed/5.3-1.0.0.1/ubuntu20.04/$(ARCH) ./
-
+# [mlnx_ofed_5.4-1.0.3.0_base]
+deb http://linux.mellanox.com/public/repo/mlnx_ofed/5.4-1.0.3.0/ubuntu20.04/$(ARCH) ./
