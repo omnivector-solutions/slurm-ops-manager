@@ -34,11 +34,9 @@ class SlurmManager(Object):
         self._stored.set_default(slurm_installed=False)
         self._stored.set_default(slurm_version_set=False)
 
-        operating_system = utils.operating_system()
-
-        if operating_system == "ubuntu":
+        if self.operating_system == "ubuntu":
             self._slurm_resource_manager = SlurmDebManager(component)
-        elif operating_system == "centos":
+        elif self.operating_system == "centos":
             self._slurm_resource_manager = SlurmRpmManager(component)
         else:
             raise Exception("Unsupported OS")
@@ -51,6 +49,11 @@ class SlurmManager(Object):
     def hostname(self):
         """Return the hostname."""
         return self._slurm_resource_manager.hostname
+
+    @property
+    def operating_system(self):
+        """Return the operating system."""
+        return utils.operating_system()
 
     @property
     def port(self):
