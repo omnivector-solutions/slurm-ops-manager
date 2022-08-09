@@ -10,6 +10,7 @@ from ops.framework import (
 from slurm_ops_manager import utils
 from slurm_ops_manager.infiniband import Infiniband
 from slurm_ops_manager.nvidia import NvidiaGPU
+from slurm_ops_manager.singularity import Singularity
 from slurm_ops_manager.slurm_ops_managers import (
     SlurmDebManager,
     SlurmRpmManager,
@@ -46,6 +47,7 @@ class SlurmManager(Object):
         self.infiniband = Infiniband(charm, component)
         if self._slurm_component == "slurmd":
             self.nvidia = NvidiaGPU(charm, component)
+            self.singularity = Singularity(charm, component)
 
     @property
     def hostname(self):
