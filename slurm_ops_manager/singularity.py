@@ -21,8 +21,7 @@ class Singularity(Object):
         """Initialize class."""
         super().__init__(parent, key)
 
-        self._stored.set_default(singularity_installed=False,
-                                 resource_name=str())
+        self._stored.set_default(resource_name=str())
 
         self._operating_system = operating_system()
 
@@ -36,11 +35,6 @@ class Singularity(Object):
             self._stored.resource_name = ""
 
     @property
-    def installed(self) -> bool:
-        """Return wether singularity is installed."""
-        return self._stored.singularity_installed
-
-    @property
     def resource_name(self) -> str:
         """Return singularity resource name."""
         return self._stored.resource_name
@@ -50,8 +44,8 @@ class Singularity(Object):
 
         logger.debug(f"#### Installing singularity from: {resource_path}")
 
-        cmds = {"ubuntu": f"apt install {resource_path} -y",
-                "centos": f"yum localinstall {resource_path} -y"}
+        cmds = {"ubuntu": f"apt-get install --yes {resource_path}",
+                "centos": f"yum localinstall --assumeyes {resource_path}"}
 
         os_ = self._operating_system
         logger.debug(f"#### Installing on {self._operating_system}")
@@ -60,5 +54,3 @@ class Singularity(Object):
         subprocess.run(shlex.split(cmds[os_]))
 
         logger.debug("#### Singularity successfully installed")
-
-        self._stored.singularity_installed = True
