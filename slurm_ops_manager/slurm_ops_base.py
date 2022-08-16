@@ -337,10 +337,6 @@ class SlurmOpsManagerBase:
         """
         raise Exception("Inheriting object needs to define this method.")
 
-    @property
-    def nhc_version(self) -> str:
-        """Return NHC version."""
-        return "lbnl-nhc-1.4.3"
 
     def _install_nhc_from_git(self, nhc_path) -> bool:
         """Install NHC from Omnivector fork.
