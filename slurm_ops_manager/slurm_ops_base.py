@@ -342,7 +342,7 @@ class SlurmOpsManagerBase:
         """Return NHC version."""
         return "lbnl-nhc-1.4.3"
 
-    def _install_nhc_from_git(self) -> bool:
+    def _install_nhc_from_git(self, nhc_path) -> bool:
         """Install NHC from Omnivector fork.
 
         Returns True on success, False otherwise.
@@ -354,7 +354,7 @@ class SlurmOpsManagerBase:
 
         base_path = Path("/tmp/nhc")
         full_path = base_path / self.nhc_version
-        nhc_tar = self.nhc_path
+        nhc_tar = nhc_path
 
         if base_path.exists():
             rmtree(base_path)
@@ -443,12 +443,12 @@ class SlurmOpsManagerBase:
         else:
             return f"{target} not found."
 
-    def setup_nhc(self) -> bool:
+    def setup_nhc(self, nhc_path) -> bool:
         """Install NHC and its dependencies.
 
         Returns True on success, False otherwise.
         """
-        status = self._install_nhc_from_git()
+        status = self._install_nhc_from_git(nhc_path)
         status &= self.render_nhc_config()
 
         return status

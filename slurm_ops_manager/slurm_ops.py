@@ -145,7 +145,7 @@ class SlurmManager(Object):
         """Upgrade Slurm component."""
         return self._slurm_resource_manager.upgrade()
 
-    def install(self, custom_repo: str = "") -> bool:
+    def install(self, custom_repo: str = "", nhc_path) -> bool:
         """Prepare the system for slurm.
 
         Args:
@@ -164,7 +164,7 @@ class SlurmManager(Object):
             self._slurm_resource_manager.slurm_conf_path.unlink()
 
         if "slurmd" == self._slurm_component:
-            success = self._slurm_resource_manager.setup_nhc()
+            success = self._slurm_resource_manager.setup_nhc(nhc_path)
             if not success:
                 return False
 
