@@ -145,12 +145,13 @@ class SlurmManager(Object):
         """Upgrade Slurm component."""
         return self._slurm_resource_manager.upgrade()
 
-    def install(self, custom_repo: str = "", nhc_path) -> bool:
+    def install(self, custom_repo: str = "", nhc_path: str= "") -> bool:
         """Prepare the system for slurm.
 
         Args:
             custom_repo: URL to a custom repository. Setting it to any value
                          superseeds the Omnivector repository.
+            nhc_path: resource location for NHC
         Returns:
             bool: True on success, False otherwise.
         """
