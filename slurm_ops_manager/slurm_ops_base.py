@@ -354,7 +354,7 @@ class SlurmOpsManagerBase:
 
         base_path = Path("/tmp/nhc")
         full_path = base_path / self.nhc_version
-        nhc_tar = "/opt/nhc.tar.gz"
+        nhc_tar = self.nhc_path
 
         if base_path.exists():
             rmtree(base_path)
