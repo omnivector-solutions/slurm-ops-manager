@@ -347,13 +347,10 @@ class SlurmOpsManagerBase:
 
         Returns True on success, False otherwise.
         """
-        #version = self.nhc_version
-        #src = f"https://codeload.github.com/omnivector-solutions/nhc/tar.gz/refs/tags/{version}"
 
         logger.info("#### Installing NHC")
 
         base_path = Path("/tmp/nhc")
-        full_path = base_path / self.nhc_version
         nhc_tar = nhc_path
 
         if base_path.exists():
@@ -362,6 +359,8 @@ class SlurmOpsManagerBase:
 
         cmd = f"tar --extract --directory {base_path} --file {nhc_tar}".split()
         subprocess.run(cmd)
+
+        full_path = base_path / os.listdir(base_path)[0]
 
         if operating_system() == 'ubuntu':
             libdir = "/usr/lib"
@@ -401,7 +400,7 @@ class SlurmOpsManagerBase:
         except subprocess.CalledProcessError as e:
             logger.error(f"#### Error installing NHC: {e.cmd}")
             return False
-        
+
         rmtree(base_path)
         logger.info("#### NHC succesfully installed")
         return True
