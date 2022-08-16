@@ -296,10 +296,6 @@ class SlurmManager(Object):
         """Return the installed munge version."""
         return self._slurm_resource_manager.munge_version
 
-    def nhc_version(self) -> str:
-        """Return the installed nhc version."""
-        return self._slurm_resource_manager.nhc_version
-
     def infiniband_version(self) -> str:
         """Return the installed infiniband version."""
         return self.infiniband.version
