@@ -350,7 +350,7 @@ class SlurmOpsManagerBase:
         #version = self.nhc_version
         #src = f"https://codeload.github.com/omnivector-solutions/nhc/tar.gz/refs/tags/{version}"
 
-        logger.info(f"#### Installing NHC")
+        logger.info("#### Installing NHC")
 
         base_path = Path("/tmp/nhc")
         full_path = base_path / self.nhc_version
@@ -401,7 +401,8 @@ class SlurmOpsManagerBase:
         except subprocess.CalledProcessError as e:
             logger.error(f"#### Error installing NHC: {e.cmd}")
             return False
-
+        
+        rmtree(base_path)
         logger.info("#### NHC succesfully installed")
         return True
 
