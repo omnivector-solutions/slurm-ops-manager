@@ -443,7 +443,7 @@ class SlurmOpsManagerBase:
 
         Returns True on success, False otherwise.
         """
-        status = self._install_nhc_from_git(nhc_path)
+        status = self._install_nhc_from_tarball(nhc_path)
         status &= self.render_nhc_config()
 
         return status
