@@ -337,7 +337,7 @@ class SlurmOpsManagerBase:
         """
         raise Exception("Inheriting object needs to define this method.")
 
-    def _install_nhc_from_git(self, nhc_path) -> bool:
+    def _install_nhc_from_tarball(self, nhc_path) -> bool:
         """Install NHC from provided NHC Path.
 
         Returns True on success, False otherwise.
