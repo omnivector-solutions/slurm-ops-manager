@@ -145,12 +145,13 @@ class SlurmManager(Object):
         """Upgrade Slurm component."""
         return self._slurm_resource_manager.upgrade()
 
-    def install(self, custom_repo: str = "") -> bool:
+    def install(self, custom_repo: str = "", nhc_path: str= "") -> bool:
         """Prepare the system for slurm.
 
         Args:
             custom_repo: URL to a custom repository. Setting it to any value
                          superseeds the Omnivector repository.
+            nhc_path: resource location for NHC
         Returns:
             bool: True on success, False otherwise.
         """
@@ -164,7 +165,7 @@ class SlurmManager(Object):
             self._slurm_resource_manager.slurm_conf_path.unlink()
 
         if "slurmd" == self._slurm_component:
-            success = self._slurm_resource_manager.setup_nhc()
+            success = self._slurm_resource_manager.setup_nhc(nhc_path)
             if not success:
                 return False
 
@@ -294,10 +295,6 @@ class SlurmManager(Object):
     def munge_version(self) -> str:
         """Return the installed munge version."""
         return self._slurm_resource_manager.munge_version
-
-    def nhc_version(self) -> str:
-        """Return the installed nhc version."""
-        return self._slurm_resource_manager.nhc_version
 
     def infiniband_version(self) -> str:
         """Return the installed infiniband version."""

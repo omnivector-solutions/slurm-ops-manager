@@ -337,35 +337,25 @@ class SlurmOpsManagerBase:
         """
         raise Exception("Inheriting object needs to define this method.")
 
-    @property
-    def nhc_version(self) -> str:
-        """Return NHC version."""
-        return "1.4.2-omni-1.0"
-
-    def _install_nhc_from_git(self) -> bool:
-        """Install NHC from Omnivector fork.
+    def _install_nhc_from_tarball(self, nhc_path) -> bool:
+        """Install NHC from provided NHC Path.
 
         Returns True on success, False otherwise.
         """
-        version = self.nhc_version
-        src = f"https://codeload.github.com/omnivector-solutions/nhc/tar.gz/refs/tags/{version}"
 
-        logger.info(f"#### downloading and installing NHC {version}")
+        logger.info("#### Installing NHC")
 
         base_path = Path("/tmp/nhc")
-        full_path = base_path / f"nhc-{version}"
-        nhc_tar = base_path / "nhc.tar.gz"
+        nhc_tar = nhc_path
 
-        # cleanup old installations
         if base_path.exists():
             rmtree(base_path)
         base_path.mkdir()
 
-        cmd = f"curl -o {nhc_tar} -s {src}".split()
-        subprocess.run(cmd)
-
         cmd = f"tar --extract --directory {base_path} --file {nhc_tar}".split()
         subprocess.run(cmd)
+
+        full_path = base_path / os.listdir(base_path)[0]
 
         if operating_system() == 'ubuntu':
             libdir = "/usr/lib"
@@ -406,6 +396,7 @@ class SlurmOpsManagerBase:
             logger.error(f"#### Error installing NHC: {e.cmd}")
             return False
 
+        rmtree(base_path)
         logger.info("#### NHC succesfully installed")
         return True
 
@@ -447,12 +438,12 @@ class SlurmOpsManagerBase:
         else:
             return f"{target} not found."
 
-    def setup_nhc(self) -> bool:
+    def setup_nhc(self, nhc_path) -> bool:
         """Install NHC and its dependencies.
 
         Returns True on success, False otherwise.
         """
-        status = self._install_nhc_from_git()
+        status = self._install_nhc_from_tarball(nhc_path)
         status &= self.render_nhc_config()
 
         return status
