@@ -9,6 +9,7 @@ from ops.framework import (
 )
 from slurm_ops_manager import utils
 from slurm_ops_manager.infiniband import Infiniband
+from slurm_ops_manager.mpi import MPI
 from slurm_ops_manager.nvidia import NvidiaGPU
 from slurm_ops_manager.singularity import Singularity
 from slurm_ops_manager.slurm_ops_managers import (
@@ -46,6 +47,7 @@ class SlurmManager(Object):
 
         self.infiniband = Infiniband(charm, component)
         if self._slurm_component == "slurmd":
+            self.mpi = MPI(charm, component)
             self.nvidia = NvidiaGPU(charm, component)
             self.singularity = Singularity(charm, component)
 
@@ -145,7 +147,7 @@ class SlurmManager(Object):
         """Upgrade Slurm component."""
         return self._slurm_resource_manager.upgrade()
 
-    def install(self, custom_repo: str = "", nhc_path: str= "") -> bool:
+    def install(self, custom_repo: str = "", nhc_path: str = "") -> bool:
         """Prepare the system for slurm.
 
         Args:
