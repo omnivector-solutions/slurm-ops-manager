@@ -20,7 +20,14 @@ class MPI(Object):
         """Initialize class."""
         super().__init__(parent, key)
 
+        self._stored.set_default(mpi_installed=False)
+
         self._operating_system = operating_system()
+
+    @property
+    def installed(self) -> bool:
+        """Return wether mpich is installed."""
+        return self._stored.mpi_installed
 
     def install(self):
         """Install mpich using the package managers apt-get (Ubuntu) or yum (CentOS)."""
@@ -48,6 +55,7 @@ class MPI(Object):
                 with open("/etc/bashrc", "a") as bashrc:
                     bashrc.write(cmd)
 
+            self._stored.mpi_installed = True
             logger.debug("#### MPI successfully installed")
         except subprocess.CalledProcessError as e:
             logger.error(f"#### Error installing MPI - {e}")
