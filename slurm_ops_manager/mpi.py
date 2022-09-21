@@ -31,19 +31,23 @@ class MPI(Object):
                 "centos": "yum install --assumeyes mpich-3.2 mpich-3.2-devel"}
 
         os_ = self._operating_system
-        logger.debug(f"#### Installing on {self._operating_system}")
+
+        logger.debug(f"#### Installing on {os_}")
         logger.debug(f"#### Command: {cmds[os_]}")
 
-        subprocess.run(shlex.split(cmds[os_]))
+        try:
+            subprocess.check_output(shlex.split(cmds[os_]))
 
-        # In centos MPI is installed as a module
-        # So, we must load the MPI module
-        if self._operating_system == "centos":
-            logger.debug("#### Configuring /etc/bashrc to load MPI module")
+            # In centos MPI is installed as a module
+            # So, we must load the MPI module
+            if os_ == "centos":
+                logger.debug("#### Configuring /etc/bashrc to load MPI module")
 
-            cmd = "module load mpi/mpich-3.2-x86_64"
+                cmd = "module load mpi/mpich-3.2-x86_64\n"
 
-            with open("/etc/bashrc", "a") as bashrc:
-                bashrc.write(cmd)
+                with open("/etc/bashrc", "a") as bashrc:
+                    bashrc.write(cmd)
 
-        logger.debug("#### MPI successfully installed")
+            logger.debug("#### MPI successfully installed")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"#### Error installing MPI - {e}")
