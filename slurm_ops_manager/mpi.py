@@ -1,4 +1,4 @@
-"""MPI Class."""
+"""This MPI Class is responsible for installing MPI (mpich) in the slurmd charms."""
 
 import logging
 import shlex
@@ -23,11 +23,11 @@ class MPI(Object):
         self._operating_system = operating_system()
 
     def install(self):
-        """Install MPI (mpich)."""
+        """Install mpich using the package managers apt-get (Ubuntu) or yum (CentOS)."""
 
         logger.debug("#### Installing MPI (mpich)")
 
-        cmds = {"ubuntu": "apt-get install --yes mpich",
+        cmds = {"ubuntu": "apt-get install --yes mpich=3.3.2-2build1",
                 "centos": "yum install --assumeyes mpich-3.2 mpich-3.2-devel"}
 
         os_ = self._operating_system
