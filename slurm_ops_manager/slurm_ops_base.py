@@ -261,6 +261,26 @@ class SlurmOpsManagerBase:
         return "root"
 
     @property
+    def _slurmrestd_user(self) -> str:
+        """Return the slurmrestd user."""
+        return "slurmrestd"
+
+    @property
+    def _slurmrestd_user_id(self) -> str:
+        """Return the slurmrestd user ID."""
+        return "64040"
+
+    @property
+    def _slurmrestd_group(self) -> str:
+        """Return the slurmrestd group."""
+        return "slurmrestd"
+
+    @property
+    def _slurmrestd_group_id(self) -> str:
+        """Return the slurmrest group ID."""
+        return "64040"
+
+    @property
     def slurm_component(self) -> str:
         """Return the slurm component we are."""
         return self._slurm_component
@@ -309,6 +329,39 @@ class SlurmOpsManagerBase:
 
         context = {"HOST": host, "PORT": port}
         target.write_text(template.render(context))
+
+    def create_slurmrestd_user(self):
+        """Create the slurmrestd user and group."""
+
+        logger.info("#### Creating slurmrestd group")
+
+        try:
+            subprocess.check_output(["groupadd", "--gid", self._slurmrestd_group_id,
+                                                 self._slurmrestd_group])
+        except subprocess.CalledProcessError as e:
+            if e.returncode == 9:
+                logger.warning("## Slurmrestd group already exists.")
+            else:
+                logger.error(f"## Error creating slurmrestd group: {e}")
+                return False
+
+        logger.info("#### Creating slurmrestd user")
+
+        try:
+            subprocess.check_output(["adduser", "--system",
+                                                "--gid", self._slurmrestd_group_id,
+                                                "--uid", self._slurmrestd_user_id,
+                                                "--no-create-home",
+                                                "--home", "/nonexistent",
+                                                self._slurmrestd_user])
+        except subprocess.CalledProcessError as e:
+            if e.returncode == 9:
+                logger.warning("## Slurmrestd user already exists.")
+            else:
+                logger.error(f"## Error creating slurmrestd user: {e}")
+                return False
+
+        logger.info("#### Created slurmrestd user and group")
 
     def setup_slurmrestd_systemd_unit(self):
         """Replace default systemd unit.

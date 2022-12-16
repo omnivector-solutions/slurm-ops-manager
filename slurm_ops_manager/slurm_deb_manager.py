@@ -96,6 +96,7 @@ class SlurmDebManager(SlurmOpsManagerBase):
 
         # we need to override the default service unit for slurmrestd only
         if "slurmrestd" == self._slurm_component:
+            self.create_slurmrestd_user()
             self.setup_slurmrestd_systemd_unit()
 
         # symlink /usr/lib64/slurm -> /usr/lib/x86_64-linux-gnu/slurm-wlm/ to

@@ -105,6 +105,7 @@ class SlurmRpmManager(SlurmOpsManagerBase):
 
         # we need to override the default service unit for slurmrestd only
         if "slurmrestd" == self._slurm_component:
+            self.create_slurmrestd_user()
             self.setup_slurmrestd_systemd_unit()
 
         return True
