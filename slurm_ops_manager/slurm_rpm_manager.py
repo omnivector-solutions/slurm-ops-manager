@@ -142,7 +142,7 @@ class SlurmRpmManager(SlurmOpsManagerBase):
                        "baseurl": custom_repo}
         else:
             context = {"title": "omni-stable-local",
-                       "baseurl": "http://10.82.244.241/repo/centos7/stable/$basearch"} # noqa
+                       "baseurl": "http://34.220.181.173//repo/centos7/stable/$basearch"} # noqa
         logger.debug(f"## Configuring repository for Slurm rpms: {context}")
 
         template_dir = Path(__file__).parent / "templates/"
