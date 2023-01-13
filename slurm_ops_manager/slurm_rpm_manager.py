@@ -117,10 +117,11 @@ class SlurmRpmManager(SlurmOpsManagerBase):
         else:
             user = f"{self._slurm_user}:{self._slurm_group}"
 
-        all_paths = [self._slurm_conf_dir,
-                     self._slurm_state_dir,
-                     self._slurm_spool_dir]
-
+        all_paths = [
+            self._slurm_conf_dir,
+            self._slurm_state_dir,
+            self._slurm_spool_dir,
+        ]
         for syspath in all_paths:
             if not syspath.exists():
                 syspath.mkdir()
@@ -177,6 +178,10 @@ class SlurmRpmManager(SlurmOpsManagerBase):
             return False
 
         successful_installation = self._install_slurm_from_rpm()
+
+        if self._slurm_component == "slurmctld":
+            self._setup_plugstack_dir_and_config()
+
         self._setup_paths()
         self.slurm_systemctl('enable')
 

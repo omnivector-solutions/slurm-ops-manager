@@ -218,12 +218,12 @@ class SlurmOpsManagerBase:
     @property
     def _slurm_plugstack_dir(self) -> Path:
         """Return the directory to the SPANK plugins."""
-        return Path("/etc/slurm/plugstack.d")
+        return Path("/etc/slurm/plugstack.conf.d")
 
     @property
     def _slurm_plugstack_conf(self) -> Path:
-        """Return the full path to the SPANK configuration file."""
-        return self._slurm_plugstack_dir / 'plugstack.conf' # TODO check this on CentOS
+        """Return the full path to the root plugstack configuration file."""
+        return self._slurm_conf_dir / 'plugstack.conf'
 
     @property
     def _slurm_systemd_service(self) -> str:
@@ -710,3 +710,23 @@ class SlurmOpsManagerBase:
     def generate_jwt_rsa(self) -> str:
         """Generate the rsa key to encode the jwt with."""
         return RSA.generate(2048).export_key('PEM').decode()
+
+    def _setup_plugstack_dir_and_config(self) -> None:
+        """Create plugstack directory and config."""
+
+        # Create the plugstack config directory.
+        plugstack_dir = self._slurm_plugstack_dir
+
+        if plugstack_dir.exists():
+            plugstack_dir.unlink()
+
+        plugstack_dir.mkdir()
+        subprocess.call(["chown", "-R", f"{self._slurm_user}:{self._slurm_group}", plugstack_dir])
+
+        # Write the plugstack config.
+        plugstack_conf = self._slurm_plugstack_conf
+
+        if plugstack_conf.exists():
+            plugstack_conf.unlink()
+
+        plugstack_conf.write_text(f"include {plugstack_dir}/*.conf")
