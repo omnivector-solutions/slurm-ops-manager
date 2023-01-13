@@ -179,7 +179,10 @@ class SlurmRpmManager(SlurmOpsManagerBase):
             return False
 
         successful_installation = self._install_slurm_from_rpm()
-        self.setup_plugstack_dir_and_config()
+
+        if self._slurm_component == "slurmctld":
+             self._setup_plugstack_dir_and_config()
+
         self._setup_paths()
         self.slurm_systemctl('enable')
 

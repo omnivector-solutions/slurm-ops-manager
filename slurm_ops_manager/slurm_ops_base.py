@@ -711,7 +711,7 @@ class SlurmOpsManagerBase:
         """Generate the rsa key to encode the jwt with."""
         return RSA.generate(2048).export_key('PEM').decode()
 
-    def setup_plugstack_dir_and_config(self) -> None:
+    def _setup_plugstack_dir_and_config(self) -> None:
         """Create plugstack directory and config.
         """
 
@@ -722,7 +722,7 @@ class SlurmOpsManagerBase:
             plugstack_dir.unlink()
 
         plugstack_dir.mkdir()
-        subprocess.call(["chown", "-R", self._slurm_user, plugstack_dir])
+        subprocess.call(["chown", "-R", f"{self._slurm_user}:{self._slurm_group}", plugstack_dir])
 
         # Write the plugstack config.
         plugstack_conf = self._slurm_plugstack_conf

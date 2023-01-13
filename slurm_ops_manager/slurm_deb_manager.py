@@ -141,7 +141,9 @@ class SlurmDebManager(SlurmOpsManagerBase):
         if not self._install_slurm_from_deb():
             return False
 
-        self.setup_plugstack_dir_and_config()
+        if self._slurm_component == "slurmctld":
+             self._setup_plugstack_dir_and_config()
+
         self._setup_paths()
         self.slurm_systemctl('enable')
 
