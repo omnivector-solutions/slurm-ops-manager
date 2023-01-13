@@ -712,8 +712,7 @@ class SlurmOpsManagerBase:
         return RSA.generate(2048).export_key('PEM').decode()
 
     def _setup_plugstack_dir_and_config(self) -> None:
-        """Create plugstack directory and config.
-        """
+        """Create plugstack directory and config."""
 
         # Create the plugstack config directory.
         plugstack_dir = self._slurm_plugstack_dir

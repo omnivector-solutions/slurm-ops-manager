@@ -142,7 +142,7 @@ class SlurmDebManager(SlurmOpsManagerBase):
             return False
 
         if self._slurm_component == "slurmctld":
-             self._setup_plugstack_dir_and_config()
+            self._setup_plugstack_dir_and_config()
 
         self._setup_paths()
         self.slurm_systemctl('enable')
