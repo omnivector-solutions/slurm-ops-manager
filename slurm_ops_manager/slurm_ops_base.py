@@ -718,7 +718,7 @@ class SlurmOpsManagerBase:
         plugstack_dir = self._slurm_plugstack_dir
 
         if plugstack_dir.exists():
-            plugstack_dir.unlink()
+            rmtree(plugstack_dir)
 
         plugstack_dir.mkdir()
         subprocess.call(["chown", "-R", f"{self._slurm_user}:{self._slurm_group}", plugstack_dir])
