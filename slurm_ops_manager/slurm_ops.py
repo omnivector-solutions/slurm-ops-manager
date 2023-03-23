@@ -8,7 +8,6 @@ from ops.framework import (
     StoredState,
 )
 from slurm_ops_manager import utils
-from slurm_ops_manager.infiniband import Infiniband
 from slurm_ops_manager.slurm_ops_managers import (
     SlurmDebManager,
     SlurmRpmManager,
@@ -41,8 +40,6 @@ class SlurmManager(Object):
             self._slurm_resource_manager = SlurmRpmManager(component)
         else:
             raise Exception("Unsupported OS")
-
-        self.infiniband = Infiniband(charm, component)
 
     @property
     def hostname(self):
@@ -290,10 +287,6 @@ class SlurmManager(Object):
     def munge_version(self) -> str:
         """Return the installed munge version."""
         return self._slurm_resource_manager.munge_version
-
-    def infiniband_version(self) -> str:
-        """Return the installed infiniband version."""
-        return self.infiniband.version
 
     @property
     def needs_reboot(self) -> bool:
