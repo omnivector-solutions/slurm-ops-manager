@@ -124,10 +124,12 @@ class SlurmDebManager(SlurmOpsManagerBase):
         if not self._install_slurm_from_deb():
             return False
 
-        if self._slurm_component == "slurmctld":
+        # create needed paths with correct permisions
+        self._setup_paths()
+
+        if self._slurm_component in ["slurmctld", "slurmd"]:
             self._setup_plugstack_dir_and_config()
 
-        self._setup_paths()
         self.slurm_systemctl('enable')
 
         return True
