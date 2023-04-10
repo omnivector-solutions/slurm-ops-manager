@@ -109,24 +109,6 @@ class SlurmRpmManager(SlurmOpsManagerBase):
 
         return True
 
-    def _setup_paths(self):
-        """Create needed paths with correct permisions."""
-
-        if "slurmd" == self._slurm_component:
-            user = f"{self._slurmd_user}:{self._slurmd_group}"
-        else:
-            user = f"{self._slurm_user}:{self._slurm_group}"
-
-        all_paths = [
-            self._slurm_conf_dir,
-            self._slurm_state_dir,
-            self._slurm_spool_dir,
-        ]
-        for syspath in all_paths:
-            if not syspath.exists():
-                syspath.mkdir()
-            subprocess.call(["chown", "-R", user, syspath])
-
     def _setup_repo(self, custom_repo: str) -> bool:
         """Set up RPM configuration for slurm rpms.
 
