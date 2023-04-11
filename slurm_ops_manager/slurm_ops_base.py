@@ -261,9 +261,67 @@ class SlurmOpsManagerBase:
         return "root"
 
     @property
+    def _slurmrestd_user_id(self) -> str:
+        """Return the slurmrestd user ID."""
+        return "64031"
+
+    @property
+    def _slurmrestd_user_name(self) -> str:
+        """Return the slurmrestd user."""
+        return "slurmrestd"
+
+    @property
+    def _slurmrestd_group_id(self) -> str:
+        """Return the slurmrestd group ID."""
+        return "64031"
+
+    @property
+    def _slurmrestd_group_name(self) -> str:
+        """Return the slurmrestd group."""
+        return "slurmrestd"
+
+    @property
     def slurm_component(self) -> str:
         """Return the slurm component we are."""
         return self._slurm_component
+
+    def create_slurmrestd_user_group(self) -> None:
+        """Create the slurmrestd user."""
+
+        logger.info("#### Creating slurmrestd user and group")
+
+        try:
+            subprocess.check_output([
+                "groupadd",
+                "--gid",
+                self._slurmrestd_group_id,
+                self._slurmrestd_group_name
+            ])
+        except subprocess.CalledProcessError as e:
+            if e.returncode == 9:
+                logger.warning("## Group already exists.")
+            else:
+                logger.error(f"## Error creating group: {e}")
+                return False
+
+        try:
+            subprocess.check_output([
+                "adduser",
+                "--system",
+                "--gid", self._slurmrestd_group_id,
+                "--uid", self._slurmrestd_user_id,
+                "--no-create-home",
+                "--home", "/nonexistent",
+                self._slurmrestd_user_name
+            ])
+        except subprocess.CalledProcessError as e:
+            if e.returncode == 9:
+                logger.warning("## User already exists.")
+            else:
+                logger.error(f"## Error creating user: {e}")
+                return False
+
+        logger.info("#### Created slurmrestd user and group")
 
     def create_systemd_override_for_nofile(self):
         """Create the override.conf file for slurm systemd service."""
