@@ -794,6 +794,8 @@ class SlurmOpsManagerBase:
 
         if "slurmd" == self._slurm_component:
             user = f"{self._slurmd_user}:{self._slurmd_group}"
+        elif "slurmrestd" == self._slurm_component:
+            user = f"{self._slurmrestd_user_name}:{self._slurmrestd_group_name}"
         else:
             user = f"{self._slurm_user}:{self._slurm_group}"
 
