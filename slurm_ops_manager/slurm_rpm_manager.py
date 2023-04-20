@@ -105,27 +105,10 @@ class SlurmRpmManager(SlurmOpsManagerBase):
 
         # we need to override the default service unit for slurmrestd only
         if "slurmrestd" == self._slurm_component:
+            self.create_slurmrestd_user_group()
             self.setup_slurmrestd_systemd_unit()
 
         return True
-
-    def _setup_paths(self):
-        """Create needed paths with correct permisions."""
-
-        if "slurmd" == self._slurm_component:
-            user = f"{self._slurmd_user}:{self._slurmd_group}"
-        else:
-            user = f"{self._slurm_user}:{self._slurm_group}"
-
-        all_paths = [
-            self._slurm_conf_dir,
-            self._slurm_state_dir,
-            self._slurm_spool_dir,
-        ]
-        for syspath in all_paths:
-            if not syspath.exists():
-                syspath.mkdir()
-            subprocess.call(["chown", "-R", user, syspath])
 
     def _setup_repo(self, custom_repo: str) -> bool:
         """Set up RPM configuration for slurm rpms.
@@ -179,10 +162,12 @@ class SlurmRpmManager(SlurmOpsManagerBase):
 
         successful_installation = self._install_slurm_from_rpm()
 
-        if self._slurm_component == "slurmctld":
+        # create needed paths with correct permisions
+        self._setup_paths()
+
+        if self._slurm_component in ["slurmctld", "slurmd"]:
             self._setup_plugstack_dir_and_config()
 
-        self._setup_paths()
         self.slurm_systemctl('enable')
 
         return successful_installation
