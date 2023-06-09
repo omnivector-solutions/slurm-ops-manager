@@ -5,6 +5,8 @@ import subprocess
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
+l
+from slurm_ops_manager import utils
 from slurm_ops_manager.slurm_ops_base import SlurmOpsManagerBase
 
 
@@ -17,6 +19,7 @@ class SlurmRpmManager(SlurmOpsManagerBase):
     def __init__(self, component):
         """Set initial attribute values."""
         super().__init__(component)
+        self.package_mgr = "yum" if utils.operating_system() == "centos" else "dnf"
 
     @property
     def _slurm_plugin_dir(self) -> Path:
@@ -29,7 +32,7 @@ class SlurmRpmManager(SlurmOpsManagerBase):
     @property
     def slurm_version(self) -> str:
         """Return slurm verion."""
-        cmd = 'yum info -C slurm | grep "^Version"'
+        cmd = f'{self.package_mgr} info -C slurm | grep "^Version"'
         locale = {'LC_ALL': 'C', 'LANG': 'C.UTF-8'}
         version = subprocess.check_output(cmd, shell=True, env=locale)
         return version.decode().split(":")[-1].strip()
@@ -37,7 +40,7 @@ class SlurmRpmManager(SlurmOpsManagerBase):
     @property
     def munge_version(self) -> str:
         """Return munge verion."""
-        cmd = 'yum info -C munge | grep "^Version"'
+        cmd = f'{self.package_mgr} info -C munge | grep "^Version"'
         locale = {'LC_ALL': 'C', 'LANG': 'C.UTF-8'}
         version = subprocess.check_output(cmd, shell=True, env=locale)
         return version.decode().split(":")[-1].strip()
@@ -51,13 +54,13 @@ class SlurmRpmManager(SlurmOpsManagerBase):
         logger.debug(f"## Installing dependencies for {slurm_component}")
 
         # update/install specific needed dependencies
-        subprocess.check_output(["yum", "install", "--assumeyes",
+        subprocess.check_output([self.package_mgr, "install", "--assumeyes",
                                  "pciutils", "logrotate", "mailx", "munge"])
         subprocess.check_output(["systemctl", "enable", self._munged_systemd_service])
 
         logger.debug(f"## Installing {slurm_component}")
         try:
-            subprocess.check_output(["yum", "install", "--assumeyes",
+            subprocess.check_output([self.package_mgr, "install", "--assumeyes",
                                      f"slurm-{slurm_component}", "slurm"])
         except subprocess.CalledProcessError as e:
             logger.error(f"Error installing {slurm_component} - {e}")
@@ -154,7 +157,7 @@ class SlurmRpmManager(SlurmOpsManagerBase):
         target.write_text(template.render(context))
 
         try:
-            subprocess.check_output(["yum", "makecache"])
+            subprocess.check_output([self.package_mgr, "makecache"])
             return True
         except subprocess.CalledProcessError as e:
             logger.error(f"## Error setting up repo: {e}")
