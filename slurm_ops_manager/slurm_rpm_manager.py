@@ -5,7 +5,6 @@ import subprocess
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
-l
 from slurm_ops_manager import utils
 from slurm_ops_manager.slurm_ops_base import SlurmOpsManagerBase
 
