@@ -24,8 +24,10 @@ PidFile={{ slurmdbd_pid_file }}
 LogFile={{ slurmdbd_log_file }}
 
 StorageType=accounting_storage/mysql
+{% if db_hostname -%}
 StorageHost={{ db_hostname }}
 StoragePort={{ db_port }}
+{% endif -%}
 StoragePass={{ db_password }}
 StorageUser={{ db_username }}
 StorageLoc={{ db_name }}
