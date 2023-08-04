@@ -36,7 +36,7 @@ class SlurmManager(Object):
 
         if operating_system == "ubuntu":
             self._slurm_resource_manager = SlurmDebManager(component)
-        elif operating_system == "centos":
+        elif operating_system == "centos" or operating_system == "rocky":
             self._slurm_resource_manager = SlurmRpmManager(component)
         else:
             raise Exception("Unsupported OS")
