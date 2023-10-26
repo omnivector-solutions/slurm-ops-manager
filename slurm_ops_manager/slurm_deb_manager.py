@@ -54,7 +54,7 @@ class SlurmDebManager(SlurmOpsManagerBase):
         if custom_ppa:
             ppa = custom_ppa
         else:
-            ppa = "ppa:omnivector/osd"
+            ppa = "ppa:ubuntu-hpc/slurm-wlm-23.02"
 
         logger.debug(f"## Adding ppa {ppa}.")
         try:

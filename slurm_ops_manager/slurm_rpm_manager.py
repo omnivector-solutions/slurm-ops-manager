@@ -126,7 +126,7 @@ class SlurmRpmManager(SlurmOpsManagerBase):
                        "baseurl": custom_repo}
         else:
             context = {"title": "omni-stable",
-                       "baseurl": "https://omnivector-solutions.github.io/slurm-repo/23.02.1/centos7/$basearch"} # noqa
+                       "baseurl": "https://omnivector-solutions.github.io/slurm-repo/23.02.6/centos7/$basearch"} # noqa
         logger.debug(f"## Configuring repository for Slurm rpms: {context}")
 
         template_dir = Path(__file__).parent / "templates/"
