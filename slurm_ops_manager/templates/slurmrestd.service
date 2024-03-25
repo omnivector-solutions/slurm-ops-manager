@@ -17,5 +17,9 @@ ExecReload=/bin/kill -HUP $MAINPID
 User=slurmrestd
 Group=slurmrestd
 
+# Restart service if failed
+Restart=on-failure
+RestartSec=30s
+
 [Install]
 WantedBy=multi-user.target
